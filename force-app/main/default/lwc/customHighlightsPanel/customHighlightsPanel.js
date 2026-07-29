@@ -3,10 +3,12 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
+import { loadStyle } from 'lightning/platformResourceLoader';
 
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
 import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
+import HIGHLIGHT_PANEL_WIDE_MODAL from '@salesforce/resourceUrl/highlightPanelWideModal';
 
 import CONTACT_1_PHONE from '@salesforce/schema/Enquiry__c.Contact_1_Phone__c';
 import REQUIREMENT from '@salesforce/schema/Enquiry__c.Requirement__c';
@@ -140,6 +142,22 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     connectedCallback() {
+        this.loadWideModalStyles();
+        this.loadFollowState();
+    }
+
+    loadWideModalStyles() {
+        if (this._wideModalStylesLoaded) {
+            return;
+        }
+        this._wideModalStylesLoaded = true;
+        loadStyle(this, HIGHLIGHT_PANEL_WIDE_MODAL).catch((error) => {
+            // eslint-disable-next-line no-console
+            console.error('Failed to load wide modal styles:', error);
+        });
+    }
+
+    loadFollowState() {
         if (!this.recordId) {
             return;
         }

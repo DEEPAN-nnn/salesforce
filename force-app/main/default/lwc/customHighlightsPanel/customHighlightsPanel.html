@@ -22,18 +22,8 @@
                     {followLabel}
                 </button>
 
-                <!--
-                    Existing org Quick Actions — set data-action to ObjectApiName.ActionApiName
-                    (or Global.ActionApiName). Exact API names must match Setup → Object → Buttons,
-                    Links, and Actions.
-                -->
-                <button
-                    class="hp-btn hp-btn-standard"
-                    data-action="Enquiry__c.Mark_Dead"
-                    onclick={handleQuickAction}
-                >
-                    Mark Dead
-                </button>
+                <!-- Mark Dead: existing LWC in the org (NOT a Quick Action) -->
+                <c-mark-dead-button-flow record-id={recordId}></c-mark-dead-button-flow>
 
                 <template if:true={showGenerateProposalBtn}>
                     <button
