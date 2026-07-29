@@ -18,12 +18,6 @@
                 label="Icon Name"
                 description="SLDS icon, e.g. standard:opportunity"
                 default="standard:opportunity"/>
-            <property
-                name="iconColor"
-                type="String"
-                label="Icon Background Color"
-                description="Hex color for the icon container"
-                default="#5867E8"/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

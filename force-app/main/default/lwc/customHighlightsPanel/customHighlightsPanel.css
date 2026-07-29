@@ -36,11 +36,11 @@
 .hp-icon-container {
     width: 32px;
     height: 32px;
-    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    background: transparent;
 }
 
 .hp-object-label {

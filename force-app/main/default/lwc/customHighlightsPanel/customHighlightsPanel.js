@@ -74,7 +74,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     @api recordId;
     @api objectApiName = OBJECT_API_NAME;
     @api iconName = 'standard:opportunity';
-    @api iconColor = '#5867E8';
 
     @track isFollowLoading = false;
     @track isActionLoading = false;
@@ -158,10 +157,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
     get showCloneItem() {
         return !this.isHiddenProfile;
-    }
-
-    get iconContainerStyle() {
-        return `background-color: ${this.iconColor};`;
     }
 
     get followLabel() {
