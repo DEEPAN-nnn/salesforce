@@ -112,6 +112,9 @@
                     <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
                     <lightning-menu-item value="Global.NewTask" label="New Task"></lightning-menu-item>
                     <lightning-menu-item value="Global.LogACall" label="Log a Call"></lightning-menu-item>
+                    <!-- Chatter Post / Poll (not Quick Actions — custom composers) -->
+                    <lightning-menu-item value="post" label="Post"></lightning-menu-item>
+                    <lightning-menu-item value="poll" label="Poll"></lightning-menu-item>
                     <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
                     <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
                 </lightning-button-menu>
@@ -145,4 +148,81 @@
             </div>
         </div>
     </div>
+
+    <!-- ===================== POST MODAL ===================== -->
+    <template if:true={showPostModal}>
+        <section role="dialog" tabindex="-1" class="hp-modal-backdrop" onclick={closeChatterModals}>
+            <div class="hp-modal" onclick={stopPropagation}>
+                <div class="hp-modal-header">
+                    <h2 class="slds-text-heading_small">Post</h2>
+                    <button class="modal-close-btn" onclick={closeChatterModals} title="Close">&times;</button>
+                </div>
+                <div class="hp-modal-body">
+                    <lightning-textarea
+                        label="Share an update"
+                        value={postBody}
+                        onchange={handlePostBodyChange}
+                        max-length="10000"
+                    ></lightning-textarea>
+                </div>
+                <div class="hp-modal-footer">
+                    <lightning-button label="Cancel" onclick={closeChatterModals}></lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Share"
+                        onclick={submitPost}
+                        disabled={isChatterSaving}
+                        class="slds-m-left_x-small"
+                    ></lightning-button>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- ===================== POLL MODAL ===================== -->
+    <template if:true={showPollModal}>
+        <section role="dialog" tabindex="-1" class="hp-modal-backdrop" onclick={closeChatterModals}>
+            <div class="hp-modal" onclick={stopPropagation}>
+                <div class="hp-modal-header">
+                    <h2 class="slds-text-heading_small">Poll</h2>
+                    <button class="modal-close-btn" onclick={closeChatterModals} title="Close">&times;</button>
+                </div>
+                <div class="hp-modal-body">
+                    <lightning-input
+                        label="Question"
+                        value={pollQuestion}
+                        onchange={handlePollQuestionChange}
+                        class="slds-m-bottom_small"
+                    ></lightning-input>
+                    <template for:each={pollChoices} for:item="choice" for:index="index">
+                        <lightning-input
+                            key={choice.key}
+                            label={choice.label}
+                            data-index={index}
+                            value={choice.value}
+                            onchange={handlePollChoiceChange}
+                            class="slds-m-bottom_x-small"
+                        ></lightning-input>
+                    </template>
+                    <template if:true={canAddPollChoice}>
+                        <lightning-button
+                            label="Add choice"
+                            onclick={addPollChoice}
+                            class="slds-m-top_x-small"
+                        ></lightning-button>
+                    </template>
+                </div>
+                <div class="hp-modal-footer">
+                    <lightning-button label="Cancel" onclick={closeChatterModals}></lightning-button>
+                    <lightning-button
+                        variant="brand"
+                        label="Ask"
+                        onclick={submitPoll}
+                        disabled={isChatterSaving}
+                        class="slds-m-left_x-small"
+                    ></lightning-button>
+                </div>
+            </div>
+        </section>
+    </template>
 </template>

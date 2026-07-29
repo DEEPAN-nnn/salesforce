@@ -19,9 +19,12 @@
 | Log a Call | Yes (overflow) | `Global.LogACall` |
 | Sharing | Yes (overflow) | Quick Action `Enquiry__c.Sharing` |
 | Delete | Yes (overflow) | `deleteRecord` |
-| Post / Poll | **No** | Chatter publisher actions — not available via `NavigationMixin` Quick Action |
+| Post | Yes (overflow) | Custom composer → Chatter feed via Apex |
+| Poll | Yes (overflow) | Custom composer → Chatter poll via Apex |
+| Sharing | Yes (overflow) | Quick Action `Enquiry__c.Sharing` |
+| Delete | Yes (overflow) | `deleteRecord` |
 
-(+ Follow is extra on the custom panel.)
+Requires **Feed Tracking** enabled on `Enquiry__c` for Follow / Post / Poll.
 
 Confirm Quick Action API names in **Setup → Object Manager → Enquiry → Buttons, Links, and Actions** if any button does nothing.
 

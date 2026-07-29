@@ -11,8 +11,6 @@ private class HighlightsPanelControllerTest {
 
     @IsTest
     static void followToggle_worksWhenObjectSupportsSubscriptions() {
-        // Account is always followable in standard orgs; use as smoke test for Apex path.
-        // Enquiry__c follow is exercised in the org against real records.
         Account acc = new Account(Name = 'HP Follow Test');
         insert acc;
 
@@ -36,5 +34,35 @@ private class HighlightsPanelControllerTest {
             threw = true;
         }
         System.assertEquals(true, threw, 'Null recordId should throw AuraHandledException');
+    }
+
+    @IsTest
+    static void createFeedPost_blankBody_throws() {
+        Account acc = new Account(Name = 'HP Post Test');
+        insert acc;
+        Boolean threw = false;
+        try {
+            HighlightsPanelController.createFeedPost(acc.Id, '  ');
+        } catch (AuraHandledException e) {
+            threw = true;
+        }
+        System.assertEquals(true, threw, 'Blank post body should throw');
+    }
+
+    @IsTest
+    static void createFeedPoll_tooFewChoices_throws() {
+        Account acc = new Account(Name = 'HP Poll Test');
+        insert acc;
+        Boolean threw = false;
+        try {
+            HighlightsPanelController.createFeedPoll(
+                acc.Id,
+                'Question?',
+                JSON.serialize(new List<String>{ 'Only one' })
+            );
+        } catch (AuraHandledException e) {
+            threw = true;
+        }
+        System.assertEquals(true, threw, 'Poll with < 2 choices should throw');
     }
 }

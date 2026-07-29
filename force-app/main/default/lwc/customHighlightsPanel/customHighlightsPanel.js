@@ -3,10 +3,13 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
+import { RefreshEvent } from 'lightning/refresh';
 
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
 import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
+import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFeedPost';
+import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
 
 import CONTACT_1_PHONE from '@salesforce/schema/Enquiry__c.Contact_1_Phone__c';
 import REQUIREMENT from '@salesforce/schema/Enquiry__c.Requirement__c';
@@ -33,7 +36,7 @@ const OBJECT_API_NAME = 'Enquiry__c';
 /**
  * VISIBILITY — where these rules came from
  * -----------------------------------------
- * They were NOT imported from Lightning App Builder “eye” filters.
+ * They were NOT imported from Lightning App Builder "eye" filters.
  * App Builder action visibility cannot be read by an LWC.
  *
  * These rules came from YOUR original customHighlightsPanel.js that you pasted:
@@ -49,7 +52,7 @@ const HIDDEN_PROFILE = 'Akshay Madane Profile';
 const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
 
 /** Built-in handlers (not Quick Action API names) */
-const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete']);
+const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete', 'post', 'poll']);
 
 /**
  * NavigationMixin opens Quick Actions in a smaller modal than the standard
@@ -86,6 +89,13 @@ const WIDE_MODAL_CSS = `
 }
 `;
 
+function newPollChoices() {
+    return [
+        { key: 'c0', label: 'Choice 1', value: '' },
+        { key: 'c1', label: 'Choice 2', value: '' }
+    ];
+}
+
 export default class CustomHighlightsPanel extends NavigationMixin(LightningElement) {
     @api recordId;
     @api objectApiName = OBJECT_API_NAME;
@@ -103,6 +113,13 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     @track recordName = '';
     @track profileName = '';
     @track propertySourcingAssistance = false;
+
+    @track showPostModal = false;
+    @track showPollModal = false;
+    @track postBody = '';
+    @track pollQuestion = '';
+    @track pollChoices = newPollChoices();
+    @track isChatterSaving = false;
 
     @wire(getCurrentUserProfileName)
     wiredProfile({ data, error }) {
@@ -175,6 +192,10 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return !this.isHiddenProfile;
     }
 
+    get canAddPollChoice() {
+        return this.pollChoices.length < 10;
+    }
+
     get followLabel() {
         return this.following ? 'Following' : '+ Follow';
     }
@@ -190,10 +211,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         this.loadFollowState();
     }
 
-    /**
-     * Inject global CSS so Quick Action modals open large (like standard HP).
-     * Avoids Static Resource / resourceUrl deploy errors.
-     */
     injectWideModalStyles() {
         try {
             if (document.getElementById(WIDE_MODAL_STYLE_ID)) {
@@ -254,7 +271,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             });
     }
 
-    /** Visible buttons: read data-action="Enquiry__c.Your_Action" */
     handleQuickAction(event) {
         const apiName =
             event.currentTarget?.dataset?.action ||
@@ -262,7 +278,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         this.invokeQuickAction(apiName);
     }
 
-    /** Overflow menu: lightning-button-menu onselect → event.detail.value */
     handleMenuSelect(event) {
         const value = event.detail.value;
         if (!value) {
@@ -273,16 +288,126 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             if (value === 'edit') this.handleEdit();
             else if (value === 'clone') this.handleClone();
             else if (value === 'delete') this.handleDelete();
+            else if (value === 'post') this.openPostModal();
+            else if (value === 'poll') this.openPollModal();
             return;
         }
 
         this.invokeQuickAction(value);
     }
 
-    /**
-     * Opens an existing Quick Action already defined in the org.
-     * apiName: Enquiry__c.Related_Property or Global.LogACall
-     */
+    openPostModal() {
+        this.postBody = '';
+        this.showPollModal = false;
+        this.showPostModal = true;
+    }
+
+    openPollModal() {
+        this.pollQuestion = '';
+        this.pollChoices = newPollChoices();
+        this.showPostModal = false;
+        this.showPollModal = true;
+    }
+
+    closeChatterModals() {
+        this.showPostModal = false;
+        this.showPollModal = false;
+        this.isChatterSaving = false;
+    }
+
+    stopPropagation(event) {
+        event.stopPropagation();
+    }
+
+    handlePostBodyChange(event) {
+        this.postBody = event.target.value;
+    }
+
+    handlePollQuestionChange(event) {
+        this.pollQuestion = event.target.value;
+    }
+
+    handlePollChoiceChange(event) {
+        const index = Number(event.target.dataset.index);
+        const value = event.target.value;
+        this.pollChoices = this.pollChoices.map((choice, i) =>
+            i === index ? { ...choice, value } : choice
+        );
+    }
+
+    addPollChoice() {
+        if (!this.canAddPollChoice) {
+            return;
+        }
+        const next = this.pollChoices.length;
+        this.pollChoices = [
+            ...this.pollChoices,
+            {
+                key: `c${Date.now()}`,
+                label: `Choice ${next + 1}`,
+                value: ''
+            }
+        ];
+    }
+
+    async submitPost() {
+        if (!this.postBody?.trim()) {
+            this.showToast('Error', 'Enter text to share.', 'error');
+            return;
+        }
+        this.isChatterSaving = true;
+        try {
+            await createFeedPost({
+                recordId: this.recordId,
+                body: this.postBody
+            });
+            this.showToast('Success', 'Post shared.', 'success');
+            this.closeChatterModals();
+            this.dispatchEvent(new RefreshEvent());
+        } catch (error) {
+            this.showToast(
+                'Error creating post',
+                this.reduceError(error) || 'Unknown error',
+                'error'
+            );
+        } finally {
+            this.isChatterSaving = false;
+        }
+    }
+
+    async submitPoll() {
+        if (!this.pollQuestion?.trim()) {
+            this.showToast('Error', 'Enter a poll question.', 'error');
+            return;
+        }
+        const choices = this.pollChoices
+            .map((c) => (c.value || '').trim())
+            .filter((v) => v);
+        if (choices.length < 2) {
+            this.showToast('Error', 'Add at least 2 choices.', 'error');
+            return;
+        }
+        this.isChatterSaving = true;
+        try {
+            await createFeedPoll({
+                recordId: this.recordId,
+                question: this.pollQuestion,
+                choicesJson: JSON.stringify(choices)
+            });
+            this.showToast('Success', 'Poll posted.', 'success');
+            this.closeChatterModals();
+            this.dispatchEvent(new RefreshEvent());
+        } catch (error) {
+            this.showToast(
+                'Error creating poll',
+                this.reduceError(error) || 'Unknown error',
+                'error'
+            );
+        } finally {
+            this.isChatterSaving = false;
+        }
+    }
+
     invokeQuickAction(apiName) {
         if (!apiName) {
             this.showToast('Error', 'Quick Action API name is missing.', 'error');
@@ -293,7 +418,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             return;
         }
 
-        // Ensure wide styles are present before the QA modal paints
         this.injectWideModalStyles();
         this.isActionLoading = true;
 
@@ -307,7 +431,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             }
         });
 
-        // Navigate does not always return a usable Promise in LEX
         // eslint-disable-next-line @lwc/lwc/no-async-operation
         window.setTimeout(() => {
             this.isActionLoading = false;
