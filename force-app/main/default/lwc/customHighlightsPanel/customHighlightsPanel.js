@@ -3,6 +3,7 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
+import FORM_FACTOR from '@salesforce/client/formFactor';
 import { RefreshEvent } from 'lightning/refresh';
 
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
@@ -34,19 +35,29 @@ const FIELDS = [
 const OBJECT_API_NAME = 'Enquiry__c';
 
 /**
- * VISIBILITY — where these rules came from
- * -----------------------------------------
- * They were NOT imported from Lightning App Builder "eye" filters.
- * App Builder action visibility cannot be read by an LWC.
+ * VISIBILITY — matched to Lightning App Builder action filters:
  *
- * These rules came from YOUR original customHighlightsPanel.js that you pasted:
- *  - Hide several actions for profile "Akshay Madane Profile"
- *  - Hide Assign/Change Assistant for "Transaction Manager - HYD"
- *  - Assign vs Change Assistant based on Property_Sourcing_Assistance__c
- *  - Merge Enquiry only for System Administrator
+ * Generate Proposal / Related Property / Update Location /
+ * Delete Related List / Edit / Clone:
+ *   User > Profile > Name Not Equal "Akshay Madane Profile"
  *
- * If your App Builder orange-eye filters use different criteria, update the
- * getters below to match those filters manually.
+ * Assign Assistant (ALL filters true):
+ *   Record > Property Sourcing Assistance Equal false
+ *   User > Profile > Name Not Equal "Transaction Manager - HYD"
+ *
+ * Change Property Assistant (ALL filters true):
+ *   Record > Property Sourcing Assistance Equal true
+ *   User > Profile > Name Not Equal "Transaction Manager - HYD"
+ *
+ * Merge Enquiry:
+ *   User > Profile > Name Equal "System Administrator"
+ *
+ * Post / Poll:
+ *   Mobile only (App Builder phone icon = Form Factor Phone).
+ *   FORM_FACTOR: Small=Phone, Medium=Tablet, Large=Desktop
+ *
+ * Mark dead / New Event / New Task / Log a Call / Sharing / Delete:
+ *   No visibility filter (always shown)
  */
 const HIDDEN_PROFILE = 'Akshay Madane Profile';
 const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
@@ -190,6 +201,15 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
     get showCloneItem() {
         return !this.isHiddenProfile;
+    }
+
+    /** App Builder: Post/Poll phone icon = mobile form factor only */
+    get showPostPoll() {
+        return FORM_FACTOR === 'Small';
+    }
+
+    get isDesktop() {
+        return FORM_FACTOR === 'Large';
     }
 
     get canAddPollChoice() {

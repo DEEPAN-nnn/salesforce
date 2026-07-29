@@ -1,46 +1,38 @@
 # Custom Highlights Panel — actions & visibility
 
-## Actions imported from your standard Highlights Panel
+## What the mobile icon means (Post / Poll)
 
-| Standard action | In custom panel | How it runs |
+In App Builder, the **phone icon** means that action is set for **Phone form factor only**.
+It will not show on desktop in the standard Highlights Panel.
+
+In our LWC we mirror that with:
+
+```javascript
+import FORM_FACTOR from '@salesforce/client/formFactor';
+// Small = Phone, Medium = Tablet, Large = Desktop
+get showPostPoll() {
+    return FORM_FACTOR === 'Small';
+}
+```
+
+So **Post / Poll appear only on mobile** in the custom panel too.
+
+## Visibility conditions (from your App Builder screenshots)
+
+| Action | App Builder filter | Implemented as |
 |---|---|---|
-| Mark dead | Yes | Existing LWC `c-mark-dead-button-flow` |
-| Generate Proposal | Yes | Quick Action `Enquiry__c.Generate_Proposal` |
-| Related Property | Yes | Quick Action `Enquiry__c.Related_Property` |
-| Assign Assistant | Yes | Quick Action `Enquiry__c.Assign_Assistant` |
-| Change Property Assistant | Yes | Quick Action `Enquiry__c.Change_Property_Assistant` |
-| Update Location | Yes | Quick Action `Enquiry__c.Update_Location` |
-| Delete Related List | Yes (overflow) | Quick Action `Enquiry__c.Delete_Related_List` |
-| Edit | Yes (overflow) | Standard record edit |
-| Clone | Yes (overflow) | Standard record clone |
-| Merge Enquiry | Yes (overflow) | Quick Action `Enquiry__c.Merge_Enquiry` |
-| New Event | Yes (overflow) | `Global.NewEvent` |
-| New Task | Yes (overflow) | `Global.NewTask` |
-| Log a Call | Yes (overflow) | `Global.LogACall` |
-| Sharing | Yes (overflow) | Quick Action `Enquiry__c.Sharing` |
-| Delete | Yes (overflow) | `deleteRecord` |
-| Post | Yes (overflow) | Custom composer → Chatter feed via Apex |
-| Poll | Yes (overflow) | Custom composer → Chatter poll via Apex |
-| Sharing | Yes (overflow) | Quick Action `Enquiry__c.Sharing` |
-| Delete | Yes (overflow) | `deleteRecord` |
+| Generate Proposal | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Related Property | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Update Location | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Delete Related List | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Edit | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Clone | Profile ≠ Akshay Madane Profile | `!isHiddenProfile` |
+| Assign Assistant | Property Sourcing Assistance = false **AND** Profile ≠ Transaction Manager - HYD | `showAssignAssistant` |
+| Change Property Assistant | Property Sourcing Assistance = true **AND** Profile ≠ Transaction Manager - HYD | `showChangePropertyAssistant` |
+| Merge Enquiry | Profile = System Administrator | `showMergeEnquiry` |
+| Post / Poll | Phone form factor only | `showPostPoll` (FORM_FACTOR === 'Small') |
+| Mark dead, New Event/Task, Log a Call, Sharing, Delete | No filter | Always shown |
 
-Requires **Feed Tracking** enabled on `Enquiry__c` for Follow / Post / Poll.
+## Deploy
 
-Confirm Quick Action API names in **Setup → Object Manager → Enquiry → Buttons, Links, and Actions** if any button does nothing.
-
-## Visibility conditions — where they came from
-
-**We did not import the orange eye filters from App Builder.**  
-Those filters live only on the Lightning page and cannot be read by LWC.
-
-Visibility in this component came from **your original LWC code** you pasted earlier:
-
-| Action | Custom panel rule (from your JS) |
-|---|---|
-| Generate Proposal, Related Property, Update Location, Delete Related List, Edit, Clone | Hidden when profile = `Akshay Madane Profile` |
-| Assign Assistant | Shown when `Property_Sourcing_Assistance__c` is false AND profile ≠ `Transaction Manager - HYD` |
-| Change Property Assistant | Shown when `Property_Sourcing_Assistance__c` is true AND profile ≠ `Transaction Manager - HYD` |
-| Merge Enquiry | Shown only for `System Administrator` |
-| Mark dead, New Event/Task, Log a Call, Sharing, Delete | Always shown (same as no eye icon on standard) |
-
-If App Builder filters are different, open each action’s filter in App Builder and update the matching getter in `customHighlightsPanel.js`.
+Redeploy LWC `customHighlightsPanel` (+ Apex if Post/Poll composers not deployed yet).
