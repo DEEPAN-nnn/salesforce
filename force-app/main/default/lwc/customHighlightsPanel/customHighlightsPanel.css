@@ -1,0 +1,136 @@
+.hp-wrapper {
+    position: relative;
+    background: #ffffff;
+    border-bottom: 1px solid #dddbda;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+}
+
+.hp-spinner-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #f3f6f9;
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.hp-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.hp-icon-container {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hp-object-label {
+    font-size: 0.72rem;
+    color: #3e3e3c;
+    line-height: 1.2;
+}
+
+.hp-record-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #080707;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.hp-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.hp-btn {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.hp-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.hp-btn-follow {
+    background: #ffffff;
+    border: 1px solid #0176d3;
+    color: #0176d3;
+}
+
+.hp-btn-follow:hover:not(:disabled) {
+    background: #f0f7ff;
+}
+
+.hp-btn-following {
+    background: #f3f3f3;
+    border: 1px solid #dddbda;
+    color: #3e3e3c;
+}
+
+.hp-btn-following:hover:not(:disabled) {
+    background: #e8e8e8;
+}
+
+.hp-btn-standard {
+    color: #0176d3;
+    border: 1px solid #dddbda;
+    background: #ffffff;
+}
+
+.hp-btn-standard:hover {
+    background: #f3f3f3;
+}
+
+.hp-fields {
+    display: flex;
+    gap: 0;
+    background: #ffffff;
+    padding: 8px 16px;
+    flex-wrap: wrap;
+}
+
+.hp-field {
+    padding: 4px 24px 4px 0;
+    min-width: 120px;
+}
+
+.hp-field-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+    font-weight: 400;
+    margin-bottom: 2px;
+}
+
+.hp-field-value {
+    font-size: 0.78rem;
+    color: #181818;
+    font-weight: 400;
+}

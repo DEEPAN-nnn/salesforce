@@ -1,0 +1,152 @@
+<template>
+    <div class="hp-wrapper">
+        <template if:true={isActionLoading}>
+            <div class="hp-spinner-overlay">
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <div class="hp-header">
+            <div class="hp-title-wrap">
+                <span class="hp-icon-container" style={iconContainerStyle}>
+                    <lightning-icon icon-name={iconName} size="small" variant="inverse"></lightning-icon>
+                </span>
+                <div class="hp-title-text">
+                    <div class="hp-object-label">Sales Funnel</div>
+                    <div class="hp-record-name">{recordName}</div>
+                </div>
+            </div>
+
+            <div class="hp-actions">
+                <button class={followClass} onclick={handleFollow} disabled={isFollowLoading}>
+                    {followLabel}
+                </button>
+
+                <!--
+                    Existing org Quick Actions — set data-action to ObjectApiName.ActionApiName
+                    (or Global.ActionApiName). Exact API names must match Setup → Object → Buttons,
+                    Links, and Actions.
+                -->
+                <button
+                    class="hp-btn hp-btn-standard"
+                    data-action="Enquiry__c.Mark_Dead"
+                    onclick={handleQuickAction}
+                >
+                    Mark Dead
+                </button>
+
+                <template if:true={showGenerateProposalBtn}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Generate_Proposal"
+                        onclick={handleQuickAction}
+                    >
+                        Generate Proposal
+                    </button>
+                </template>
+
+                <template if:true={showRelatedPropertyBtn}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Related_Property"
+                        onclick={handleQuickAction}
+                    >
+                        Related Property
+                    </button>
+                </template>
+
+                <template if:true={showAssignAssistant}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Assign_Assistant"
+                        onclick={handleQuickAction}
+                    >
+                        Assign Assistant
+                    </button>
+                </template>
+
+                <template if:true={showChangePropertyAssistant}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Change_Property_Assistant"
+                        onclick={handleQuickAction}
+                    >
+                        Change Property Assistant
+                    </button>
+                </template>
+
+                <template if:true={showUpdateLocationBtn}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Update_Location"
+                        onclick={handleQuickAction}
+                    >
+                        Update Location
+                    </button>
+                </template>
+
+                <!-- Overflow: use onselect so menu value is passed correctly -->
+                <lightning-button-menu
+                    alternative-text="Show more actions"
+                    menu-alignment="right"
+                    icon-size="small"
+                    onselect={handleMenuSelect}
+                >
+                    <template if:true={showDeleteRelatedListItem}>
+                        <lightning-menu-item
+                            value="Enquiry__c.Delete_Related_List"
+                            label="Delete Related List"
+                        ></lightning-menu-item>
+                    </template>
+                    <template if:true={showEditItem}>
+                        <lightning-menu-item value="edit" label="Edit"></lightning-menu-item>
+                    </template>
+                    <template if:true={showCloneItem}>
+                        <lightning-menu-item value="clone" label="Clone"></lightning-menu-item>
+                    </template>
+
+                    <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
+
+                    <template if:true={showMergeEnquiry}>
+                        <lightning-menu-item
+                            value="Enquiry__c.Merge_Enquiry"
+                            label="Merge Enquiry"
+                        ></lightning-menu-item>
+                    </template>
+
+                    <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
+                    <lightning-menu-item value="Global.NewTask" label="New Task"></lightning-menu-item>
+                    <lightning-menu-item value="Global.LogACall" label="Log a Call"></lightning-menu-item>
+                    <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
+                </lightning-button-menu>
+            </div>
+        </div>
+
+        <div class="hp-fields">
+            <div class="hp-field">
+                <div class="hp-field-label">Contact 1 Phone</div>
+                <div class="hp-field-value">{contactPhone}</div>
+            </div>
+            <div class="hp-field">
+                <div class="hp-field-label">Requirement</div>
+                <div class="hp-field-value">{requirement}</div>
+            </div>
+            <div class="hp-field">
+                <div class="hp-field-label">Sub-Location</div>
+                <div class="hp-field-value">{subLocation}</div>
+            </div>
+            <div class="hp-field">
+                <div class="hp-field-label">Stage</div>
+                <div class="hp-field-value">{currentStatus}</div>
+            </div>
+            <div class="hp-field">
+                <div class="hp-field-label">Action</div>
+                <div class="hp-field-value">{stage}</div>
+            </div>
+            <div class="hp-field">
+                <div class="hp-field-label">Channels</div>
+                <div class="hp-field-value">{channel}</div>
+            </div>
+        </div>
+    </div>
+</template>

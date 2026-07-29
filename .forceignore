@@ -1,0 +1,8 @@
+**/*.ts
+**/*.tsx
+**/*-meta.xml.bak
+**/jsconfig.json
+**/.eslintrc.json
+**/__tests__/**
+.sfdx
+.sf
