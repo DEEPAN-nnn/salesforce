@@ -17,12 +17,20 @@
                 </div>
             </div>
 
+            <!--
+                Actions mirrored from standard Dynamic Highlights Panel (App Builder).
+                Order matches: Mark dead → Generate Proposal → Related Property →
+                Assign/Change Assistant → Update Location → (overflow) rest.
+
+                Visibility: implemented in JS (NOT imported from App Builder eye icons).
+                App Builder filters cannot be read by LWC — see JS comments.
+            -->
             <div class="hp-actions">
                 <button class={followClass} onclick={handleFollow} disabled={isFollowLoading}>
                     {followLabel}
                 </button>
 
-                <!-- Mark Dead: existing LWC in the org (NOT a Quick Action) -->
+                <!-- Mark dead — existing LWC (no App Builder visibility on standard panel) -->
                 <c-mark-dead-button-flow record-id={recordId}></c-mark-dead-button-flow>
 
                 <template if:true={showGenerateProposalBtn}>
@@ -75,7 +83,6 @@
                     </button>
                 </template>
 
-                <!-- Overflow: use onselect so menu value is passed correctly -->
                 <lightning-button-menu
                     alternative-text="Show more actions"
                     menu-alignment="right"
@@ -94,9 +101,6 @@
                     <template if:true={showCloneItem}>
                         <lightning-menu-item value="clone" label="Clone"></lightning-menu-item>
                     </template>
-
-                    <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
-
                     <template if:true={showMergeEnquiry}>
                         <lightning-menu-item
                             value="Enquiry__c.Merge_Enquiry"
@@ -104,10 +108,12 @@
                         ></lightning-menu-item>
                     </template>
 
-                    <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
+                    <!-- No App Builder visibility on standard panel -->
+                    <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
                     <lightning-menu-item value="Global.NewTask" label="New Task"></lightning-menu-item>
                     <lightning-menu-item value="Global.LogACall" label="Log a Call"></lightning-menu-item>
-                    <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
+                    <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
+                    <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
                 </lightning-button-menu>
             </div>
         </div>

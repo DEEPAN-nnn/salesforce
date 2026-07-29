@@ -1,35 +1,43 @@
-# Custom Highlights Panel
+# Custom Highlights Panel — actions & visibility
 
-## Deploy error fixed
+## Actions imported from your standard Highlights Panel
 
-Do **not** import `@salesforce/resourceUrl/highlightPanelWideModal`.
-That caused: `Invalid reference highlightPanelWideModal of type resourceUrl`.
+| Standard action | In custom panel | How it runs |
+|---|---|---|
+| Mark dead | Yes | Existing LWC `c-mark-dead-button-flow` |
+| Generate Proposal | Yes | Quick Action `Enquiry__c.Generate_Proposal` |
+| Related Property | Yes | Quick Action `Enquiry__c.Related_Property` |
+| Assign Assistant | Yes | Quick Action `Enquiry__c.Assign_Assistant` |
+| Change Property Assistant | Yes | Quick Action `Enquiry__c.Change_Property_Assistant` |
+| Update Location | Yes | Quick Action `Enquiry__c.Update_Location` |
+| Delete Related List | Yes (overflow) | Quick Action `Enquiry__c.Delete_Related_List` |
+| Edit | Yes (overflow) | Standard record edit |
+| Clone | Yes (overflow) | Standard record clone |
+| Merge Enquiry | Yes (overflow) | Quick Action `Enquiry__c.Merge_Enquiry` |
+| New Event | Yes (overflow) | `Global.NewEvent` |
+| New Task | Yes (overflow) | `Global.NewTask` |
+| Log a Call | Yes (overflow) | `Global.LogACall` |
+| Sharing | Yes (overflow) | Quick Action `Enquiry__c.Sharing` |
+| Delete | Yes (overflow) | `deleteRecord` |
+| Post / Poll | **No** | Chatter publisher actions — not available via `NavigationMixin` Quick Action |
 
-Wide modals are done by injecting CSS in JS (no Static Resource).
+(+ Follow is extra on the custom panel.)
 
-## What to update in your org component
+Confirm Quick Action API names in **Setup → Object Manager → Enquiry → Buttons, Links, and Actions** if any button does nothing.
 
-In `customHighLightPanel.js` (your org name), **remove these lines** if present:
+## Visibility conditions — where they came from
 
-```javascript
-import { loadStyle } from 'lightning/platformResourceLoader';
-import HIGHLIGHT_PANEL_WIDE_MODAL from '@salesforce/resourceUrl/highlightPanelWideModal';
-```
+**We did not import the orange eye filters from App Builder.**  
+Those filters live only on the Lightning page and cannot be read by LWC.
 
-And replace the `loadStyle(...)` / `loadWideModalStyles` logic with `injectWideModalStyles()` from the repo JS.
+Visibility in this component came from **your original LWC code** you pasted earlier:
 
-## Why standard is big and custom was small
+| Action | Custom panel rule (from your JS) |
+|---|---|
+| Generate Proposal, Related Property, Update Location, Delete Related List, Edit, Clone | Hidden when profile = `Akshay Madane Profile` |
+| Assign Assistant | Shown when `Property_Sourcing_Assistance__c` is false AND profile ≠ `Transaction Manager - HYD` |
+| Change Property Assistant | Shown when `Property_Sourcing_Assistance__c` is true AND profile ≠ `Transaction Manager - HYD` |
+| Merge Enquiry | Shown only for `System Administrator` |
+| Mark dead, New Event/Task, Log a Call, Sharing, Delete | Always shown (same as no eye icon on standard) |
 
-`NavigationMixin` + `standard__quickAction` opens a smaller modal than the standard Highlights Panel. The panel injects CSS so `.slds-modal__container` uses ~90vw (large).
-
-## Mark Dead
-
-```html
-<c-mark-dead-button-flow record-id={recordId}></c-mark-dead-button-flow>
-```
-
-## Deploy only the LWC (+ Apex if needed)
-
-```bash
-sf project deploy start --source-dir force-app/main/default/lwc/customHighlightsPanel
-```
+If App Builder filters are different, open each action’s filter in App Builder and update the matching getter in `customHighlightsPanel.js`.

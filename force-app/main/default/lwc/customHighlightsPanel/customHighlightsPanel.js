@@ -29,6 +29,22 @@ const FIELDS = [
 ];
 
 const OBJECT_API_NAME = 'Enquiry__c';
+
+/**
+ * VISIBILITY — where these rules came from
+ * -----------------------------------------
+ * They were NOT imported from Lightning App Builder “eye” filters.
+ * App Builder action visibility cannot be read by an LWC.
+ *
+ * These rules came from YOUR original customHighlightsPanel.js that you pasted:
+ *  - Hide several actions for profile "Akshay Madane Profile"
+ *  - Hide Assign/Change Assistant for "Transaction Manager - HYD"
+ *  - Assign vs Change Assistant based on Property_Sourcing_Assistance__c
+ *  - Merge Enquiry only for System Administrator
+ *
+ * If your App Builder orange-eye filters use different criteria, update the
+ * getters below to match those filters manually.
+ */
 const HIDDEN_PROFILE = 'Akshay Madane Profile';
 const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
 
