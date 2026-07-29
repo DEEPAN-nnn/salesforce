@@ -12,25 +12,36 @@ import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelControlle
 import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFeedPost';
 import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
 
-import CONTACT_1_PHONE from '@salesforce/schema/Enquiry__c.Contact_1_Phone__c';
-import REQUIREMENT from '@salesforce/schema/Enquiry__c.Requirement__c';
-import SUB_LOCATION from '@salesforce/schema/Enquiry__c.Sub_Location__c';
-import CURRENT_STATUS from '@salesforce/schema/Enquiry__c.Current_Status__c';
-import STAGE from '@salesforce/schema/Enquiry__c.Stage__c';
-import CHANNEL from '@salesforce/schema/Enquiry__c.Channel__c';
-import NAME from '@salesforce/schema/Enquiry__c.Name';
-import PROPERTY_SOURCING_ASSISTANCE from '@salesforce/schema/Enquiry__c.Property_Sourcing_Assistance__c';
+/**
+ * Use string field API names (not @salesforce/schema imports) so deploy does not
+ * fail when a field API name differs or the LWC editor schema check is strict.
+ * Put less-certain fields in OPTIONAL_FIELDS so missing ones do not break the wire.
+ *
+ * Verify exact API names in Setup → Object Manager → Enquiry → Fields.
+ * If Sub-Location uses a different API name, update SUB_LOCATION_FIELD below.
+ */
+const OBJECT = 'Enquiry__c';
+const NAME_FIELD = `${OBJECT}.Name`;
+const CONTACT_PHONE_FIELD = `${OBJECT}.Contact_1_Phone__c`;
+const REQUIREMENT_FIELD = `${OBJECT}.Requirement__c`;
+const SUB_LOCATION_FIELD = `${OBJECT}.Sub_Location__c`; // change if Object Manager shows another name
+const CURRENT_STATUS_FIELD = `${OBJECT}.Current_Status__c`;
+const STAGE_FIELD = `${OBJECT}.Stage__c`;
+const CHANNEL_FIELD = `${OBJECT}.Channel__c`;
+const PROPERTY_SOURCING_FIELD = `${OBJECT}.Property_Sourcing_Assistance__c`;
 
-const FIELDS = [
-    CONTACT_1_PHONE,
-    REQUIREMENT,
-    SUB_LOCATION,
-    CURRENT_STATUS,
-    STAGE,
-    CHANNEL,
-    NAME,
-    PROPERTY_SOURCING_ASSISTANCE
+const FIELDS = [NAME_FIELD];
+
+const OPTIONAL_FIELDS = [
+    CONTACT_PHONE_FIELD,
+    REQUIREMENT_FIELD,
+    SUB_LOCATION_FIELD,
+    CURRENT_STATUS_FIELD,
+    STAGE_FIELD,
+    CHANNEL_FIELD,
+    PROPERTY_SOURCING_FIELD
 ];
+
 
 const OBJECT_API_NAME = 'Enquiry__c';
 
@@ -142,19 +153,19 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         }
     }
 
-    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
+    @wire(getRecord, { recordId: '$recordId', fields: FIELDS, optionalFields: OPTIONAL_FIELDS })
     wiredRecord({ error, data }) {
         if (data) {
-            this.recordName = getFieldValue(data, NAME) || '';
-            this.contactPhone = getFieldValue(data, CONTACT_1_PHONE) || '';
-            this.requirement = getFieldValue(data, REQUIREMENT) || '';
-            this.subLocation = getFieldValue(data, SUB_LOCATION) || '';
-            this.currentStatus = getFieldValue(data, CURRENT_STATUS) || '';
-            this.stage = getFieldValue(data, STAGE) || '';
-            this.channel = getFieldValue(data, CHANNEL) || '';
+            this.recordName = getFieldValue(data, NAME_FIELD) || '';
+            this.contactPhone = getFieldValue(data, CONTACT_PHONE_FIELD) || '';
+            this.requirement = getFieldValue(data, REQUIREMENT_FIELD) || '';
+            this.subLocation = getFieldValue(data, SUB_LOCATION_FIELD) || '';
+            this.currentStatus = getFieldValue(data, CURRENT_STATUS_FIELD) || '';
+            this.stage = getFieldValue(data, STAGE_FIELD) || '';
+            this.channel = getFieldValue(data, CHANNEL_FIELD) || '';
             this.propertySourcingAssistance = !!getFieldValue(
                 data,
-                PROPERTY_SOURCING_ASSISTANCE
+                PROPERTY_SOURCING_FIELD
             );
         } else if (error) {
             // eslint-disable-next-line no-console
