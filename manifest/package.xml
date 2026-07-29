@@ -9,5 +9,9 @@
         <members>customHighlightsPanel</members>
         <name>LightningComponentBundle</name>
     </types>
+    <types>
+        <members>highlightPanelWideModal</members>
+        <name>StaticResource</name>
+    </types>
     <version>62.0</version>
 </Package>
