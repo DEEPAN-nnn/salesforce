@@ -3,12 +3,10 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
-import { loadStyle } from 'lightning/platformResourceLoader';
 
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
 import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
-import HIGHLIGHT_PANEL_WIDE_MODAL from '@salesforce/resourceUrl/highlightPanelWideModal';
 
 import CONTACT_1_PHONE from '@salesforce/schema/Enquiry__c.Contact_1_Phone__c';
 import REQUIREMENT from '@salesforce/schema/Enquiry__c.Requirement__c';
@@ -36,6 +34,41 @@ const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
 
 /** Built-in handlers (not Quick Action API names) */
 const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete']);
+
+/**
+ * NavigationMixin opens Quick Actions in a smaller modal than the standard
+ * Highlights Panel. Inject page-level CSS (no Static Resource) so QA modals
+ * match the large standard size. No @salesforce/resourceUrl needed.
+ */
+const WIDE_MODAL_STYLE_ID = 'customHighlightsPanelWideModal';
+const WIDE_MODAL_CSS = `
+.slds-modal__container {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    min-width: 70vw !important;
+    max-height: 90vh !important;
+}
+.slds-modal_small .slds-modal__container,
+.slds-modal_medium .slds-modal__container,
+.slds-modal_large .slds-modal__container {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    min-width: 70vw !important;
+    max-height: 90vh !important;
+}
+.slds-modal__content {
+    max-height: calc(90vh - 8rem) !important;
+}
+.runtime_platform_actionsQuickActionWrapper .slds-modal__container,
+.forceModal .slds-modal__container,
+.uiModal .modal-container,
+.uiModal--horizontalForm .modal-container {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    min-width: 70vw !important;
+    max-height: 90vh !important;
+}
+`;
 
 export default class CustomHighlightsPanel extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -142,19 +175,30 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     connectedCallback() {
-        this.loadWideModalStyles();
+        this.injectWideModalStyles();
         this.loadFollowState();
     }
 
-    loadWideModalStyles() {
-        if (this._wideModalStylesLoaded) {
-            return;
-        }
-        this._wideModalStylesLoaded = true;
-        loadStyle(this, HIGHLIGHT_PANEL_WIDE_MODAL).catch((error) => {
+    /**
+     * Inject global CSS so Quick Action modals open large (like standard HP).
+     * Avoids Static Resource / resourceUrl deploy errors.
+     */
+    injectWideModalStyles() {
+        try {
+            if (document.getElementById(WIDE_MODAL_STYLE_ID)) {
+                return;
+            }
+            const styleEl = document.createElement('style');
+            styleEl.id = WIDE_MODAL_STYLE_ID;
+            styleEl.textContent = WIDE_MODAL_CSS;
+            const parent = document.head || document.body;
+            if (parent) {
+                parent.appendChild(styleEl);
+            }
+        } catch (e) {
             // eslint-disable-next-line no-console
-            console.error('Failed to load wide modal styles:', error);
-        });
+            console.error('Wide modal style inject failed:', e);
+        }
     }
 
     loadFollowState() {
@@ -226,12 +270,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
 
     /**
      * Opens an existing Quick Action already defined in the org.
-     *
-     * apiName format:
-     *   - Object action:  Enquiry__c.Related_Property
-     *   - Global action:  Global.LogACall
-     *
-     * recordId in state is required so the action opens in record context.
+     * apiName: Enquiry__c.Related_Property or Global.LogACall
      */
     invokeQuickAction(apiName) {
         if (!apiName) {
@@ -243,6 +282,8 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             return;
         }
 
+        // Ensure wide styles are present before the QA modal paints
+        this.injectWideModalStyles();
         this.isActionLoading = true;
 
         this[NavigationMixin.Navigate]({

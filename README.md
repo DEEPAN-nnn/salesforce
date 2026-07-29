@@ -1,37 +1,35 @@
 # Custom Highlights Panel
 
-LWC for `Enquiry__c` that looks like the standard highlight panel and opens **existing Quick Actions** already in your org.
+## Deploy error fixed
 
-## Mark Dead = existing LWC (not a Quick Action)
+Do **not** import `@salesforce/resourceUrl/highlightPanelWideModal`.
+That caused: `Invalid reference highlightPanelWideModal of type resourceUrl`.
+
+Wide modals are done by injecting CSS in JS (no Static Resource).
+
+## What to update in your org component
+
+In `customHighLightPanel.js` (your org name), **remove these lines** if present:
+
+```javascript
+import { loadStyle } from 'lightning/platformResourceLoader';
+import HIGHLIGHT_PANEL_WIDE_MODAL from '@salesforce/resourceUrl/highlightPanelWideModal';
+```
+
+And replace the `loadStyle(...)` / `loadWideModalStyles` logic with `injectWideModalStyles()` from the repo JS.
+
+## Why standard is big and custom was small
+
+`NavigationMixin` + `standard__quickAction` opens a smaller modal than the standard Highlights Panel. The panel injects CSS so `.slds-modal__container` uses ~90vw (large).
+
+## Mark Dead
 
 ```html
 <c-mark-dead-button-flow record-id={recordId}></c-mark-dead-button-flow>
 ```
 
-`markDeadButtonFlow` must already exist in your org. Do not replace it with a Quick Action.
-
-## Call other existing Quick Actions
-
-```javascript
-this[NavigationMixin.Navigate]({
-    type: 'standard__quickAction',
-    attributes: {
-        apiName: 'Enquiry__c.Related_Property'
-    },
-    state: {
-        recordId: this.recordId
-    }
-});
-```
-
-## Larger Quick Action modals
-
-`NavigationMixin` often opens Quick Actions in a smaller panel than the standard Highlights Panel. This project loads static resource `highlightPanelWideModal` via `loadStyle` so action modals use ~90vw width / 90vh height.
-
-## Deploy
+## Deploy only the LWC (+ Apex if needed)
 
 ```bash
-sf project deploy start --manifest manifest/package.xml
+sf project deploy start --source-dir force-app/main/default/lwc/customHighlightsPanel
 ```
-
-Requires existing org LWC: `markDeadButtonFlow`.
