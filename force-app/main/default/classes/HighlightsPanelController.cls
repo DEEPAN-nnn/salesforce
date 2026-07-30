@@ -3,6 +3,8 @@
  * - Follow / Unfollow via EntitySubscription
  * - Current user profile name for action visibility
  * - Chatter Post / Poll (standard Highlights Panel actions)
+ *
+ * Set class API version to 59.0 or higher (Developer Console → Version Settings).
  */
 public with sharing class HighlightsPanelController {
     @AuraEnabled(cacheable=true)
@@ -30,10 +32,6 @@ public with sharing class HighlightsPanelController {
             .size() > 0;
     }
 
-    /**
-     * Toggle follow state for the current user on the given record.
-     * @return true if now following, false if unfollowed
-     */
     @AuraEnabled
     public static Boolean toggleFollow(Id recordId) {
         if (recordId == null) {
@@ -59,10 +57,6 @@ public with sharing class HighlightsPanelController {
         return true;
     }
 
-    /**
-     * Create a Chatter text post on the record feed (standard "Post" action).
-     * Requires Feed Tracking enabled on the object.
-     */
     @AuraEnabled
     public static void createFeedPost(Id recordId, String body) {
         if (recordId == null) {
@@ -73,20 +67,20 @@ public with sharing class HighlightsPanelController {
         }
 
         try {
-            ConnectApi.FeedItemInput feedItem = new ConnectApi.FeedItemInput();
-            ConnectApi.MessageBodyInput messageBody = new ConnectApi.MessageBodyInput();
+            ConnectApi.FeedItemInput input = new ConnectApi.FeedItemInput();
+            ConnectApi.MessageBodyInput bodyInput = new ConnectApi.MessageBodyInput();
             ConnectApi.TextSegmentInput textSegment = new ConnectApi.TextSegmentInput();
             textSegment.text = body.trim();
-            messageBody.messageSegments = new List<ConnectApi.MessageSegmentInput>{
+            bodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>{
                 textSegment
             };
-            feedItem.body = messageBody;
-            feedItem.feedElementType = ConnectApi.FeedElementType.FeedItem;
-            feedItem.subjectId = recordId;
+            input.body = bodyInput;
+            input.feedElementType = ConnectApi.FeedElementType.FeedItem;
+            input.subjectId = recordId;
 
             ConnectApi.ChatterFeeds.postFeedElement(
                 Network.getNetworkId(),
-                feedItem
+                input
             );
         } catch (Exception e) {
             throw new AuraHandledException(
@@ -96,10 +90,6 @@ public with sharing class HighlightsPanelController {
         }
     }
 
-    /**
-     * Create a Chatter poll on the record feed (standard "Poll" action).
-     * choicesJson: JSON array of strings, 2–10 choices.
-     */
     @AuraEnabled
     public static void createFeedPoll(
         Id recordId,
@@ -125,9 +115,9 @@ public with sharing class HighlightsPanelController {
 
         List<String> cleaned = new List<String>();
         if (choices != null) {
-            for (String c : choices) {
-                if (String.isNotBlank(c)) {
-                    cleaned.add(c.trim());
+            for (String choiceText : choices) {
+                if (String.isNotBlank(choiceText)) {
+                    cleaned.add(choiceText.trim());
                 }
             }
         }
@@ -139,29 +129,29 @@ public with sharing class HighlightsPanelController {
         }
 
         try {
-            ConnectApi.FeedItemInput feedItem = new ConnectApi.FeedItemInput();
-            ConnectApi.MessageBodyInput messageBody = new ConnectApi.MessageBodyInput();
+            ConnectApi.FeedItemInput input = new ConnectApi.FeedItemInput();
+            input.subjectId = recordId;
+            input.feedElementType = ConnectApi.FeedElementType.FeedItem;
+
+            ConnectApi.MessageBodyInput bodyInput = new ConnectApi.MessageBodyInput();
             ConnectApi.TextSegmentInput textSegment = new ConnectApi.TextSegmentInput();
             textSegment.text = question.trim();
-            messageBody.messageSegments = new List<ConnectApi.MessageSegmentInput>{
-                textSegment
-            };
-            feedItem.body = messageBody;
-            feedItem.feedElementType = ConnectApi.FeedElementType.FeedItem;
-            feedItem.subjectId = recordId;
+            bodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
+            bodyInput.messageSegments.add(textSegment);
+            input.body = bodyInput;
 
-            ConnectApi.PollCapabilityInput pollInput = new ConnectApi.PollCapabilityInput();
-            pollInput.choices = cleaned;
+            ConnectApi.PollCapabilityInput pollCapability =
+                new ConnectApi.PollCapabilityInput();
+            pollCapability.choices = cleaned;
 
-            // Poll attaches via capabilities (not feedItem.poll)
-            ConnectApi.FeedElementCapabilitiesInput capabilities =
+            ConnectApi.FeedElementCapabilitiesInput caps =
                 new ConnectApi.FeedElementCapabilitiesInput();
-            capabilities.poll = pollInput;
-            feedItem.capabilities = capabilities;
+            caps.poll = pollCapability;
+            input.capabilities = caps;
 
             ConnectApi.ChatterFeeds.postFeedElement(
                 Network.getNetworkId(),
-                feedItem
+                input
             );
         } catch (Exception e) {
             throw new AuraHandledException(
