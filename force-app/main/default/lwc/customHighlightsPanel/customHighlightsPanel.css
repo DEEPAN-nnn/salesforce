@@ -108,29 +108,28 @@
     background: #f3f3f3;
 }
 
+/* Equal-width field row (like standard Highlights Panel) */
 .hp-fields {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    column-gap: 1.5rem; /* ~24px — matches standard highlights spacing */
+    column-gap: 1.5rem;
     row-gap: 0.75rem;
     align-items: start;
-    background: #ffffff;
-    padding: 0.75rem 1rem 1rem;
-    border-top: 1px solid #e5e5e5;
     width: 100%;
+    padding: 0.75rem 1rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid #e5e5e5;
     box-sizing: border-box;
 }
 
 .hp-field {
+    min-width: 0;
+    width: 100%;
     padding: 0;
     margin: 0;
-    min-width: 0;
-    max-width: none;
-    width: 100%;
     overflow: hidden;
 }
 
-/* Match standard Highlights Panel detail typography */
 .hp-field-label {
     font-size: 0.75rem;
     line-height: 1.25;
@@ -148,7 +147,7 @@
     color: #080707;
     font-weight: 400;
     margin: 0;
-    min-height: 1.25rem; /* same height whether empty or filled */
+    min-height: 1.25rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
