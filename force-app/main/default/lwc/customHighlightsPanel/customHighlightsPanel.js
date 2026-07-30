@@ -103,6 +103,31 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         }
     }
 
+
+    displayOrBlank(value) {
+        const v = value === null || value === undefined ? '' : String(value).trim();
+        return v || '';
+    }
+
+    get contactPhoneDisplay() {
+        return this.displayOrBlank(this.contactPhone);
+    }
+    get requirementDisplay() {
+        return this.displayOrBlank(this.requirement);
+    }
+    get subLocationDisplay() {
+        return this.displayOrBlank(this.subLocation);
+    }
+    get currentStatusDisplay() {
+        return this.displayOrBlank(this.currentStatus);
+    }
+    get stageDisplay() {
+        return this.displayOrBlank(this.stage);
+    }
+    get channelDisplay() {
+        return this.displayOrBlank(this.channel);
+    }
+
     get isHiddenProfile() {
         return this.profileName === HIDDEN_PROFILE;
     }
