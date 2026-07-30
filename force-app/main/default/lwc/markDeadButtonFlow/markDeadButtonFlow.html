@@ -1,22 +1,47 @@
 <template>
     <div class="button-container">
-        <button class="mark-dead-btn" onclick={handleClick} disabled={isLoading}>
-            <template if:true={isLoading}>
-                <lightning-spinner
-                    alternative-text="Loading"
-                    size="x-small"
-                    class="btn-spinner"
-                ></lightning-spinner>
-            </template>
-            <template if:false={isLoading}>
-                <lightning-icon
-                    icon-name="utility:clear"
-                    size="xx-small"
-                    class="button-icon"
-                    alternative-text=""
-                ></lightning-icon>
-            </template>
+        <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy}>
+            <lightning-icon
+                icon-name="utility:clear"
+                size="xx-small"
+                class="button-icon"
+                alternative-text=""
+            ></lightning-icon>
             <span>Mark Dead</span>
         </button>
     </div>
+
+    <!-- Popup modal: Screen Flow runs here (not a new page) -->
+    <template if:true={showModal}>
+        <section
+            role="dialog"
+            tabindex="-1"
+            class="modal-backdrop"
+            onclick={handleBackdropClick}
+        >
+            <div class="modal-panel" onclick={stopPropagation}>
+                <button class="modal-close" onclick={closeModal} title="Close">
+                    &times;
+                </button>
+
+                <template if:true={showSpinner}>
+                    <div class="spinner-wrap">
+                        <lightning-spinner
+                            alternative-text="Loading"
+                            size="small"
+                        ></lightning-spinner>
+                    </div>
+                </template>
+
+                <!-- Keep flow in DOM while modal is open; hide until ready -->
+                <div class={flowWrapperClass}>
+                    <lightning-flow
+                        flow-api-name={flowApiName}
+                        flow-input-variables={flowInputVariables}
+                        onstatuschange={handleFlowStatusChange}
+                    ></lightning-flow>
+                </div>
+            </div>
+        </section>
+    </template>
 </template>

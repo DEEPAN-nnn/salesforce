@@ -3,5 +3,5 @@
     <apiVersion>59.0</apiVersion>
     <isExposed>false</isExposed>
     <masterLabel>Mark Dead Button Flow</masterLabel>
-    <description>Custom Mark Dead button that opens a Screen Flow with a brief spinner (no custom modal).</description>
+    <description>Red Mark Dead button that runs Request Dead Approval Screen Flow in a popup modal and auto-closes on finish.</description>
 </LightningComponentBundle>

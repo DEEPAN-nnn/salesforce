@@ -1,67 +1,117 @@
 import { LightningElement, api, track } from 'lwc';
-import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-/** Short pause so the spinner is visible before the flow opens */
-const SPINNER_DELAY_MS = 250;
+import { RefreshEvent } from 'lightning/refresh';
 
 /**
- * Custom Mark Dead button.
- * Click → brief spinner → open Screen Flow (no custom modal).
+ * Mark Dead button:
+ * - Custom red button (panel-sized)
+ * - Click → popup modal + brief spinner
+ * - Screen Flow runs INSIDE the modal (not a new page)
+ * - Auto-closes when flow finishes
  *
- * Set flowApiName to your Flow API name (Setup → Flows → API Name).
- * Flow should accept input variable: recordId
+ * Flow API name from your org: Request_Dead_Approval
+ * Flow input variable: recordId (Text)
+ * Flow must be Active (your XML showed status Obsolete).
  */
-export default class MarkDeadButtonFlow extends NavigationMixin(LightningElement) {
+export default class MarkDeadButtonFlow extends LightningElement {
     @api recordId;
-    @api flowApiName = 'Mark_Dead';
+    /** Must match Flow API Name in Setup → Flows */
+    @api flowApiName = 'Request_Dead_Approval';
 
-    @track isLoading = false;
+    @track showModal = false;
+    @track showSpinner = true;
+    @track isBusy = false;
 
-    handleClick() {
-        if (this.isLoading) {
+    get flowInputVariables() {
+        return [
+            {
+                name: 'recordId',
+                type: 'String',
+                value: this.recordId
+            }
+        ];
+    }
+
+    get flowWrapperClass() {
+        return this.showSpinner ? 'flow-wrap flow-wrap_hidden' : 'flow-wrap';
+    }
+
+    openFlow() {
+        if (this.isBusy) {
             return;
         }
         if (!this.recordId) {
-            this.showToast('Error', 'Record Id is missing.', 'error');
+            this.toast('Error', 'Record Id is missing.', 'error');
             return;
         }
         if (!this.flowApiName) {
-            this.showToast('Error', 'Flow API name is missing.', 'error');
+            this.toast('Error', 'Flow API name is missing.', 'error');
             return;
         }
 
-        this.isLoading = true;
+        this.isBusy = true;
+        this.showSpinner = true;
+        this.showModal = true;
 
+        // Fallback: if STARTED never fires, still reveal the flow after a short delay
         // eslint-disable-next-line @lwc/lwc/no-async-operation
-        window.setTimeout(() => {
-            this.openScreenFlow();
-        }, SPINNER_DELAY_MS);
+        this._spinnerTimer = window.setTimeout(() => {
+            this.showSpinner = false;
+        }, 600);
     }
 
-    openScreenFlow() {
-        // Opens the Screen Flow in Lightning (native flow runtime — no custom modal)
-        const url =
-            '/lightning/flow/' +
-            encodeURIComponent(this.flowApiName) +
-            '?recordId=' +
-            encodeURIComponent(this.recordId);
+    handleFlowStatusChange(event) {
+        const status = event.detail.status;
 
-        this[NavigationMixin.Navigate]({
-            type: 'standard__webPage',
-            attributes: {
-                url: url
-            }
-        });
+        if (this._spinnerTimer) {
+            window.clearTimeout(this._spinnerTimer);
+            this._spinnerTimer = null;
+        }
 
-        // Reset spinner after navigate kicks off
-        // eslint-disable-next-line @lwc/lwc/no-async-operation
-        window.setTimeout(() => {
-            this.isLoading = false;
-        }, 400);
+        // Flow UI is ready — hide spinner, show screens in the modal
+        if (
+            status === 'STARTED' ||
+            status === 'PAUSED' ||
+            status === 'FINISHED' ||
+            status === 'FINISHED_SCREEN' ||
+            status === 'ERROR'
+        ) {
+            this.showSpinner = false;
+        }
+
+        if (status === 'ERROR') {
+            this.toast('Error', 'Mark Dead flow failed to start.', 'error');
+            return;
+        }
+
+        // Auto-close popup when the screen flow completes
+        if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
+            this.closeModal();
+            this.dispatchEvent(new RefreshEvent());
+            this.toast('Success', 'Mark Dead completed.', 'success');
+        }
     }
 
-    showToast(title, message, variant) {
+    closeModal() {
+        if (this._spinnerTimer) {
+            window.clearTimeout(this._spinnerTimer);
+            this._spinnerTimer = null;
+        }
+        this.showModal = false;
+        this.showSpinner = true;
+        this.isBusy = false;
+    }
+
+    handleBackdropClick() {
+        // Optional: close on backdrop click. Comment out if you want forced finish.
+        this.closeModal();
+    }
+
+    stopPropagation(event) {
+        event.stopPropagation();
+    }
+
+    toast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
 }

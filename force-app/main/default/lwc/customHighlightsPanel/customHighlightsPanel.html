@@ -30,10 +30,10 @@
                     {followLabel}
                 </button>
 
-                <!-- Mark Dead: custom red button → brief spinner → Screen Flow (no custom modal) -->
+                <!-- Mark Dead: red button → Screen Flow popup → auto-close on finish -->
                 <c-mark-dead-button-flow
                     record-id={recordId}
-                    flow-api-name="Mark_Dead"
+                    flow-api-name="Request_Dead_Approval"
                 ></c-mark-dead-button-flow>
 
                 <template if:true={showGenerateProposalBtn}>
