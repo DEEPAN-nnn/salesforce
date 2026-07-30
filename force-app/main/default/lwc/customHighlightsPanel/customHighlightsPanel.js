@@ -19,10 +19,17 @@ const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
 
 const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete', 'post', 'poll']);
 
-const WIDE_MODAL_STYLE_ID = 'customHighlightsPanelWideModal';
-const WIDE_MODAL_CSS =
+/** Quick Actions that should open at medium (regular) size, not full-wide */
+const MEDIUM_MODAL_ACTIONS = new Set(['Enquiry__c.Mark_Dead']);
+
+const MODAL_STYLE_ID = 'customHighlightsPanelModalSize';
+const LARGE_MODAL_CSS =
     '.slds-modal__container{width:90vw!important;max-width:90vw!important;min-width:70vw!important;max-height:90vh!important;}' +
     '.slds-modal__content{max-height:calc(90vh - 8rem)!important;}';
+/* SLDS medium ~50rem / 70% — regular Quick Action size */
+const MEDIUM_MODAL_CSS =
+    '.slds-modal__container{width:70%!important;max-width:50rem!important;min-width:20rem!important;max-height:80vh!important;}' +
+    '.slds-modal__content{max-height:calc(80vh - 8rem)!important;}';
 
 function newPollChoices() {
     return [
@@ -189,25 +196,30 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     connectedCallback() {
-        this.injectWideModalStyles();
+        this.applyModalSize('large');
         this.loadFollowState();
     }
 
-    injectWideModalStyles() {
+    /**
+     * @param {'large'|'medium'} size
+     * Mark Dead uses medium; other Quick Actions use large.
+     */
+    applyModalSize(size) {
         try {
-            if (document.getElementById(WIDE_MODAL_STYLE_ID)) {
-                return;
+            let styleEl = document.getElementById(MODAL_STYLE_ID);
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = MODAL_STYLE_ID;
+                const parent = document.head || document.body;
+                if (parent) {
+                    parent.appendChild(styleEl);
+                }
             }
-            const styleEl = document.createElement('style');
-            styleEl.id = WIDE_MODAL_STYLE_ID;
-            styleEl.textContent = WIDE_MODAL_CSS;
-            const parent = document.head || document.body;
-            if (parent) {
-                parent.appendChild(styleEl);
-            }
+            styleEl.textContent =
+                size === 'medium' ? MEDIUM_MODAL_CSS : LARGE_MODAL_CSS;
         } catch (e) {
             // eslint-disable-next-line no-console
-            console.error('Wide modal style inject failed:', e);
+            console.error('Modal size style inject failed:', e);
         }
     }
 
@@ -254,10 +266,10 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     handleQuickAction(event) {
-        const apiName =
-            event.currentTarget.dataset.action ||
-            event.target.dataset.action;
-        this.invokeQuickAction(apiName);
+        const target = event.currentTarget || event.target;
+        const apiName = target.dataset.action;
+        const modalSize = target.dataset.modalSize || 'large';
+        this.invokeQuickAction(apiName, modalSize);
     }
 
     handleMenuSelect(event) {
@@ -275,7 +287,8 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             return;
         }
 
-        this.invokeQuickAction(value);
+        const modalSize = MEDIUM_MODAL_ACTIONS.has(value) ? 'medium' : 'large';
+        this.invokeQuickAction(value, modalSize);
     }
 
     openPostModal() {
@@ -405,7 +418,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             });
     }
 
-    invokeQuickAction(apiName) {
+    invokeQuickAction(apiName, modalSize) {
         if (!apiName) {
             this.showToast('Error', 'Quick Action API name is missing.', 'error');
             return;
@@ -415,7 +428,10 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             return;
         }
 
-        this.injectWideModalStyles();
+        const size =
+            modalSize ||
+            (MEDIUM_MODAL_ACTIONS.has(apiName) ? 'medium' : 'large');
+        this.applyModalSize(size);
         this.isActionLoading = true;
 
         this[NavigationMixin.Navigate]({
