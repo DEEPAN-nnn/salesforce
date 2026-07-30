@@ -30,15 +30,11 @@
                     {followLabel}
                 </button>
 
-                <!-- Mark Dead: existing Quick Action (medium modal, not full-wide) -->
-                <button
-                    class="hp-btn hp-btn-standard"
-                    data-action="Enquiry__c.Mark_Dead"
-                    data-modal-size="medium"
-                    onclick={handleQuickAction}
-                >
-                    Mark Dead
-                </button>
+                <!-- Mark Dead: custom red button → Screen Flow in medium modal -->
+                <c-mark-dead-button-flow
+                    record-id={recordId}
+                    flow-api-name="Mark_Dead"
+                ></c-mark-dead-button-flow>
 
                 <template if:true={showGenerateProposalBtn}>
                     <button
