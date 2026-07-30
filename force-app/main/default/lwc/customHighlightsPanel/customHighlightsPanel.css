@@ -1,7 +1,9 @@
 .hp-wrapper {
     position: relative;
-    background: #ffffff;
-    border-bottom: 1px solid #dddbda;
+    background: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
 }
 
 .hp-spinner-overlay {
@@ -22,7 +24,8 @@
     gap: 8px;
     background: #f3f6f9;
     padding: 10px 16px;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: none;
+    margin: 0;
 }
 
 .hp-title-wrap {
@@ -108,17 +111,18 @@
     background: #f3f3f3;
 }
 
-/* Equal-width field row (like standard Highlights Panel) */
+/* Bottom fields sit directly under header — no extra white band */
 .hp-fields {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     column-gap: 1.5rem;
-    row-gap: 0.75rem;
+    row-gap: 0.5rem;
     align-items: start;
     width: 100%;
-    padding: 0.75rem 1rem 1rem;
-    background: #ffffff;
-    border-top: 1px solid #e5e5e5;
+    margin: 0;
+    padding: 8px 16px 10px;
+    background: #f3f6f9; /* same as header — removes extra white block */
+    border: none;
     box-sizing: border-box;
 }
 
@@ -159,7 +163,6 @@
     }
 }
 
-/* Post / Poll modals */
 .hp-modal-backdrop {
     position: fixed;
     inset: 0;
