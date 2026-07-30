@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>62.0</apiVersion>
+    <apiVersion>59.0</apiVersion>
     <isExposed>true</isExposed>
     <masterLabel>Custom Highlights Panel</masterLabel>
-    <description>Custom Sales Funnel highlight panel with Follow, primary actions, overflow menu, and flow modals.</description>
+    <description>Custom Sales Funnel highlight panel</description>
     <targets>
         <target>lightning__RecordPage</target>
     </targets>
@@ -12,12 +12,7 @@
             <objects>
                 <object>Enquiry__c</object>
             </objects>
-            <property
-                name="iconName"
-                type="String"
-                label="Icon Name"
-                description="SLDS icon, e.g. standard:opportunity"
-                default="standard:opportunity"/>
+            <property name="iconName" type="String" label="Icon Name" default="standard:opportunity"/>
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>
