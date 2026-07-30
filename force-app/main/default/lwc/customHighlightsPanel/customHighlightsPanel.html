@@ -30,8 +30,15 @@
                     {followLabel}
                 </button>
 
-                <!-- Mark dead — existing LWC (no App Builder visibility on standard panel) -->
-                <c-mark-dead-button-flow record-id={recordId}></c-mark-dead-button-flow>
+                <!-- Mark Dead: existing Quick Action (medium modal, not full-wide) -->
+                <button
+                    class="hp-btn hp-btn-standard"
+                    data-action="Enquiry__c.Mark_Dead"
+                    data-modal-size="medium"
+                    onclick={handleQuickAction}
+                >
+                    Mark Dead
+                </button>
 
                 <template if:true={showGenerateProposalBtn}>
                     <button
