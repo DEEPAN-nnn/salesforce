@@ -152,7 +152,12 @@ public with sharing class HighlightsPanelController {
 
             ConnectApi.PollCapabilityInput pollInput = new ConnectApi.PollCapabilityInput();
             pollInput.choices = cleaned;
-            feedItem.poll = pollInput;
+
+            // Poll attaches via capabilities (not feedItem.poll)
+            ConnectApi.FeedElementCapabilitiesInput capabilities =
+                new ConnectApi.FeedElementCapabilitiesInput();
+            capabilities.poll = pollInput;
+            feedItem.capabilities = capabilities;
 
             ConnectApi.ChatterFeeds.postFeedElement(
                 Network.getNetworkId(),
