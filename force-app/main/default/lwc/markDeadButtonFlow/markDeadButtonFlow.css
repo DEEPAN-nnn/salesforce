@@ -5,14 +5,16 @@
     padding: 0;
 }
 
-/* Sized to match customHighlightsPanel .hp-btn */
+/* Match customHighlightsPanel .hp-btn size */
 .mark-dead-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
 
     height: 30px;
     padding: 0 12px;
+    min-width: 7rem;
 
     background: #f15267;
     border: 1px solid #b42c3e;
@@ -26,15 +28,16 @@
 
     cursor: pointer;
     transition: background 0.15s ease;
+    position: relative;
 }
 
-.mark-dead-btn:hover {
+.mark-dead-btn:hover:not(:disabled) {
     background: #c4001a;
 }
 
 .mark-dead-btn:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+    opacity: 0.7;
+    cursor: wait;
 }
 
 .mark-dead-btn:focus {
@@ -52,69 +55,8 @@
     flex-shrink: 0;
 }
 
-.flow-hidden {
-    display: none;
-}
-
-/* Medium / regular modal (not full-wide) */
-.custom-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.custom-modal {
-    position: relative;
-    max-width: 700px;
-    width: 90%;
-    max-height: 85vh;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-}
-
-.custom-modal-header {
-    position: relative;
-    padding: 16px 24px;
-    background: #ffffff;
-    border-bottom: 1px solid #d8dde6;
-    flex-shrink: 0;
-}
-
-.custom-modal-body {
-    min-height: 300px;
-    padding: 20px 24px;
-    background: #ffffff;
-    position: relative;
-    overflow-y: auto;
-}
-
-.spinner-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.close-button {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    border: none;
-    background: transparent;
-    font-size: 26px;
-    line-height: 1;
-    color: #706e6b;
-    cursor: pointer;
-}
-
-.close-button:hover {
-    color: #181818;
+.btn-spinner {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
 }

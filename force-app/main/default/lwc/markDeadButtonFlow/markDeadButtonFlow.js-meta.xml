@@ -1,27 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>59.0</apiVersion>
-    <isExposed>true</isExposed>
+    <isExposed>false</isExposed>
     <masterLabel>Mark Dead Button Flow</masterLabel>
-    <description>Red Mark Dead button that launches a Screen Flow in a medium modal.</description>
-    <targets>
-        <target>lightning__RecordPage</target>
-        <target>lightning__RecordAction</target>
-    </targets>
-    <targetConfigs>
-        <targetConfig targets="lightning__RecordPage">
-            <objects>
-                <object>Enquiry__c</object>
-            </objects>
-            <property
-                name="flowApiName"
-                type="String"
-                label="Mark Dead Flow API Name"
-                description="API name of the Screen Flow to run"
-                default="Mark_Dead"/>
-        </targetConfig>
-        <targetConfig targets="lightning__RecordAction">
-            <actionType>ScreenAction</actionType>
-        </targetConfig>
-    </targetConfigs>
+    <description>Custom Mark Dead button that opens a Screen Flow with a brief spinner (no custom modal).</description>
 </LightningComponentBundle>

@@ -1,94 +1,67 @@
 import { LightningElement, api, track } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { RefreshEvent } from 'lightning/refresh';
+
+/** Short pause so the spinner is visible before the flow opens */
+const SPINNER_DELAY_MS = 250;
 
 /**
- * Custom Mark Dead button — opens your existing Screen Flow in a medium modal.
- * Set flowApiName to your Flow’s API name (Setup → Flows).
+ * Custom Mark Dead button.
+ * Click → brief spinner → open Screen Flow (no custom modal).
+ *
+ * Set flowApiName to your Flow API name (Setup → Flows → API Name).
+ * Flow should accept input variable: recordId
  */
-export default class MarkDeadButtonFlow extends LightningElement {
+export default class MarkDeadButtonFlow extends NavigationMixin(LightningElement) {
     @api recordId;
-    /** Override in App Builder / parent if your flow API name differs */
     @api flowApiName = 'Mark_Dead';
 
-    @track showModal = false;
-    @track showSpinner = true;
-    @track isBusy = false;
-
-    get flowInputVariables() {
-        return [
-            {
-                name: 'recordId',
-                type: 'String',
-                value: this.recordId
-            }
-        ];
-    }
-
-    get flowClass() {
-        return this.showSpinner ? 'flow-hidden' : '';
-    }
+    @track isLoading = false;
 
     handleClick() {
+        if (this.isLoading) {
+            return;
+        }
         if (!this.recordId) {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Error',
-                    message: 'Record Id is missing.',
-                    variant: 'error'
-                })
-            );
+            this.showToast('Error', 'Record Id is missing.', 'error');
             return;
         }
-        this.showSpinner = true;
-        this.showModal = true;
-        this.isBusy = true;
-    }
-
-    handleFlowStatusChange(event) {
-        const status = event.detail.status;
-
-        // Flow UI is ready / running — hide loading spinner
-        if (status === 'STARTED' || status === 'PAUSED') {
-            this.showSpinner = false;
-        }
-
-        if (status === 'ERROR') {
-            this.showSpinner = false;
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Error',
-                    message: 'Mark Dead flow failed to run.',
-                    variant: 'error'
-                })
-            );
+        if (!this.flowApiName) {
+            this.showToast('Error', 'Flow API name is missing.', 'error');
             return;
         }
 
-        if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
-            this.closeModal();
-            this.dispatchEvent(new RefreshEvent());
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Mark Dead completed.',
-                    variant: 'success'
-                })
-            );
-        }
+        this.isLoading = true;
+
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        window.setTimeout(() => {
+            this.openScreenFlow();
+        }, SPINNER_DELAY_MS);
     }
 
-    closeModal() {
-        this.showModal = false;
-        this.showSpinner = true;
-        this.isBusy = false;
+    openScreenFlow() {
+        // Opens the Screen Flow in Lightning (native flow runtime — no custom modal)
+        const url =
+            '/lightning/flow/' +
+            encodeURIComponent(this.flowApiName) +
+            '?recordId=' +
+            encodeURIComponent(this.recordId);
+
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: {
+                url: url
+            }
+        });
+
+        // Reset spinner after navigate kicks off
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        window.setTimeout(() => {
+            this.isLoading = false;
+        }, 400);
     }
 
-    handleBackdropClick() {
-        this.closeModal();
-    }
-
-    stopPropagation(event) {
-        event.stopPropagation();
+    showToast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
 }

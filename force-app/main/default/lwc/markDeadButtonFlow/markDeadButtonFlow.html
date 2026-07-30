@@ -1,49 +1,22 @@
 <template>
     <div class="button-container">
-        <button class="mark-dead-btn" onclick={handleClick} disabled={isBusy}>
-            <lightning-icon
-                icon-name="utility:clear"
-                size="xx-small"
-                class="button-icon"
-                alternative-text="Mark Dead"
-            ></lightning-icon>
+        <button class="mark-dead-btn" onclick={handleClick} disabled={isLoading}>
+            <template if:true={isLoading}>
+                <lightning-spinner
+                    alternative-text="Loading"
+                    size="x-small"
+                    class="btn-spinner"
+                ></lightning-spinner>
+            </template>
+            <template if:false={isLoading}>
+                <lightning-icon
+                    icon-name="utility:clear"
+                    size="xx-small"
+                    class="button-icon"
+                    alternative-text=""
+                ></lightning-icon>
+            </template>
             <span>Mark Dead</span>
         </button>
     </div>
-
-    <template if:true={showModal}>
-        <section
-            role="dialog"
-            tabindex="-1"
-            class="custom-modal-backdrop"
-            onclick={handleBackdropClick}
-        >
-            <div class="custom-modal" onclick={stopPropagation}>
-                <div class="custom-modal-header">
-                    <h2 class="slds-text-heading_small">Mark Dead</h2>
-                    <button class="close-button" onclick={closeModal} title="Close">
-                        &times;
-                    </button>
-                </div>
-                <div class="custom-modal-body">
-                    <template if:true={showSpinner}>
-                        <div class="spinner-container">
-                            <lightning-spinner
-                                alternative-text="Loading"
-                                size="medium"
-                            ></lightning-spinner>
-                        </div>
-                    </template>
-
-                    <div class={flowClass}>
-                        <lightning-flow
-                            flow-api-name={flowApiName}
-                            flow-input-variables={flowInputVariables}
-                            onstatuschange={handleFlowStatusChange}
-                        ></lightning-flow>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </template>
 </template>
