@@ -17,10 +17,18 @@ const OBJECT_API_NAME = 'Enquiry__c';
 const HIDDEN_PROFILE = 'Akshay Madane Profile';
 const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
 
-const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete', 'post', 'poll']);
+const LOCAL_MENU_ACTIONS = new Set([
+    'edit',
+    'clone',
+    'delete',
+    'post',
+    'poll',
+    'sharing',
+    'sharingHierarchy'
+]);
 
 /** Quick Actions that should open at medium (regular) size, not full-wide */
-const MEDIUM_MODAL_ACTIONS = new Set(['Enquiry__c.Mark_Dead']);
+const MEDIUM_MODAL_ACTIONS = new Set([]);
 
 const MODAL_STYLE_ID = 'customHighlightsPanelModalSize';
 const LARGE_MODAL_CSS =
@@ -284,6 +292,8 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             else if (value === 'delete') this.handleDelete();
             else if (value === 'post') this.openPostModal();
             else if (value === 'poll') this.openPollModal();
+            else if (value === 'sharing') this.handleSharing();
+            else if (value === 'sharingHierarchy') this.handleSharingHierarchy();
             return;
         }
 
@@ -468,6 +478,46 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 recordId: this.recordId,
                 objectApiName: this.objectApiName || OBJECT_API_NAME,
                 actionName: 'clone'
+            }
+        });
+    }
+
+    /**
+     * Standard "Sharing" action — opens manual share UI for the record.
+     * This is NOT a Global Quick Action / object Quick Action.
+     */
+    handleSharing() {
+        if (!this.recordId) {
+            return;
+        }
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: {
+                url:
+                    '/p/share/CustomObjectSharingDetail?parent_id=' +
+                    encodeURIComponent(this.recordId)
+            }
+        });
+    }
+
+    /**
+     * Standard "Sharing Hierarchy" action — who has access and why.
+     * Appears as the second Sharing-type action on the standard Highlights Panel.
+     */
+    handleSharingHierarchy() {
+        if (!this.recordId) {
+            return;
+        }
+        const objectApiName = this.objectApiName || OBJECT_API_NAME;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: {
+                url:
+                    '/lightning/r/' +
+                    encodeURIComponent(objectApiName) +
+                    '/' +
+                    encodeURIComponent(this.recordId) +
+                    '/recordShareHierarchy'
             }
         });
     }
