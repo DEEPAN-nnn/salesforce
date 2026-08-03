@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>ManagerDailyApprovalNotifier</members>
+        <members>ManagerDailyApprovalNotifierTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>Manager_Daily_Approval_Notification</members>
+        <name>Flow</name>
+    </types>
+    <version>62.0</version>
+</Package>

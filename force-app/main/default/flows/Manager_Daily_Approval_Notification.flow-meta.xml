@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Send_Daily_Manager_Notifications</name>
+        <label>Send Daily Manager Notifications</label>
+        <locationX>176</locationX>
+        <locationY>335</locationY>
+        <actionName>ManagerDailyApprovalNotifier</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>notificationTypeDeveloperName</name>
+            <value>
+                <stringValue>Dead_Approval_Notification</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>approvalStatus</name>
+            <value>
+                <stringValue>Pending</stringValue>
+            </value>
+        </inputParameters>
+        <nameSegment>ManagerDailyApprovalNotifier</nameSegment>
+        <offset>0</offset>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <description>Runs once daily (not per Approval__c row). Calls Apex to send one Custom Notification per manager for all pending approvals. Replaces per-record scheduled flow 301C400000XdmP5IAJ.</description>
+    <environments>Default</environments>
+    <interviewLabel>Manager Daily Approval Notification {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Manager Daily Approval Notification</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Send_Daily_Manager_Notifications</targetReference>
+        </connector>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2026-08-04</startDate>
+            <startTime>09:00:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Draft</status>
+</Flow>
