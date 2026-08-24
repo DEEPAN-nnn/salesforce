@@ -218,14 +218,14 @@
     line-height: 1;
 }
 
-/* ========== Phone: circular action bar (no icon / fields) ========== */
+/* ========== Phone: standard mobile action bar ========== */
 .hp-mobile-bar {
     display: flex;
     align-items: flex-start;
-    justify-content: space-around;
-    gap: 4px;
+    justify-content: space-evenly;
+    gap: 8px;
     width: 100%;
-    padding: 12px 8px 10px;
+    padding: 12px 10px 14px;
     background: #ffffff;
     box-sizing: border-box;
 }
@@ -234,18 +234,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    flex: 1 1 0;
-    max-width: 88px;
+    gap: 8px;
+    flex: 0 0 auto;
+    width: 76px;
     padding: 0;
     border: none;
     background: transparent;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
+/* Salesforce mobile action circle size / color */
 .hp-circle {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -255,17 +257,26 @@
 }
 
 .hp-circle-blue {
-    background: #7f8de1;
+    background: #7b85d4;
+}
+
+.hp-circle-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.hp-circle lightning-icon {
     --slds-c-icon-color-foreground-default: #ffffff;
     --slds-c-icon-color-foreground: #ffffff;
 }
 
 .hp-circle-label {
-    font-size: 0.6875rem;
-    line-height: 1.2;
+    font-size: 0.75rem;
+    line-height: 1.15;
     color: #181818;
     text-align: center;
-    max-width: 80px;
+    width: 100%;
+    max-width: 76px;
     word-break: break-word;
 }
 
@@ -333,12 +344,15 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+}
+
+.hp-more-circle lightning-icon {
     --slds-c-icon-color-foreground-default: #ffffff;
     --slds-c-icon-color-foreground: #ffffff;
 }
 
 .hp-more-circle-blue {
-    background: #7f8de1;
+    background: #7b85d4;
 }
 
 .hp-more-circle-green {
@@ -362,12 +376,14 @@
     color: #181818;
 }
 
-/* Stretch Mark Dead child LWC in the phone action bar */
+/* Mark Dead red pill sits in the action row (no separate label under it) */
 .hp-mobile-bar c-mark-dead-button-flow {
-    flex: 1 1 0;
-    max-width: 88px;
+    flex: 0 0 auto;
     display: flex;
+    align-items: flex-start;
     justify-content: center;
+    align-self: flex-start;
+    margin-top: 0;
 }
 
 @media (max-width: 48em) {

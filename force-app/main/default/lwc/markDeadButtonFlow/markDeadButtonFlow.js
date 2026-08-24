@@ -17,15 +17,21 @@ export default class MarkDeadButtonFlow extends LightningElement {
     @api recordId;
     /** Must match Flow API Name in Setup → Flows */
     @api flowApiName = 'Request_Dead_Approval';
-    /** 'circle' = phone round red button; default = desktop rectangular */
+    /** 'mobile' = phone bar: red pill with X (same as web). default = desktop */
     @api variant = 'default';
 
     @track showModal = false;
     @track showSpinner = true;
     @track isBusy = false;
 
-    get isCircleVariant() {
-        return this.variant === 'circle';
+    get isMobileVariant() {
+        return this.variant === 'mobile' || this.variant === 'circle';
+    }
+
+    get containerClass() {
+        return this.isMobileVariant
+            ? 'button-container button-container_mobile'
+            : 'button-container';
     }
 
     get flowInputVariables() {

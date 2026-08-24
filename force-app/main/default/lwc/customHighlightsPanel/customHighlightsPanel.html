@@ -12,7 +12,7 @@
                 <c-mark-dead-button-flow
                     record-id={recordId}
                     flow-api-name="Request_Dead_Approval"
-                    variant="circle"
+                    variant="mobile"
                 ></c-mark-dead-button-flow>
 
                 <template for:each={mobilePrimaryActions} for:item="action">
@@ -27,6 +27,7 @@
                             <lightning-icon
                                 icon-name="utility:lightning"
                                 size="small"
+                                class="hp-circle-icon"
                                 alternative-text=""
                             ></lightning-icon>
                         </span>
@@ -43,6 +44,7 @@
                         <lightning-icon
                             icon-name="utility:threedots"
                             size="small"
+                            class="hp-circle-icon"
                             alternative-text="More"
                         ></lightning-icon>
                     </span>

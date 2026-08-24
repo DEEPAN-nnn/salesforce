@@ -1,27 +1,25 @@
 <template>
-    <div class="button-container">
-        <!-- Phone: red circular action (Salesforce mobile style) -->
-        <template if:true={isCircleVariant}>
+    <div class={containerClass}>
+        <!-- Phone: same red rectangular button as web (X + Mark Dead text) -->
+        <template if:true={isMobileVariant}>
             <button
-                class="mark-dead-circle-action"
+                class="mark-dead-btn mark-dead-btn_mobile"
                 onclick={openFlow}
                 disabled={isBusy}
                 type="button"
             >
-                <span class="mark-dead-circle">
-                    <lightning-icon
-                        icon-name="utility:clear"
-                        size="small"
-                        class="circle-icon"
-                        alternative-text=""
-                    ></lightning-icon>
-                </span>
-                <span class="mark-dead-circle-label">Mark dead</span>
+                <lightning-icon
+                    icon-name="utility:clear"
+                    size="xx-small"
+                    class="button-icon"
+                    alternative-text=""
+                ></lightning-icon>
+                <span>Mark Dead</span>
             </button>
         </template>
 
         <!-- Desktop: rectangular red button -->
-        <template if:false={isCircleVariant}>
+        <template if:false={isMobileVariant}>
             <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy} type="button">
                 <lightning-icon
                     icon-name="utility:clear"

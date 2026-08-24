@@ -2,8 +2,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
     padding: 0;
+}
+
+.button-container_mobile {
+    width: auto;
+    align-items: flex-start;
+    padding-top: 2px;
 }
 
 .mark-dead-btn {
@@ -26,6 +31,16 @@
     transition: background 0.15s ease;
 }
 
+/* Phone action bar: same red + X look as web, aligned with 52px circles */
+.mark-dead-btn_mobile {
+    height: 52px;
+    min-width: 0;
+    padding: 0 14px;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
 .mark-dead-btn:hover:not(:disabled) {
     background: #c4001a;
 }
@@ -40,55 +55,17 @@
     box-shadow: 0 0 0 3px rgba(234, 0, 30, 0.25);
 }
 
-/* Phone circular red Mark Dead */
-.mark-dead-circle-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    flex: 1 1 0;
-    max-width: 88px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-}
-
-.mark-dead-circle-action:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-.mark-dead-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #ea001e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.circle-icon {
-    --slds-c-icon-color-foreground-default: #ffffff;
-    --slds-c-icon-color-foreground: #ffffff;
-}
-
-.mark-dead-circle-label {
-    font-size: 0.6875rem;
-    line-height: 1.2;
-    color: #181818;
-    text-align: center;
-    max-width: 80px;
-}
-
 .button-icon {
     --slds-c-icon-color-foreground-default: #ffffff;
     --slds-c-icon-color-foreground: #ffffff;
     width: 12px;
     height: 12px;
     flex-shrink: 0;
+}
+
+.mark-dead-btn_mobile .button-icon {
+    width: 14px;
+    height: 14px;
 }
 
 /* Popup modal — medium / regular size */
@@ -106,7 +83,7 @@
 .modal-panel {
     position: relative;
     width: 90%;
-    max-width: 560px; /* medium / regular on desktop */
+    max-width: 560px;
     max-height: 85vh;
     overflow: auto;
     background: #ffffff;
@@ -127,10 +104,6 @@
         max-height: 95vh;
         border-radius: 8px;
         margin: auto 0;
-    }
-
-    .mark-dead-btn {
-        min-width: 0;
     }
 }
 
