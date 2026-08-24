@@ -1,24 +1,26 @@
 <template>
     <div class={containerClass}>
-        <!-- Phone: same red rectangular button as web (X + Mark Dead text) -->
+        <!-- Phone: red circle + white X, same size as standard mobile actions -->
         <template if:true={isMobileVariant}>
             <button
-                class="mark-dead-btn mark-dead-btn_mobile"
+                class="mark-dead-circle-action"
                 onclick={openFlow}
                 disabled={isBusy}
                 type="button"
             >
-                <lightning-icon
-                    icon-name="utility:clear"
-                    size="xx-small"
-                    class="button-icon"
-                    alternative-text=""
-                ></lightning-icon>
-                <span>Mark Dead</span>
+                <span class="mark-dead-circle">
+                    <lightning-icon
+                        icon-name="utility:clear"
+                        size="small"
+                        class="circle-icon"
+                        alternative-text="Mark Dead"
+                    ></lightning-icon>
+                </span>
+                <span class="mark-dead-circle-label">Mark dead</span>
             </button>
         </template>
 
-        <!-- Desktop: rectangular red button -->
+        <!-- Desktop: red rectangular button with X -->
         <template if:false={isMobileVariant}>
             <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy} type="button">
                 <lightning-icon
@@ -32,7 +34,6 @@
         </template>
     </div>
 
-    <!-- Popup modal: Screen Flow runs here (not a new page) -->
     <template if:true={showModal}>
         <section
             role="dialog"

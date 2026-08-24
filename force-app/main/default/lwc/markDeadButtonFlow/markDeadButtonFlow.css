@@ -6,9 +6,8 @@
 }
 
 .button-container_mobile {
-    width: auto;
+    width: 76px;
     align-items: flex-start;
-    padding-top: 2px;
 }
 
 .mark-dead-btn {
@@ -29,16 +28,6 @@
     white-space: nowrap;
     cursor: pointer;
     transition: background 0.15s ease;
-}
-
-/* Phone action bar: same red + X look as web, aligned with 52px circles */
-.mark-dead-btn_mobile {
-    height: 52px;
-    min-width: 0;
-    padding: 0 14px;
-    font-size: 0.8125rem;
-    border-radius: 8px;
-    box-sizing: border-box;
 }
 
 .mark-dead-btn:hover:not(:disabled) {
@@ -63,12 +52,56 @@
     flex-shrink: 0;
 }
 
-.mark-dead-btn_mobile .button-icon {
-    width: 14px;
-    height: 14px;
+/* Phone: red circle + white X (standard mobile action size) */
+.mark-dead-circle-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 76px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Popup modal — medium / regular size */
+.mark-dead-circle-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.mark-dead-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #ea001e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.circle-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.mark-dead-circle lightning-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.mark-dead-circle-label {
+    font-size: 0.75rem;
+    line-height: 1.15;
+    color: #181818;
+    text-align: center;
+    width: 100%;
+    max-width: 76px;
+    word-break: break-word;
+}
+
 .modal-backdrop {
     position: fixed;
     inset: 0;

@@ -346,6 +346,11 @@
     flex-shrink: 0;
 }
 
+.hp-more-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
 .hp-more-circle lightning-icon {
     --slds-c-icon-color-foreground-default: #ffffff;
     --slds-c-icon-color-foreground: #ffffff;
@@ -356,15 +361,15 @@
 }
 
 .hp-more-circle-green {
-    background: #2e844a;
+    background: #45c65a;
 }
 
 .hp-more-circle-pink {
-    background: #b60554;
+    background: #e567a0;
 }
 
 .hp-more-circle-teal {
-    background: #0b827c;
+    background: #1b9e97;
 }
 
 .hp-more-circle-red {

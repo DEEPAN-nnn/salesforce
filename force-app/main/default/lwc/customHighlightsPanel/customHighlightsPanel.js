@@ -229,26 +229,20 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return new Set(this.mobilePrimaryActions.map((a) => a.apiName));
     }
 
-    /** Remaining actions for phone "More" sheet — same visibility as desktop */
+    /** Remaining actions for phone "More" sheet — colors/icons match Salesforce mobile Actions sheet */
     get mobileMoreActions() {
         const items = [];
         const primary = this.mobilePrimaryApiNames;
+        const qa = 'hp-more-circle hp-more-circle-blue';
 
-        items.push({
-            key: 'follow',
-            value: 'follow',
-            label: this.followLabel,
-            iconName: 'utility:adduser',
-            circleClass: 'hp-more-circle hp-more-circle-blue'
-        });
-
+        // Quick Actions — blue circle + white lightning (same as screenshot)
         if (this.showGenerateProposalBtn && !primary.has('Enquiry__c.Generate_Proposal')) {
             items.push({
                 key: 'proposal',
                 value: 'Enquiry__c.Generate_Proposal',
                 label: 'Generate Proposal',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (this.showRelatedPropertyBtn && !primary.has('Enquiry__c.Related_Property')) {
@@ -257,7 +251,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Related_Property',
                 label: 'Related Property',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (this.showAssignAssistant && !primary.has('Enquiry__c.Assign_Assistant')) {
@@ -266,7 +260,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Assign_Assistant',
                 label: 'Assign Assistant',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (
@@ -278,7 +272,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Change_Property_Assistant',
                 label: 'Change Property Assistant',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (this.showUpdateLocationBtn && !primary.has('Enquiry__c.Update_Location')) {
@@ -287,7 +281,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Update_Location',
                 label: 'Update Location',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (this.showDeleteRelatedListItem) {
@@ -296,9 +290,11 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Delete_Related_List',
                 label: 'Delete Related List',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
+
+        // Standard actions — screenshot colors
         if (this.showEditItem) {
             items.push({
                 key: 'edit',
@@ -314,7 +310,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'clone',
                 label: 'Clone',
                 iconName: 'utility:copy',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
         if (this.showMergeEnquiry) {
@@ -323,7 +319,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 value: 'Enquiry__c.Merge_Enquiry',
                 label: 'Merge Enquiry',
                 iconName: 'utility:lightning',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                circleClass: qa
             });
         }
 
@@ -358,14 +354,14 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                     value: 'post',
                     label: 'Post',
                     iconName: 'utility:chat',
-                    circleClass: 'hp-more-circle hp-more-circle-blue'
+                    circleClass: qa
                 },
                 {
                     key: 'poll',
                     value: 'poll',
                     label: 'Poll',
                     iconName: 'utility:chart',
-                    circleClass: 'hp-more-circle hp-more-circle-blue'
+                    circleClass: qa
                 }
             );
         }
@@ -375,8 +371,15 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 key: 'sharing',
                 value: 'Enquiry__c.Sharing',
                 label: 'Sharing',
-                iconName: 'utility:share',
-                circleClass: 'hp-more-circle hp-more-circle-blue'
+                iconName: 'utility:lightning',
+                circleClass: qa
+            },
+            {
+                key: 'follow',
+                value: 'follow',
+                label: this.followLabel,
+                iconName: 'utility:adduser',
+                circleClass: qa
             },
             {
                 key: 'delete',
