@@ -218,39 +218,159 @@
     line-height: 1;
 }
 
-/* Phone layout only — same actions/fields, stacked for narrow screens */
+/* ========== Phone: circular action bar (no icon / fields) ========== */
+.hp-mobile-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    gap: 4px;
+    width: 100%;
+    padding: 12px 8px 10px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+.hp-circle-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 0;
+    max-width: 88px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.hp-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    flex-shrink: 0;
+}
+
+.hp-circle-blue {
+    background: #7f8de1;
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.hp-circle-label {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: #181818;
+    text-align: center;
+    max-width: 80px;
+    word-break: break-word;
+}
+
+.hp-more-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9002;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.hp-more-sheet {
+    width: 100%;
+    max-height: 75vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-radius: 16px 16px 0 0;
+    padding: 8px 0 16px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.hp-more-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #c9c7c5;
+    margin: 4px auto 10px;
+}
+
+.hp-more-title {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #181818;
+    margin-bottom: 8px;
+}
+
+.hp-more-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.hp-more-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-bottom: 1px solid #f3f3f3;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.hp-more-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.hp-more-circle-blue {
+    background: #7f8de1;
+}
+
+.hp-more-circle-green {
+    background: #2e844a;
+}
+
+.hp-more-circle-pink {
+    background: #b60554;
+}
+
+.hp-more-circle-teal {
+    background: #0b827c;
+}
+
+.hp-more-circle-red {
+    background: #ea001e;
+}
+
+.hp-more-item-label {
+    font-size: 0.95rem;
+    color: #181818;
+}
+
+/* Stretch Mark Dead child LWC in the phone action bar */
+.hp-mobile-bar c-mark-dead-button-flow {
+    flex: 1 1 0;
+    max-width: 88px;
+    display: flex;
+    justify-content: center;
+}
+
 @media (max-width: 48em) {
-    .hp-header {
-        align-items: flex-start;
-        padding: 10px 12px;
-    }
-
-    .hp-title-wrap {
-        width: 100%;
-    }
-
-    .hp-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .hp-fields {
-        flex-wrap: wrap;
-        padding: 6px 12px 10px;
-    }
-
-    .hp-field {
-        flex: 1 1 45%;
-        min-width: 0;
-        max-width: 50%;
-        padding: 4px 12px 8px 0;
-        box-sizing: border-box;
-    }
-
-    .hp-field:nth-child(even) {
-        padding-right: 0;
-    }
-
     .hp-modal-backdrop {
         padding: 0.5rem;
         align-items: stretch;

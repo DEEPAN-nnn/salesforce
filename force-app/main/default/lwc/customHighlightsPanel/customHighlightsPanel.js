@@ -59,6 +59,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     @track pollQuestion = '';
     @track pollChoices = newPollChoices();
     @track isChatterSaving = false;
+    @track showMobileMore = false;
 
     @wire(getCurrentUserProfileName)
     wiredProfile({ data, error }) {
@@ -175,6 +176,220 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return FORM_FACTOR === 'Small';
     }
 
+    /** Phone form factor — round action bar only (no icon / fields) */
+    get isPhone() {
+        return FORM_FACTOR === 'Small';
+    }
+
+    /**
+     * Up to 2 Quick Actions next to Mark Dead on the phone bar.
+     * Rest go into More (same visibility rules as desktop).
+     */
+    get mobilePrimaryActions() {
+        const candidates = [];
+        if (this.showRelatedPropertyBtn) {
+            candidates.push({
+                key: 'related',
+                label: 'Related Property',
+                apiName: 'Enquiry__c.Related_Property'
+            });
+        }
+        if (this.showGenerateProposalBtn) {
+            candidates.push({
+                key: 'proposal',
+                label: 'Generate Proposal',
+                apiName: 'Enquiry__c.Generate_Proposal'
+            });
+        }
+        if (this.showAssignAssistant) {
+            candidates.push({
+                key: 'assign',
+                label: 'Assign Assistant',
+                apiName: 'Enquiry__c.Assign_Assistant'
+            });
+        }
+        if (this.showChangePropertyAssistant) {
+            candidates.push({
+                key: 'change',
+                label: 'Change Property Assistant',
+                apiName: 'Enquiry__c.Change_Property_Assistant'
+            });
+        }
+        if (this.showUpdateLocationBtn) {
+            candidates.push({
+                key: 'location',
+                label: 'Update Location',
+                apiName: 'Enquiry__c.Update_Location'
+            });
+        }
+        return candidates.slice(0, 2);
+    }
+
+    get mobilePrimaryApiNames() {
+        return new Set(this.mobilePrimaryActions.map((a) => a.apiName));
+    }
+
+    /** Remaining actions for phone "More" sheet — same visibility as desktop */
+    get mobileMoreActions() {
+        const items = [];
+        const primary = this.mobilePrimaryApiNames;
+
+        items.push({
+            key: 'follow',
+            value: 'follow',
+            label: this.followLabel,
+            iconName: 'utility:adduser',
+            circleClass: 'hp-more-circle hp-more-circle-blue'
+        });
+
+        if (this.showGenerateProposalBtn && !primary.has('Enquiry__c.Generate_Proposal')) {
+            items.push({
+                key: 'proposal',
+                value: 'Enquiry__c.Generate_Proposal',
+                label: 'Generate Proposal',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showRelatedPropertyBtn && !primary.has('Enquiry__c.Related_Property')) {
+            items.push({
+                key: 'related',
+                value: 'Enquiry__c.Related_Property',
+                label: 'Related Property',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showAssignAssistant && !primary.has('Enquiry__c.Assign_Assistant')) {
+            items.push({
+                key: 'assign',
+                value: 'Enquiry__c.Assign_Assistant',
+                label: 'Assign Assistant',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (
+            this.showChangePropertyAssistant &&
+            !primary.has('Enquiry__c.Change_Property_Assistant')
+        ) {
+            items.push({
+                key: 'change',
+                value: 'Enquiry__c.Change_Property_Assistant',
+                label: 'Change Property Assistant',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showUpdateLocationBtn && !primary.has('Enquiry__c.Update_Location')) {
+            items.push({
+                key: 'location',
+                value: 'Enquiry__c.Update_Location',
+                label: 'Update Location',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showDeleteRelatedListItem) {
+            items.push({
+                key: 'deleteRelated',
+                value: 'Enquiry__c.Delete_Related_List',
+                label: 'Delete Related List',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showEditItem) {
+            items.push({
+                key: 'edit',
+                value: 'edit',
+                label: 'Edit',
+                iconName: 'utility:edit',
+                circleClass: 'hp-more-circle hp-more-circle-green'
+            });
+        }
+        if (this.showCloneItem) {
+            items.push({
+                key: 'clone',
+                value: 'clone',
+                label: 'Clone',
+                iconName: 'utility:copy',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+        if (this.showMergeEnquiry) {
+            items.push({
+                key: 'merge',
+                value: 'Enquiry__c.Merge_Enquiry',
+                label: 'Merge Enquiry',
+                iconName: 'utility:lightning',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            });
+        }
+
+        items.push(
+            {
+                key: 'event',
+                value: 'Global.NewEvent',
+                label: 'New Event',
+                iconName: 'utility:event',
+                circleClass: 'hp-more-circle hp-more-circle-pink'
+            },
+            {
+                key: 'task',
+                value: 'Global.NewTask',
+                label: 'New Task',
+                iconName: 'utility:task',
+                circleClass: 'hp-more-circle hp-more-circle-green'
+            },
+            {
+                key: 'call',
+                value: 'Global.LogACall',
+                label: 'Log a Call',
+                iconName: 'utility:call',
+                circleClass: 'hp-more-circle hp-more-circle-teal'
+            }
+        );
+
+        if (this.showPostPoll) {
+            items.push(
+                {
+                    key: 'post',
+                    value: 'post',
+                    label: 'Post',
+                    iconName: 'utility:chat',
+                    circleClass: 'hp-more-circle hp-more-circle-blue'
+                },
+                {
+                    key: 'poll',
+                    value: 'poll',
+                    label: 'Poll',
+                    iconName: 'utility:chart',
+                    circleClass: 'hp-more-circle hp-more-circle-blue'
+                }
+            );
+        }
+
+        items.push(
+            {
+                key: 'sharing',
+                value: 'Enquiry__c.Sharing',
+                label: 'Sharing',
+                iconName: 'utility:share',
+                circleClass: 'hp-more-circle hp-more-circle-blue'
+            },
+            {
+                key: 'delete',
+                value: 'delete',
+                label: 'Delete',
+                iconName: 'utility:delete',
+                circleClass: 'hp-more-circle hp-more-circle-red'
+            }
+        );
+
+        return items;
+    }
+
     get canAddPollChoice() {
         return this.pollChoices.length < 10;
     }
@@ -282,6 +497,36 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             return;
         }
 
+        const modalSize = MEDIUM_MODAL_ACTIONS.has(value) ? 'medium' : 'large';
+        this.invokeQuickAction(value, modalSize);
+    }
+
+    openMobileMore() {
+        this.showMobileMore = true;
+    }
+
+    closeMobileMore() {
+        this.showMobileMore = false;
+    }
+
+    handleMobileMoreSelect(event) {
+        const value = event.currentTarget.dataset.value;
+        this.closeMobileMore();
+        if (!value) {
+            return;
+        }
+        if (value === 'follow') {
+            this.handleFollow();
+            return;
+        }
+        if (LOCAL_MENU_ACTIONS.has(value)) {
+            if (value === 'edit') this.handleEdit();
+            else if (value === 'clone') this.handleClone();
+            else if (value === 'delete') this.handleDelete();
+            else if (value === 'post') this.openPostModal();
+            else if (value === 'poll') this.openPollModal();
+            return;
+        }
         const modalSize = MEDIUM_MODAL_ACTIONS.has(value) ? 'medium' : 'large';
         this.invokeQuickAction(value, modalSize);
     }

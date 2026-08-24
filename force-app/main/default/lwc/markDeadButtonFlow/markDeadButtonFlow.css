@@ -1,6 +1,8 @@
 .button-container {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
     padding: 0;
 }
 
@@ -36,6 +38,49 @@
 .mark-dead-btn:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(234, 0, 30, 0.25);
+}
+
+/* Phone circular red Mark Dead */
+.mark-dead-circle-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 0;
+    max-width: 88px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.mark-dead-circle-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.mark-dead-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ea001e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.circle-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+}
+
+.mark-dead-circle-label {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: #181818;
+    text-align: center;
+    max-width: 80px;
 }
 
 .button-icon {

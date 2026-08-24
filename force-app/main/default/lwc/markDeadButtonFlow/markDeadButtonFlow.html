@@ -1,14 +1,37 @@
 <template>
     <div class="button-container">
-        <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy}>
-            <lightning-icon
-                icon-name="utility:clear"
-                size="xx-small"
-                class="button-icon"
-                alternative-text=""
-            ></lightning-icon>
-            <span>Mark Dead</span>
-        </button>
+        <!-- Phone: red circular action (Salesforce mobile style) -->
+        <template if:true={isCircleVariant}>
+            <button
+                class="mark-dead-circle-action"
+                onclick={openFlow}
+                disabled={isBusy}
+                type="button"
+            >
+                <span class="mark-dead-circle">
+                    <lightning-icon
+                        icon-name="utility:clear"
+                        size="small"
+                        class="circle-icon"
+                        alternative-text=""
+                    ></lightning-icon>
+                </span>
+                <span class="mark-dead-circle-label">Mark dead</span>
+            </button>
+        </template>
+
+        <!-- Desktop: rectangular red button -->
+        <template if:false={isCircleVariant}>
+            <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy} type="button">
+                <lightning-icon
+                    icon-name="utility:clear"
+                    size="xx-small"
+                    class="button-icon"
+                    alternative-text=""
+                ></lightning-icon>
+                <span>Mark Dead</span>
+            </button>
+        </template>
     </div>
 
     <!-- Popup modal: Screen Flow runs here (not a new page) -->
@@ -33,7 +56,6 @@
                     </div>
                 </template>
 
-                <!-- Keep flow in DOM while modal is open; hide until ready -->
                 <div class={flowWrapperClass}>
                     <lightning-flow
                         flow-api-name={flowApiName}
