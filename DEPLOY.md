@@ -34,6 +34,23 @@ Temporarily comment these two lines in JS and deploy again:
 ```
 If deploy succeeds, Apex was the issue — deploy Apex methods, then uncomment.
 
+## Mobile shows "Unsupported form factor"
+
+The LWC must declare Phone support in `customHighlightsPanel.js-meta.xml`:
+
+```xml
+<supportedFormFactors>
+    <supportedFormFactor type="Large" />
+    <supportedFormFactor type="Small" />
+</supportedFormFactors>
+```
+
+1. Deploy the updated LWC (meta.xml included).
+2. Refresh / reopen Lightning App Builder.
+3. Switch to **Phone** — error should be gone.
+4. Keep Custom Highlights Panel on Phone; remove standard Highlights Panel if still there.
+5. Save → Activation for Phone.
+
 ## Mobile shows standard Highlights Panel (but web shows custom)
 
 Salesforce keeps **Desktop** and **Phone** layouts separate. Adding the LWC on web does **not** add it on mobile.
