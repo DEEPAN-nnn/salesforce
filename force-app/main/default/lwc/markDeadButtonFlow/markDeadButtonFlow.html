@@ -1,20 +1,28 @@
 <template>
     <div class={containerClass}>
-        <!-- Phone: red circle + white X, same size as standard mobile actions -->
+        <!-- Phone: red circle + white X (standard mobile action size) -->
         <template if:true={isMobileVariant}>
             <button
                 class="mark-dead-circle-action"
                 onclick={openFlow}
                 disabled={isBusy}
                 type="button"
+                title="Mark Dead"
             >
-                <span class="mark-dead-circle">
-                    <lightning-icon
-                        icon-name="utility:clear"
-                        size="small"
-                        class="circle-icon"
-                        alternative-text="Mark Dead"
-                    ></lightning-icon>
+                <span class="mark-dead-circle" aria-hidden="true">
+                    <!-- inline SVG so the X always shows (lightning-icon can fail in App Builder) -->
+                    <svg
+                        class="hp-inline-svg"
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        focusable="false"
+                    >
+                        <path
+                            fill="#ffffff"
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                        ></path>
+                    </svg>
                 </span>
                 <span class="mark-dead-circle-label">Mark dead</span>
             </button>

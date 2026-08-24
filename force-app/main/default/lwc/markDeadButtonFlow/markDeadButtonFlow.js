@@ -1,31 +1,37 @@
 import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { RefreshEvent } from 'lightning/refresh';
+import FORM_FACTOR from '@salesforce/client/formFactor';
 
 /**
  * Mark Dead button:
- * - Custom red button (panel-sized)
- * - Click → popup modal + brief spinner
- * - Screen Flow runs INSIDE the modal (not a new page)
- * - Auto-closes when flow finishes
- *
- * Flow API name from your org: Request_Dead_Approval
- * Flow input variable: recordId (Text)
- * Flow must be Active (your XML showed status Obsolete).
+ * - Desktop: red rectangular button with X
+ * - Phone: red circle with white X (standard mobile action size)
+ * - Click → popup modal + Screen Flow; auto-closes on finish
  */
 export default class MarkDeadButtonFlow extends LightningElement {
     @api recordId;
-    /** Must match Flow API Name in Setup → Flows */
     @api flowApiName = 'Request_Dead_Approval';
-    /** 'mobile' = phone bar: red pill with X (same as web). default = desktop */
+    /** Optional override: 'mobile' | 'circle' | 'default' */
     @api variant = 'default';
 
     @track showModal = false;
     @track showSpinner = true;
     @track isBusy = false;
 
+    /**
+     * Prefer explicit variant; also auto-detect phone so App Builder / mobile
+     * never fall back to the rectangular button by mistake.
+     */
     get isMobileVariant() {
-        return this.variant === 'mobile' || this.variant === 'circle';
+        if (this.variant === 'mobile' || this.variant === 'circle') {
+            return true;
+        }
+        if (this.variant === 'desktop' || this.variant === 'default') {
+            // Still force circle on real phone / App Builder Phone canvas
+            return FORM_FACTOR === 'Small';
+        }
+        return FORM_FACTOR === 'Small';
     }
 
     get containerClass() {
@@ -65,7 +71,6 @@ export default class MarkDeadButtonFlow extends LightningElement {
         this.showSpinner = true;
         this.showModal = true;
 
-        // Fallback: if STARTED never fires, still reveal the flow after a short delay
         // eslint-disable-next-line @lwc/lwc/no-async-operation
         this._spinnerTimer = window.setTimeout(() => {
             this.showSpinner = false;
@@ -80,7 +85,6 @@ export default class MarkDeadButtonFlow extends LightningElement {
             this._spinnerTimer = null;
         }
 
-        // Flow UI is ready — hide spinner, show screens in the modal
         if (
             status === 'STARTED' ||
             status === 'PAUSED' ||
@@ -96,7 +100,6 @@ export default class MarkDeadButtonFlow extends LightningElement {
             return;
         }
 
-        // Auto-close popup when the screen flow completes
         if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
             this.closeModal();
             this.dispatchEvent(new RefreshEvent());
@@ -115,7 +118,6 @@ export default class MarkDeadButtonFlow extends LightningElement {
     }
 
     handleBackdropClick() {
-        // Optional: close on backdrop click. Comment out if you want forced finish.
         this.closeModal();
     }
 

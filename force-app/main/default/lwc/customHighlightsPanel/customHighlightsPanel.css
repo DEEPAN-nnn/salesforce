@@ -223,9 +223,9 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-evenly;
-    gap: 8px;
+    gap: 4px;
     width: 100%;
-    padding: 12px 10px 14px;
+    padding: 10px 8px 12px;
     background: #ffffff;
     box-sizing: border-box;
 }
@@ -234,9 +234,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex: 0 0 auto;
-    width: 76px;
+    width: 72px;
     padding: 0;
     border: none;
     background: transparent;
@@ -244,10 +244,10 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Salesforce mobile action circle size / color */
+/* Match Salesforce mobile action circle size (~40px) */
 .hp-circle {
-    width: 52px;
-    height: 52px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -260,23 +260,18 @@
     background: #7b85d4;
 }
 
-.hp-circle-icon {
-    --slds-c-icon-color-foreground-default: #ffffff;
-    --slds-c-icon-color-foreground: #ffffff;
-}
-
-.hp-circle lightning-icon {
-    --slds-c-icon-color-foreground-default: #ffffff;
-    --slds-c-icon-color-foreground: #ffffff;
+.hp-inline-svg {
+    display: block;
+    flex-shrink: 0;
 }
 
 .hp-circle-label {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     line-height: 1.15;
     color: #181818;
     text-align: center;
     width: 100%;
-    max-width: 76px;
+    max-width: 72px;
     word-break: break-word;
 }
 
@@ -337,23 +332,13 @@
 }
 
 .hp-more-circle {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-}
-
-.hp-more-icon {
-    --slds-c-icon-color-foreground-default: #ffffff;
-    --slds-c-icon-color-foreground: #ffffff;
-}
-
-.hp-more-circle lightning-icon {
-    --slds-c-icon-color-foreground-default: #ffffff;
-    --slds-c-icon-color-foreground: #ffffff;
 }
 
 .hp-more-circle-blue {
@@ -384,7 +369,7 @@
 /* Mark Dead red circle — same footprint as other mobile actions */
 .hp-mobile-bar c-mark-dead-button-flow {
     flex: 0 0 auto;
-    width: 76px;
+    width: 72px;
     display: flex;
     align-items: flex-start;
     justify-content: center;

@@ -34,6 +34,24 @@ function newPollChoices() {
     ];
 }
 
+const SVG = {
+    lightning: 'M11 2L5 13h5v9l7-12h-5l4-8z',
+    edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+    copy: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
+    event: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zM7 12h5v5H7z',
+    task: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+    call: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z',
+    chat: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z',
+    chart: 'M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z',
+    adduser:
+        'M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+    delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'
+};
+
+function moreItem(key, value, label, svgPath, circleClass) {
+    return { key: key, value: value, label: label, svgPath: svgPath, circleClass: circleClass };
+}
+
 export default class CustomHighlightsPanel extends NavigationMixin(LightningElement) {
     iconUrl = '/img/icon/t4v35/custom/custom6_120.png';
 
@@ -235,159 +253,83 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         const primary = this.mobilePrimaryApiNames;
         const qa = 'hp-more-circle hp-more-circle-blue';
 
-        // Quick Actions — blue circle + white lightning (same as screenshot)
         if (this.showGenerateProposalBtn && !primary.has('Enquiry__c.Generate_Proposal')) {
-            items.push({
-                key: 'proposal',
-                value: 'Enquiry__c.Generate_Proposal',
-                label: 'Generate Proposal',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem('proposal', 'Enquiry__c.Generate_Proposal', 'Generate Proposal', SVG.lightning, qa)
+            );
         }
         if (this.showRelatedPropertyBtn && !primary.has('Enquiry__c.Related_Property')) {
-            items.push({
-                key: 'related',
-                value: 'Enquiry__c.Related_Property',
-                label: 'Related Property',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem('related', 'Enquiry__c.Related_Property', 'Related Property', SVG.lightning, qa)
+            );
         }
         if (this.showAssignAssistant && !primary.has('Enquiry__c.Assign_Assistant')) {
-            items.push({
-                key: 'assign',
-                value: 'Enquiry__c.Assign_Assistant',
-                label: 'Assign Assistant',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem('assign', 'Enquiry__c.Assign_Assistant', 'Assign Assistant', SVG.lightning, qa)
+            );
         }
         if (
             this.showChangePropertyAssistant &&
             !primary.has('Enquiry__c.Change_Property_Assistant')
         ) {
-            items.push({
-                key: 'change',
-                value: 'Enquiry__c.Change_Property_Assistant',
-                label: 'Change Property Assistant',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem(
+                    'change',
+                    'Enquiry__c.Change_Property_Assistant',
+                    'Change Property Assistant',
+                    SVG.lightning,
+                    qa
+                )
+            );
         }
         if (this.showUpdateLocationBtn && !primary.has('Enquiry__c.Update_Location')) {
-            items.push({
-                key: 'location',
-                value: 'Enquiry__c.Update_Location',
-                label: 'Update Location',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem('location', 'Enquiry__c.Update_Location', 'Update Location', SVG.lightning, qa)
+            );
         }
         if (this.showDeleteRelatedListItem) {
-            items.push({
-                key: 'deleteRelated',
-                value: 'Enquiry__c.Delete_Related_List',
-                label: 'Delete Related List',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
+            items.push(
+                moreItem(
+                    'deleteRelated',
+                    'Enquiry__c.Delete_Related_List',
+                    'Delete Related List',
+                    SVG.lightning,
+                    qa
+                )
+            );
         }
 
-        // Standard actions — screenshot colors
         if (this.showEditItem) {
-            items.push({
-                key: 'edit',
-                value: 'edit',
-                label: 'Edit',
-                iconName: 'utility:edit',
-                circleClass: 'hp-more-circle hp-more-circle-green'
-            });
+            items.push(
+                moreItem('edit', 'edit', 'Edit', SVG.edit, 'hp-more-circle hp-more-circle-green')
+            );
         }
         if (this.showCloneItem) {
-            items.push({
-                key: 'clone',
-                value: 'clone',
-                label: 'Clone',
-                iconName: 'utility:copy',
-                circleClass: qa
-            });
+            items.push(moreItem('clone', 'clone', 'Clone', SVG.copy, qa));
         }
         if (this.showMergeEnquiry) {
-            items.push({
-                key: 'merge',
-                value: 'Enquiry__c.Merge_Enquiry',
-                label: 'Merge Enquiry',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            });
-        }
-
-        items.push(
-            {
-                key: 'event',
-                value: 'Global.NewEvent',
-                label: 'New Event',
-                iconName: 'utility:event',
-                circleClass: 'hp-more-circle hp-more-circle-pink'
-            },
-            {
-                key: 'task',
-                value: 'Global.NewTask',
-                label: 'New Task',
-                iconName: 'utility:task',
-                circleClass: 'hp-more-circle hp-more-circle-green'
-            },
-            {
-                key: 'call',
-                value: 'Global.LogACall',
-                label: 'Log a Call',
-                iconName: 'utility:call',
-                circleClass: 'hp-more-circle hp-more-circle-teal'
-            }
-        );
-
-        if (this.showPostPoll) {
             items.push(
-                {
-                    key: 'post',
-                    value: 'post',
-                    label: 'Post',
-                    iconName: 'utility:chat',
-                    circleClass: qa
-                },
-                {
-                    key: 'poll',
-                    value: 'poll',
-                    label: 'Poll',
-                    iconName: 'utility:chart',
-                    circleClass: qa
-                }
+                moreItem('merge', 'Enquiry__c.Merge_Enquiry', 'Merge Enquiry', SVG.lightning, qa)
             );
         }
 
         items.push(
-            {
-                key: 'sharing',
-                value: 'Enquiry__c.Sharing',
-                label: 'Sharing',
-                iconName: 'utility:lightning',
-                circleClass: qa
-            },
-            {
-                key: 'follow',
-                value: 'follow',
-                label: this.followLabel,
-                iconName: 'utility:adduser',
-                circleClass: qa
-            },
-            {
-                key: 'delete',
-                value: 'delete',
-                label: 'Delete',
-                iconName: 'utility:delete',
-                circleClass: 'hp-more-circle hp-more-circle-red'
-            }
+            moreItem('event', 'Global.NewEvent', 'New Event', SVG.event, 'hp-more-circle hp-more-circle-pink'),
+            moreItem('task', 'Global.NewTask', 'New Task', SVG.task, 'hp-more-circle hp-more-circle-green'),
+            moreItem('call', 'Global.LogACall', 'Log a Call', SVG.call, 'hp-more-circle hp-more-circle-teal')
+        );
+
+        if (this.showPostPoll) {
+            items.push(
+                moreItem('post', 'post', 'Post', SVG.chat, qa),
+                moreItem('poll', 'poll', 'Poll', SVG.chart, qa)
+            );
+        }
+
+        items.push(
+            moreItem('sharing', 'Enquiry__c.Sharing', 'Sharing', SVG.lightning, qa),
+            moreItem('follow', 'follow', this.followLabel, SVG.adduser, qa),
+            moreItem('delete', 'delete', 'Delete', SVG.delete, 'hp-more-circle hp-more-circle-red')
         );
 
         return items;
