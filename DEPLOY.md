@@ -36,6 +36,11 @@ If deploy succeeds, Apex was the issue — deploy Apex methods, then uncomment.
 
 ## Mobile (Salesforce phone app)
 
-1. In App Builder → Enquiry record page → switch to **Phone** form factor → add `customHighlightsPanel` (hide the standard Highlights Panel if needed).
-2. Deploy the latest LWC (same actions/visibility as desktop; phone-friendly layout + full-width modals only).
-3. If actions don’t open after deploy: clear Salesforce mobile cache (or reinstall), then reopen the record.
+Layout-only phone fixes (no action/visibility changes):
+- Fields wrap to 2 columns
+- Actions wrap under the title
+- Quick Action / Post / Poll / Mark Dead modals use full width on phone
+
+1. App Builder → Enquiry record page → **Phone** form factor → add `customHighlightsPanel`.
+2. Deploy latest `customHighlightsPanel` + `markDeadButtonFlow`.
+3. If UI looks stale: clear Salesforce mobile cache, reopen the record.

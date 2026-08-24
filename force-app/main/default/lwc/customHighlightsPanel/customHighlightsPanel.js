@@ -4,7 +4,6 @@ import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
 import FORM_FACTOR from '@salesforce/client/formFactor';
-
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
 import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
@@ -12,33 +11,18 @@ import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFee
 import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
 
 const OBJECT_API_NAME = 'Enquiry__c';
-
-/* App Builder visibility */
 const HIDDEN_PROFILE = 'Akshay Madane Profile';
 const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
-
-const LOCAL_MENU_ACTIONS = new Set([
-    'edit',
-    'clone',
-    'delete',
-    'post',
-    'poll',
-    'sharing',
-    'sharingHierarchy'
-]);
-
-/** Quick Actions that should open at medium (regular) size, not full-wide */
-const MEDIUM_MODAL_ACTIONS = new Set([]);
-
+const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete', 'post', 'poll']);
+const MEDIUM_MODAL_ACTIONS = new Set(['Enquiry__c.Mark_Dead']);
 const MODAL_STYLE_ID = 'customHighlightsPanelModalSize';
 const LARGE_MODAL_CSS =
     '.slds-modal__container{width:90vw!important;max-width:90vw!important;min-width:70vw!important;max-height:90vh!important;}' +
     '.slds-modal__content{max-height:calc(90vh - 8rem)!important;}';
-/* SLDS medium ~50rem / 70% — regular Quick Action size */
 const MEDIUM_MODAL_CSS =
     '.slds-modal__container{width:70%!important;max-width:50rem!important;min-width:20rem!important;max-height:80vh!important;}' +
     '.slds-modal__content{max-height:calc(80vh - 8rem)!important;}';
-/* Phone — full width, no desktop min-width */
+/* Phone only: full-width Quick Action modals (desktop sizes break on mobile) */
 const PHONE_MODAL_CSS =
     '.slds-modal__container{width:100%!important;max-width:100%!important;min-width:0!important;max-height:100%!important;margin:0!important;}' +
     '.slds-modal__content{max-height:calc(100vh - 6rem)!important;}';
@@ -51,9 +35,10 @@ function newPollChoices() {
 }
 
 export default class CustomHighlightsPanel extends NavigationMixin(LightningElement) {
+    iconUrl = '/img/icon/t4v35/custom/custom6_120.png';
+
     @api recordId;
     @api objectApiName = OBJECT_API_NAME;
-    @api iconName = 'standard:opportunity';
 
     @track isFollowLoading = false;
     @track isActionLoading = false;
@@ -85,7 +70,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         }
     }
 
-    /* Inline string fields — avoids schema-import deploy failures in LWC editor */
     @wire(getRecord, {
         recordId: '$recordId',
         fields: ['Enquiry__c.Name'],
@@ -121,7 +105,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             console.error('Record wire error:', error);
         }
     }
-
 
     displayOrBlank(value) {
         const v = value === null || value === undefined ? '' : String(value).trim();
@@ -188,7 +171,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return !this.isHiddenProfile;
     }
 
-    /* Phone icon in App Builder = mobile only */
     get showPostPoll() {
         return FORM_FACTOR === 'Small';
     }
@@ -212,10 +194,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         this.loadFollowState();
     }
 
-    /**
-     * @param {'large'|'medium'} size
-     * On phone, always use full-width modal CSS (desktop large/medium break mobile).
-     */
     applyModalSize(size) {
         try {
             let styleEl = document.getElementById(MODAL_STYLE_ID);
@@ -227,6 +205,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                     parent.appendChild(styleEl);
                 }
             }
+            /* Layout only: on phone use full-width modal CSS */
             if (FORM_FACTOR === 'Small') {
                 styleEl.textContent = PHONE_MODAL_CSS;
                 return;
@@ -300,8 +279,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             else if (value === 'delete') this.handleDelete();
             else if (value === 'post') this.openPostModal();
             else if (value === 'poll') this.openPollModal();
-            else if (value === 'sharing') this.handleSharing();
-            else if (value === 'sharingHierarchy') this.handleSharingHierarchy();
             return;
         }
 
@@ -490,46 +467,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         });
     }
 
-    /**
-     * Standard "Sharing" action — opens manual share UI for the record.
-     * This is NOT a Global Quick Action / object Quick Action.
-     */
-    handleSharing() {
-        if (!this.recordId) {
-            return;
-        }
-        this[NavigationMixin.Navigate]({
-            type: 'standard__webPage',
-            attributes: {
-                url:
-                    '/p/share/CustomObjectSharingDetail?parent_id=' +
-                    encodeURIComponent(this.recordId)
-            }
-        });
-    }
-
-    /**
-     * Standard "Sharing Hierarchy" action — who has access and why.
-     * Appears as the second Sharing-type action on the standard Highlights Panel.
-     */
-    handleSharingHierarchy() {
-        if (!this.recordId) {
-            return;
-        }
-        const objectApiName = this.objectApiName || OBJECT_API_NAME;
-        this[NavigationMixin.Navigate]({
-            type: 'standard__webPage',
-            attributes: {
-                url:
-                    '/lightning/r/' +
-                    encodeURIComponent(objectApiName) +
-                    '/' +
-                    encodeURIComponent(this.recordId) +
-                    '/recordShareHierarchy'
-            }
-        });
-    }
-
     async handleDelete() {
         const confirmed = await LightningConfirm.open({
             message: 'Are you sure you want to delete this record?',
@@ -577,6 +514,8 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title: title, message: message, variant: variant }));
+        this.dispatchEvent(
+            new ShowToastEvent({ title: title, message: message, variant: variant })
+        );
     }
 }
