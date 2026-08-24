@@ -381,14 +381,13 @@
     color: #181818;
 }
 
-/* Mark Dead red pill sits in the action row (no separate label under it) */
+/* Mark Dead red circle — same footprint as other mobile actions */
 .hp-mobile-bar c-mark-dead-button-flow {
     flex: 0 0 auto;
+    width: 76px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    align-self: flex-start;
-    margin-top: 0;
 }
 
 @media (max-width: 48em) {
