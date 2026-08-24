@@ -120,11 +120,9 @@
                         <lightning-menu-item value="post" label="Post"></lightning-menu-item>
                         <lightning-menu-item value="poll" label="Poll"></lightning-menu-item>
                     </template>
-                    <!-- Standard Sharing — desktop/tablet only (Classic/LEX URLs fail in mobile app) -->
-                    <template if:true={showSharingActions}>
-                        <lightning-menu-item value="sharing" label="Sharing"></lightning-menu-item>
-                        <lightning-menu-item value="sharingHierarchy" label="Sharing Hierarchy"></lightning-menu-item>
-                    </template>
+                    <!-- Standard Sharing actions (NOT Global/object Quick Actions) -->
+                    <lightning-menu-item value="sharing" label="Sharing"></lightning-menu-item>
+                    <lightning-menu-item value="sharingHierarchy" label="Sharing Hierarchy"></lightning-menu-item>
                     <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
                 </lightning-button-menu>
             </div>

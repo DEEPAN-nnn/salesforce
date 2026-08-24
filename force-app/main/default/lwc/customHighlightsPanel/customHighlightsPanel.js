@@ -193,18 +193,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return FORM_FACTOR === 'Small';
     }
 
-    get isPhone() {
-        return FORM_FACTOR === 'Small';
-    }
-
-    /**
-     * Classic Sharing URLs do not work reliably in Salesforce Mobile App.
-     * Show Sharing actions on desktop/tablet only.
-     */
-    get showSharingActions() {
-        return FORM_FACTOR !== 'Small';
-    }
-
     get canAddPollChoice() {
         return this.pollChoices.length < 10;
     }
@@ -503,19 +491,11 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     /**
-     * Standard "Sharing" action — desktop/tablet only.
-     * Classic share URL is not reliable in Salesforce Mobile App.
+     * Standard "Sharing" action — opens manual share UI for the record.
+     * This is NOT a Global Quick Action / object Quick Action.
      */
     handleSharing() {
         if (!this.recordId) {
-            return;
-        }
-        if (FORM_FACTOR === 'Small') {
-            this.showToast(
-                'Sharing',
-                'Open this record on desktop to share it.',
-                'info'
-            );
             return;
         }
         this[NavigationMixin.Navigate]({
@@ -529,18 +509,11 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     /**
-     * Standard "Sharing Hierarchy" — desktop/tablet only.
+     * Standard "Sharing Hierarchy" action — who has access and why.
+     * Appears as the second Sharing-type action on the standard Highlights Panel.
      */
     handleSharingHierarchy() {
         if (!this.recordId) {
-            return;
-        }
-        if (FORM_FACTOR === 'Small') {
-            this.showToast(
-                'Sharing Hierarchy',
-                'Open this record on desktop to view sharing hierarchy.',
-                'info'
-            );
             return;
         }
         const objectApiName = this.objectApiName || OBJECT_API_NAME;
