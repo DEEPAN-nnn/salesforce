@@ -33,3 +33,16 @@ Temporarily comment these two lines in JS and deploy again:
 // import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
 ```
 If deploy succeeds, Apex was the issue — deploy Apex methods, then uncomment.
+
+## Mobile (Salesforce phone app)
+
+1. In App Builder → Enquiry record page → switch to **Phone** form factor → add `customHighlightsPanel` (hide the standard Highlights Panel if needed).
+2. Deploy the latest LWC (phone layout + full-width action/flow modals).
+3. On phone after deploy:
+   - Header actions + overflow work
+   - Mark Dead opens a phone-sized flow modal
+   - Quick Actions open full-width modals
+   - Post / Poll appear in overflow (phone only, as designed)
+   - Sharing / Sharing Hierarchy stay **desktop only** (classic share pages are unreliable in the mobile app)
+
+If actions don’t open after deploy: clear Salesforce mobile cache (or reinstall), then reopen the record.
