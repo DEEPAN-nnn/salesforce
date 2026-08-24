@@ -164,7 +164,24 @@
     word-break: normal;
 }
 
+.hp-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
 @media (max-width: 48em) {
+    .hp-header {
+        align-items: flex-start;
+    }
+
+    .hp-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
     .hp-fields {
         flex-wrap: wrap;
     }
@@ -172,6 +189,13 @@
     .hp-field {
         flex: 1 1 45%;
         padding-bottom: 6px;
+    }
+
+    .hp-modal {
+        width: 96vw;
+        max-width: 96vw;
+        min-width: 0;
+        max-height: 90vh;
     }
 }
 

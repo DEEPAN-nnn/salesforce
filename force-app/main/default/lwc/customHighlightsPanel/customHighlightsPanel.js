@@ -38,6 +38,10 @@ const LARGE_MODAL_CSS =
 const MEDIUM_MODAL_CSS =
     '.slds-modal__container{width:70%!important;max-width:50rem!important;min-width:20rem!important;max-height:80vh!important;}' +
     '.slds-modal__content{max-height:calc(80vh - 8rem)!important;}';
+/* Phone — full width, no desktop min-width */
+const PHONE_MODAL_CSS =
+    '.slds-modal__container{width:100%!important;max-width:100%!important;min-width:0!important;max-height:100%!important;margin:0!important;}' +
+    '.slds-modal__content{max-height:calc(100vh - 6rem)!important;}';
 
 function newPollChoices() {
     return [
@@ -189,6 +193,18 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return FORM_FACTOR === 'Small';
     }
 
+    get isPhone() {
+        return FORM_FACTOR === 'Small';
+    }
+
+    /**
+     * Classic Sharing URLs do not work reliably in Salesforce Mobile App.
+     * Show Sharing actions on desktop/tablet only.
+     */
+    get showSharingActions() {
+        return FORM_FACTOR !== 'Small';
+    }
+
     get canAddPollChoice() {
         return this.pollChoices.length < 10;
     }
@@ -210,7 +226,7 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
 
     /**
      * @param {'large'|'medium'} size
-     * Mark Dead uses medium; other Quick Actions use large.
+     * On phone, always use full-width modal CSS (desktop large/medium break mobile).
      */
     applyModalSize(size) {
         try {
@@ -222,6 +238,10 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
                 if (parent) {
                     parent.appendChild(styleEl);
                 }
+            }
+            if (FORM_FACTOR === 'Small') {
+                styleEl.textContent = PHONE_MODAL_CSS;
+                return;
             }
             styleEl.textContent =
                 size === 'medium' ? MEDIUM_MODAL_CSS : LARGE_MODAL_CSS;
@@ -483,11 +503,19 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     /**
-     * Standard "Sharing" action — opens manual share UI for the record.
-     * This is NOT a Global Quick Action / object Quick Action.
+     * Standard "Sharing" action — desktop/tablet only.
+     * Classic share URL is not reliable in Salesforce Mobile App.
      */
     handleSharing() {
         if (!this.recordId) {
+            return;
+        }
+        if (FORM_FACTOR === 'Small') {
+            this.showToast(
+                'Sharing',
+                'Open this record on desktop to share it.',
+                'info'
+            );
             return;
         }
         this[NavigationMixin.Navigate]({
@@ -501,11 +529,18 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     }
 
     /**
-     * Standard "Sharing Hierarchy" action — who has access and why.
-     * Appears as the second Sharing-type action on the standard Highlights Panel.
+     * Standard "Sharing Hierarchy" — desktop/tablet only.
      */
     handleSharingHierarchy() {
         if (!this.recordId) {
+            return;
+        }
+        if (FORM_FACTOR === 'Small') {
+            this.showToast(
+                'Sharing Hierarchy',
+                'Open this record on desktop to view sharing hierarchy.',
+                'info'
+            );
             return;
         }
         const objectApiName = this.objectApiName || OBJECT_API_NAME;
