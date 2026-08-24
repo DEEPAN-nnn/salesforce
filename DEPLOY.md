@@ -34,13 +34,22 @@ Temporarily comment these two lines in JS and deploy again:
 ```
 If deploy succeeds, Apex was the issue — deploy Apex methods, then uncomment.
 
-## Mobile (Salesforce phone app)
+## Mobile shows standard Highlights Panel (but web shows custom)
 
-Layout-only phone fixes (no action/visibility changes):
-- Fields wrap to 2 columns
-- Actions wrap under the title
-- Quick Action / Post / Poll / Mark Dead modals use full width on phone
+Salesforce keeps **Desktop** and **Phone** layouts separate. Adding the LWC on web does **not** add it on mobile.
 
-1. App Builder → Enquiry record page → **Phone** form factor → add `customHighlightsPanel`.
-2. Deploy latest `customHighlightsPanel` + `markDeadButtonFlow`.
-3. If UI looks stale: clear Salesforce mobile cache, reopen the record.
+### Fix in Lightning App Builder
+1. Open the **Enquiry__c** Lightning record page → **Edit**.
+2. Top of App Builder: switch form factor from **Desktop** to **Phone** (phone icon).
+3. On the Phone canvas:
+   - **Remove** (or hide) the standard **Highlights Panel** / Dynamic Highlights Panel.
+   - **Add** your custom component: **Custom Highlights Panel** (`customHighlightsPanel` / `c-custom-highlights-panel`).
+4. Click **Save**.
+5. Click **Activation** → make sure this page is assigned for **Phone** (and Desktop) for the right apps / profiles / record types.
+6. In Salesforce mobile app: pull to refresh or reopen the Enquiry record.
+
+Optional: on Desktop canvas, set a visibility filter on the **standard** Highlights Panel to Device = Phone only if you still keep it somewhere — usually better to remove it from Phone and leave only the custom LWC.
+
+### Still wrong after that?
+- Confirm you edited the **same** Lightning page that mobile uses (check Activation → Phone assignments).
+- Clear Salesforce mobile cache / reinstall if the old page is cached.
