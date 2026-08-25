@@ -18,6 +18,20 @@ const PHONE_MODAL_CSS =
     '.slds-modal__container{width:100%!important;max-width:100%!important;min-width:0!important;max-height:100%!important;margin:0!important;}' +
     '.slds-modal__content{max-height:calc(100vh - 6rem)!important;}';
 
+/* Quick Action API names */
+const QA = {
+    recordIdSpike: 'Enquiry__c.Record_Id_Spike',
+    generateProposalMobile: 'Enquiry__c.Generate_Proposal_Mobile',
+    relatedProperty: 'Enquiry__c.Related_Property',
+    relatedPropertyLwc: 'Enquiry__c.Related_Property_LWC',
+    assignAssistant: 'Enquiry__c.Assign_Assistant',
+    changePropertyAssistant: 'Enquiry__c.Change_Property_Assistant',
+    updateLocation: 'Enquiry__c.Update_Location',
+    deleteRelatedList: 'Enquiry__c.Delete_Related_List',
+    mergeEnquiry: 'Enquiry__c.Merge_Enquiry',
+    sharing: 'Enquiry__c.Sharing'
+};
+
 const SVG = {
     lightning: 'M11 2L5 13h5v9l7-12h-5l4-8z',
     edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
@@ -44,8 +58,8 @@ function newPollChoices() {
 }
 
 /**
- * Phone-only Highlights Panel — same visibility / actions as desktop.
- * Mark Dead uses child LWC: markDeadButtonFlowMobile
+ * Phone-only Highlights Panel — order + visibility from App Builder Dynamic Actions.
+ * Mark Dead: child LWC markDeadButtonFlowMobile (red circle + X).
  */
 export default class CustomHighlightsPanelMobile extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -59,9 +73,7 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     @track following = false;
     @track profileName = '';
     @track propertySourcingAssistance = false;
-
     @track showMore = false;
-
     @track showPostModal = false;
     @track showPollModal = false;
     @track postBody = '';
@@ -96,86 +108,97 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         }
     }
 
+    get profileReady() {
+        return !!this.profileName;
+    }
+
     get isHiddenProfile() {
         return this.profileName === HIDDEN_PROFILE;
     }
+
+    /* Visibility from App Builder Dynamic Actions screenshots */
+    get showGenerateProposalMobile() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showRelatedProperty() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showRelatedPropertyLwc() {
+        return true;
+    }
+    get showRecordIdSpike() {
+        return true;
+    }
     get showAssignAssistant() {
         return (
+            this.profileReady &&
             !this.propertySourcingAssistance &&
             this.profileName !== RESTRICTED_ASSISTANT_PROFILE
         );
     }
     get showChangePropertyAssistant() {
         return (
+            this.profileReady &&
             this.propertySourcingAssistance &&
             this.profileName !== RESTRICTED_ASSISTANT_PROFILE
         );
     }
+    get showUpdateLocation() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showDeleteRelatedList() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showEdit() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showClone() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
     get showMergeEnquiry() {
         return this.profileName === 'System Administrator';
-    }
-    get showGenerateProposalBtn() {
-        return !this.isHiddenProfile;
-    }
-    get showRelatedPropertyBtn() {
-        return !this.isHiddenProfile;
-    }
-    get showUpdateLocationBtn() {
-        return !this.isHiddenProfile;
-    }
-    get showDeleteRelatedListItem() {
-        return !this.isHiddenProfile;
-    }
-    get showEditItem() {
-        return !this.isHiddenProfile;
-    }
-    get showCloneItem() {
-        return !this.isHiddenProfile;
     }
 
     get followLabel() {
         return this.following ? 'Following' : '+ Follow';
     }
 
+    /**
+     * Primary circles after Mark Dead (App Builder order):
+     * Record Id Spike → Generate Proposal (Mobile) → then More
+     * (Mark Dead is separate child LWC)
+     */
     get primaryActions() {
-        // App Builder Actions order (after Mark Dead): Generate Proposal, Related Property, then More
-        const candidates = [];
-        if (this.showGenerateProposalBtn) {
-            candidates.push({
-                key: 'proposal',
-                label: 'Generate Proposal',
-                apiName: 'Enquiry__c.Generate_Proposal'
+        const list = [];
+        if (this.showRecordIdSpike) {
+            list.push({
+                key: 'spike',
+                label: 'Record Id Spike',
+                apiName: QA.recordIdSpike
             });
         }
-        if (this.showRelatedPropertyBtn) {
-            candidates.push({
+        if (this.showGenerateProposalMobile) {
+            list.push({
+                key: 'proposalMobile',
+                label: 'Generate Proposal',
+                apiName: QA.generateProposalMobile
+            });
+        }
+        if (this.showRelatedProperty) {
+            list.push({
                 key: 'related',
                 label: 'Related Property',
-                apiName: 'Enquiry__c.Related_Property'
+                apiName: QA.relatedProperty
             });
         }
-        if (this.showAssignAssistant) {
-            candidates.push({
-                key: 'assign',
-                label: 'Assign Assistant',
-                apiName: 'Enquiry__c.Assign_Assistant'
+        if (this.showRelatedPropertyLwc) {
+            list.push({
+                key: 'relatedLwc',
+                label: 'Related Property (LWC)',
+                apiName: QA.relatedPropertyLwc
             });
         }
-        if (this.showChangePropertyAssistant) {
-            candidates.push({
-                key: 'change',
-                label: 'Change Property Assistant',
-                apiName: 'Enquiry__c.Change_Property_Assistant'
-            });
-        }
-        if (this.showUpdateLocationBtn) {
-            candidates.push({
-                key: 'location',
-                label: 'Update Location',
-                apiName: 'Enquiry__c.Update_Location'
-            });
-        }
-        return candidates.slice(0, 2);
+        return list.slice(0, 2);
     }
 
     get primaryApiNames() {
@@ -183,100 +206,84 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     }
 
     /**
-     * More sheet — same order as App Builder Actions list
-     * (skipping items already on the primary bar).
+     * More sheet — App Builder Actions order (remaining items).
      */
     get moreActions() {
         const items = [];
         const primary = this.primaryApiNames;
         const qa = 'mhp-more-circle mhp-more-circle-blue';
 
-        if (this.showGenerateProposalBtn && !primary.has('Enquiry__c.Generate_Proposal')) {
+        if (this.showRecordIdSpike && !primary.has(QA.recordIdSpike)) {
             items.push(
-                moreItem('proposal', 'Enquiry__c.Generate_Proposal', 'Generate Proposal', SVG.lightning, qa)
+                moreItem('spike', QA.recordIdSpike, 'Record Id Spike (dev only)', SVG.lightning, qa)
             );
         }
-        if (this.showRelatedPropertyBtn && !primary.has('Enquiry__c.Related_Property')) {
+        if (this.showGenerateProposalMobile && !primary.has(QA.generateProposalMobile)) {
             items.push(
-                moreItem('related', 'Enquiry__c.Related_Property', 'Related Property', SVG.lightning, qa)
+                moreItem(
+                    'proposalMobile',
+                    QA.generateProposalMobile,
+                    'Generate Proposal (Mobile)',
+                    SVG.lightning,
+                    qa
+                )
             );
         }
-        if (this.showAssignAssistant && !primary.has('Enquiry__c.Assign_Assistant')) {
+        if (this.showRelatedProperty && !primary.has(QA.relatedProperty)) {
+            items.push(moreItem('related', QA.relatedProperty, 'Related Property', SVG.lightning, qa));
+        }
+        if (this.showRelatedPropertyLwc && !primary.has(QA.relatedPropertyLwc)) {
             items.push(
-                moreItem('assign', 'Enquiry__c.Assign_Assistant', 'Assign Assistant', SVG.lightning, qa)
+                moreItem(
+                    'relatedLwc',
+                    QA.relatedPropertyLwc,
+                    'Related Property (LWC)',
+                    SVG.lightning,
+                    qa
+                )
             );
         }
-        if (
-            this.showChangePropertyAssistant &&
-            !primary.has('Enquiry__c.Change_Property_Assistant')
-        ) {
+        if (this.showAssignAssistant) {
+            items.push(moreItem('assign', QA.assignAssistant, 'Assign Assistant', SVG.lightning, qa));
+        }
+        if (this.showChangePropertyAssistant) {
             items.push(
                 moreItem(
                     'change',
-                    'Enquiry__c.Change_Property_Assistant',
+                    QA.changePropertyAssistant,
                     'Change Property Assistant',
                     SVG.lightning,
                     qa
                 )
             );
         }
-        if (this.showUpdateLocationBtn && !primary.has('Enquiry__c.Update_Location')) {
+        if (this.showUpdateLocation) {
+            items.push(moreItem('location', QA.updateLocation, 'Update Location', SVG.lightning, qa));
+        }
+        if (this.showDeleteRelatedList) {
             items.push(
-                moreItem('location', 'Enquiry__c.Update_Location', 'Update Location', SVG.lightning, qa)
+                moreItem('deleteRelated', QA.deleteRelatedList, 'Delete Related List', SVG.lightning, qa)
             );
         }
-        if (this.showDeleteRelatedListItem) {
-            items.push(
-                moreItem(
-                    'deleteRelated',
-                    'Enquiry__c.Delete_Related_List',
-                    'Delete Related List',
-                    SVG.lightning,
-                    qa
-                )
-            );
+        if (this.showEdit) {
+            items.push(moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-green'));
         }
-        if (this.showEditItem) {
-            items.push(
-                moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-green')
-            );
-        }
-        if (this.showCloneItem) {
+        if (this.showClone) {
             items.push(moreItem('clone', 'clone', 'Clone', SVG.copy, qa));
         }
 
         items.push(
-            moreItem(
-                'event',
-                'Global.NewEvent',
-                'New Event',
-                SVG.event,
-                'mhp-more-circle mhp-more-circle-pink'
-            ),
-            moreItem(
-                'task',
-                'Global.NewTask',
-                'New Task',
-                SVG.task,
-                'mhp-more-circle mhp-more-circle-green'
-            ),
-            moreItem(
-                'call',
-                'Global.LogACall',
-                'Log a Call',
-                SVG.call,
-                'mhp-more-circle mhp-more-circle-teal'
-            ),
+            moreItem('event', 'Global.NewEvent', 'New Event', SVG.event, 'mhp-more-circle mhp-more-circle-pink'),
+            moreItem('task', 'Global.NewTask', 'New Task', SVG.task, 'mhp-more-circle mhp-more-circle-green'),
+            moreItem('call', 'Global.LogACall', 'Log a Call', SVG.call, 'mhp-more-circle mhp-more-circle-teal'),
             moreItem('post', 'post', 'Post', SVG.chat, qa),
             moreItem('poll', 'poll', 'Poll', SVG.chart, qa),
-            moreItem('sharing', 'Enquiry__c.Sharing', 'Sharing', SVG.lightning, qa),
+            moreItem('sharing', QA.sharing, 'Sharing', SVG.lightning, qa),
             moreItem('delete', 'delete', 'Delete', SVG.delete, 'mhp-more-circle mhp-more-circle-red')
         );
 
         if (this.showMergeEnquiry) {
-            items.push(
-                moreItem('merge', 'Enquiry__c.Merge_Enquiry', 'Merge Enquiry', SVG.lightning, qa)
-            );
+            items.push(moreItem('merge', QA.mergeEnquiry, 'Merge Enquiry', SVG.lightning, qa));
         }
 
         items.push(moreItem('follow', 'follow', this.followLabel, SVG.adduser, qa));

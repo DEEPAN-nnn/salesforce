@@ -4,7 +4,7 @@ import { RefreshEvent } from 'lightning/refresh';
 
 /**
  * Mobile-only Mark Dead:
- * - Red 40px circle + white X (Salesforce mobile action style)
+ * - Red 36px circle + white X (Salesforce mobile action style)
  * - Opens Screen Flow in a popup modal
  * - Auto-closes on FINISHED / FINISHED_SCREEN
  *

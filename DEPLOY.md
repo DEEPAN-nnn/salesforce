@@ -35,7 +35,7 @@
 ## Mark Dead (mobile)
 
 Separate LWC `markDeadButtonFlowMobile`:
-- Red **40px** circle + white **X**
+- Red **36px** circle + white **X**
 - Opens Screen Flow `Request_Dead_Approval` in a popup
 - Auto-closes on finish
 - Used as: `<c-mark-dead-button-flow-mobile record-id={recordId}></c-mark-dead-button-flow-mobile>`
