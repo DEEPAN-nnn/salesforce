@@ -33,6 +33,7 @@ export default class MarkDeadButtonFlowMobile extends LightningElement {
         return this.showSpinner ? 'mdm-flow mdm-flow_hidden' : 'mdm-flow';
     }
 
+    @api
     openFlow() {
         if (this.isBusy) {
             return;

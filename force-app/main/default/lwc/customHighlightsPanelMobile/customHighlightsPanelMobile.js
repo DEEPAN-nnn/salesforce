@@ -18,9 +18,8 @@ const PHONE_MODAL_CSS =
     '.slds-modal__container{width:100%!important;max-width:100%!important;min-width:0!important;max-height:100%!important;margin:0!important;}' +
     '.slds-modal__content{max-height:calc(100vh - 6rem)!important;}';
 
-/* Quick Action API names */
+/* Quick Action API names (Record Id Spike removed) */
 const QA = {
-    recordIdSpike: 'Enquiry__c.Record_Id_Spike',
     generateProposalMobile: 'Enquiry__c.Generate_Proposal_Mobile',
     relatedProperty: 'Enquiry__c.Related_Property',
     relatedPropertyLwc: 'Enquiry__c.Related_Property_LWC',
@@ -34,6 +33,8 @@ const QA = {
 
 const SVG = {
     lightning: 'M11 2L5 13h5v9l7-12h-5l4-8z',
+    closeX:
+        'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
     edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
     copy: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
     event: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zM7 12h5v5H7z',
@@ -126,9 +127,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     get showRelatedPropertyLwc() {
         return true;
     }
-    get showRecordIdSpike() {
-        return true;
-    }
     get showAssignAssistant() {
         return (
             this.profileReady &&
@@ -164,26 +162,12 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     }
 
     /**
-     * Primary circles after Mark Dead (App Builder order):
-     * Record Id Spike → Generate Proposal (Mobile) → then More
-     * (Mark Dead is separate child LWC)
+     * Primary circles after Mark Dead (matches standard mobile bar):
+     * Related Property → Related Property (LWC)
+     * Generate Proposal (Mobile) fills a slot if a Related action is hidden.
      */
     get primaryActions() {
         const list = [];
-        if (this.showRecordIdSpike) {
-            list.push({
-                key: 'spike',
-                label: 'Record Id Spike',
-                apiName: QA.recordIdSpike
-            });
-        }
-        if (this.showGenerateProposalMobile) {
-            list.push({
-                key: 'proposalMobile',
-                label: 'Generate Proposal',
-                apiName: QA.generateProposalMobile
-            });
-        }
         if (this.showRelatedProperty) {
             list.push({
                 key: 'related',
@@ -198,46 +182,50 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
                 apiName: QA.relatedPropertyLwc
             });
         }
+        if (this.showGenerateProposalMobile) {
+            list.push({
+                key: 'proposalMobile',
+                label: 'Generate Proposal',
+                apiName: QA.generateProposalMobile
+            });
+        }
         return list.slice(0, 2);
     }
 
-    get primaryApiNames() {
-        return new Set(this.primaryActions.map((a) => a.apiName));
-    }
-
     /**
-     * More sheet — App Builder Actions order (remaining items).
+     * More sheet — same order/colors as standard Salesforce mobile Actions.
+     * Lists actions like the native sheet (Mark dead first). No Record Id Spike.
      */
     get moreActions() {
         const items = [];
-        const primary = this.primaryApiNames;
-        const qa = 'mhp-more-circle mhp-more-circle-blue';
+        const qa = 'mhp-more-circle mhp-more-circle-purple';
 
-        if (this.showRecordIdSpike && !primary.has(QA.recordIdSpike)) {
-            items.push(
-                moreItem('spike', QA.recordIdSpike, 'Record Id Spike (dev only)', SVG.lightning, qa)
-            );
-        }
-        if (this.showGenerateProposalMobile && !primary.has(QA.generateProposalMobile)) {
-            items.push(
-                moreItem(
-                    'proposalMobile',
-                    QA.generateProposalMobile,
-                    'Generate Proposal (Mobile)',
-                    SVG.lightning,
-                    qa
-                )
-            );
-        }
-        if (this.showRelatedProperty && !primary.has(QA.relatedProperty)) {
+        items.push(
+            moreItem('markDead', 'markDead', 'Mark dead', SVG.lightning, 'mhp-more-circle mhp-more-circle-purple')
+        );
+
+        if (this.showRelatedProperty) {
             items.push(moreItem('related', QA.relatedProperty, 'Related Property', SVG.lightning, qa));
         }
-        if (this.showRelatedPropertyLwc && !primary.has(QA.relatedPropertyLwc)) {
+        if (this.showRelatedPropertyLwc) {
             items.push(
                 moreItem(
                     'relatedLwc',
                     QA.relatedPropertyLwc,
                     'Related Property (LWC)',
+                    SVG.lightning,
+                    qa
+                )
+            );
+        }
+        // Only in More when not already on the primary bar
+        const onPrimary = new Set(this.primaryActions.map((a) => a.apiName));
+        if (this.showGenerateProposalMobile && !onPrimary.has(QA.generateProposalMobile)) {
+            items.push(
+                moreItem(
+                    'proposalMobile',
+                    QA.generateProposalMobile,
+                    'Generate Proposal (Mobile)',
                     SVG.lightning,
                     qa
                 )
@@ -266,18 +254,22 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             );
         }
         if (this.showEdit) {
-            items.push(moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-green'));
+            items.push(
+                moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-teal')
+            );
         }
         if (this.showClone) {
-            items.push(moreItem('clone', 'clone', 'Clone', SVG.copy, qa));
+            items.push(
+                moreItem('clone', 'clone', 'Clone', SVG.copy, 'mhp-more-circle mhp-more-circle-sky')
+            );
         }
 
         items.push(
             moreItem('event', 'Global.NewEvent', 'New Event', SVG.event, 'mhp-more-circle mhp-more-circle-pink'),
             moreItem('task', 'Global.NewTask', 'New Task', SVG.task, 'mhp-more-circle mhp-more-circle-green'),
             moreItem('call', 'Global.LogACall', 'Log a Call', SVG.call, 'mhp-more-circle mhp-more-circle-teal'),
-            moreItem('post', 'post', 'Post', SVG.chat, qa),
-            moreItem('poll', 'poll', 'Poll', SVG.chart, qa),
+            moreItem('post', 'post', 'Post', SVG.chat, 'mhp-more-circle mhp-more-circle-sky'),
+            moreItem('poll', 'poll', 'Poll', SVG.chart, 'mhp-more-circle mhp-more-circle-sky'),
             moreItem('sharing', QA.sharing, 'Sharing', SVG.lightning, qa),
             moreItem('delete', 'delete', 'Delete', SVG.delete, 'mhp-more-circle mhp-more-circle-red')
         );
@@ -350,6 +342,10 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             this.handleFollow();
             return;
         }
+        if (value === 'markDead') {
+            this.openMarkDeadFromMore();
+            return;
+        }
         if (LOCAL_MENU_ACTIONS.has(value)) {
             if (value === 'edit') this.handleEdit();
             else if (value === 'clone') this.handleClone();
@@ -359,6 +355,15 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             return;
         }
         this.invokeQuickAction(value);
+    }
+
+    openMarkDeadFromMore() {
+        const markDead = this.template.querySelector('c-mark-dead-button-flow-mobile');
+        if (markDead && typeof markDead.openFlow === 'function') {
+            markDead.openFlow();
+            return;
+        }
+        this.showToast('Error', 'Mark Dead button is not available.', 'error');
     }
 
     handleQuickAction(event) {

@@ -46,11 +46,14 @@
         <template if:true={showMore}>
             <section class="mhp-more-backdrop" role="dialog" tabindex="-1" onclick={closeMore}>
                 <div class="mhp-more-sheet" onclick={stopPropagation}>
-                    <div class="mhp-more-handle"></div>
-                    <div class="mhp-more-title">Actions</div>
+                    <!-- Sticky header (handle + Actions) — list scrolls underneath -->
+                    <div class="mhp-more-header">
+                        <div class="mhp-more-handle"></div>
+                        <div class="mhp-more-title">Actions</div>
+                    </div>
                     <ul class="mhp-more-list">
                         <template for:each={moreActions} for:item="item">
-                            <li key={item.key}>
+                            <li key={item.key} class="mhp-more-li">
                                 <button
                                     class="mhp-more-item"
                                     type="button"
@@ -58,7 +61,7 @@
                                     onclick={handleMoreSelect}
                                 >
                                     <span class={item.circleClass} aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" focusable="false">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
                                             <path fill="#ffffff" d={item.svgPath}></path>
                                         </svg>
                                     </span>
