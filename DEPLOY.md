@@ -1,21 +1,22 @@
 # Custom Highlights Panel — deploy & mobile setup
 
-## Two components
+## Two components (+ Mark Dead)
 
-| LWC | App Builder label | Form factor |
-|-----|-------------------|-------------|
-| `customHighlightsPanel` | **Custom Highlights Panel** | **Desktop only** |
-| `customHighlightsPanelMobile` | **Custom Highlights Panel Mobile** | **Phone only** |
-
-Same actions and visibility rules. Different UI.
+| LWC | App Builder label | Form factor / use |
+|-----|-------------------|-------------------|
+| `customHighlightsPanel` | **Custom Highlights Panel** | Desktop |
+| `customHighlightsPanelMobile` | **Custom Highlights Panel Mobile** | Phone |
+| `markDeadButtonFlow` | (child) | Desktop Mark Dead (red rectangle) |
+| `markDeadButtonFlowMobile` | (child) | Phone Mark Dead (red circle + X) |
 
 ## Deploy order
 
 1. Apex `HighlightsPanelController` (if not already)
-2. `markDeadButtonFlow` (used by desktop panel)
-3. `customHighlightsPanel` (desktop)
-4. `customHighlightsPanelMobile` (phone)
-5. Flow `Request_Dead_Approval` must be **Active**
+2. `markDeadButtonFlow` (desktop)
+3. `markDeadButtonFlowMobile` (phone)
+4. `customHighlightsPanel` (desktop)
+5. `customHighlightsPanelMobile` (phone)
+6. Flow `Request_Dead_Approval` must be **Active**
 
 ## App Builder setup
 
@@ -26,19 +27,20 @@ Same actions and visibility rules. Different UI.
 
 ### Phone
 1. Switch form factor to **Phone**
-2. **Remove** the old `Custom Highlights Panel` (desktop LWC) if it is still there
+2. **Remove** the old desktop custom panel if still there
 3. **Remove** standard Highlights Panel
 4. Add **Custom Highlights Panel Mobile**
 5. **Save** → **Activation** for Phone
 
-## Mobile UI
+## Mark Dead (mobile)
 
-- Circular actions only (no icon / record name / fields)
-- **Mark Dead** = red circle + white X → Screen Flow modal
-- Other actions = blue circles + white lightning
-- **More** = bottom sheet with remaining actions (same colors/icons as Salesforce mobile)
+Separate LWC `markDeadButtonFlowMobile`:
+- Red **40px** circle + white **X**
+- Opens Screen Flow `Request_Dead_Approval` in a popup
+- Auto-closes on finish
+- Used as: `<c-mark-dead-button-flow-mobile record-id={recordId}></c-mark-dead-button-flow-mobile>`
 
-## Visibility (both LWCs)
+## Visibility (both panels)
 
 - Hide many actions for profile `Akshay Madane Profile`
 - Assign Assistant: `Property_Sourcing_Assistance__c = false` and profile ≠ `Transaction Manager - HYD`

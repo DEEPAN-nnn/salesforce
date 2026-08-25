@@ -9,6 +9,7 @@
         <members>customHighlightsPanel</members>
         <members>customHighlightsPanelMobile</members>
         <members>markDeadButtonFlow</members>
+        <members>markDeadButtonFlowMobile</members>
         <name>LightningComponentBundle</name>
     </types>
     <version>62.0</version>
