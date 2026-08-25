@@ -8,11 +8,21 @@
 
         <!-- Standard Salesforce mobile action bar: circles only -->
         <div class="mhp-bar">
-            <!-- Mobile-only Mark Dead LWC: red circle + X + flow modal -->
-            <c-mark-dead-button-flow-mobile
-                record-id={recordId}
-                flow-api-name={markDeadFlowApiName}
-            ></c-mark-dead-button-flow-mobile>
+            <!-- Mark Dead: red circle + white X (same as More) -->
+            <button
+                class="mhp-action"
+                type="button"
+                onclick={openMarkDeadFlow}
+                disabled={isMarkDeadBusy}
+                title="Mark Dead"
+            >
+                <span class="mhp-circle mhp-circle-red" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" focusable="false">
+                        <path fill="#ffffff" d={closeXPath}></path>
+                    </svg>
+                </span>
+                <span class="mhp-label">Mark dead</span>
+            </button>
 
             <template for:each={primaryActions} for:item="action">
                 <button
@@ -46,7 +56,6 @@
         <template if:true={showMore}>
             <section class="mhp-more-backdrop" role="dialog" tabindex="-1" onclick={closeMore}>
                 <div class="mhp-more-sheet" onclick={stopPropagation}>
-                    <!-- Sticky header (handle + Actions) — list scrolls underneath -->
                     <div class="mhp-more-header">
                         <div class="mhp-more-handle"></div>
                         <div class="mhp-more-title">Actions</div>
@@ -70,6 +79,34 @@
                             </li>
                         </template>
                     </ul>
+                </div>
+            </section>
+        </template>
+
+        <!-- Mark Dead flow modal (bar + More) -->
+        <template if:true={showMarkDeadModal}>
+            <section
+                role="dialog"
+                tabindex="-1"
+                class="mhp-markdead-backdrop"
+                onclick={closeMarkDeadModal}
+            >
+                <div class="mhp-markdead-panel" onclick={stopPropagation}>
+                    <button class="mhp-markdead-close" type="button" onclick={closeMarkDeadModal} title="Close">
+                        &times;
+                    </button>
+                    <template if:true={showMarkDeadSpinner}>
+                        <div class="mhp-markdead-spinner">
+                            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                        </div>
+                    </template>
+                    <div class={markDeadFlowClass}>
+                        <lightning-flow
+                            flow-api-name={markDeadFlowApiName}
+                            flow-input-variables={markDeadFlowInputs}
+                            onstatuschange={handleMarkDeadFlowStatus}
+                        ></lightning-flow>
+                    </div>
                 </div>
             </section>
         </template>

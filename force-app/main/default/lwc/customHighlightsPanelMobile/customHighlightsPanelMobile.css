@@ -64,6 +64,10 @@
     background: #7b85d4;
 }
 
+.mhp-circle-red {
+    background: #ea001e;
+}
+
 .mhp-label {
     font-size: 0.625rem;
     line-height: 1.15;
@@ -74,13 +78,60 @@
     word-break: break-word;
 }
 
-/* Keep Mark Dead child same footprint as other actions */
-.mhp-bar c-mark-dead-button-flow-mobile {
-    flex: 0 0 auto;
-    width: 64px;
+/* Mark Dead flow modal — above More sheet */
+.mhp-markdead-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9100;
     display: flex;
+    align-items: stretch;
     justify-content: center;
-    align-items: flex-start;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+.mhp-markdead-panel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: 95vh;
+    margin: auto 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 1.25rem 1.25rem 1rem;
+    box-sizing: border-box;
+}
+
+.mhp-markdead-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #706e6b;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.mhp-markdead-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+}
+
+.mhp-markdead-flow {
+    min-height: 120px;
+}
+
+.mhp-markdead-flow_hidden {
+    display: none;
 }
 
 /* ── Standard Salesforce mobile Actions bottom sheet ── */

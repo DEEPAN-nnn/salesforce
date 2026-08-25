@@ -2,6 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { RefreshEvent } from 'lightning/refresh';
 import LightningConfirm from 'lightning/confirm';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
 import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFeedPost';
@@ -56,7 +57,7 @@ function newPollChoices() {
 
 /**
  * Phone-only Highlights Panel — order + visibility from App Builder Dynamic Actions.
- * Mark Dead: child LWC markDeadButtonFlowMobile (red circle + X).
+ * Mark Dead: red circle + X on bar and in More; opens Request_Dead_Approval flow.
  */
 export default class CustomHighlightsPanelMobile extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -64,6 +65,7 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     @api markDeadFlowApiName = 'Request_Dead_Approval';
 
     lightningPath = SVG.lightning;
+    closeXPath = SVG.closeX;
 
     @track isActionLoading = false;
     @track profileName = '';
@@ -75,6 +77,9 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     @track pollQuestion = '';
     @track pollChoices = newPollChoices();
     @track isChatterSaving = false;
+    @track showMarkDeadModal = false;
+    @track showMarkDeadSpinner = true;
+    @track isMarkDeadBusy = false;
 
     @wire(getCurrentUserProfileName)
     wiredProfile({ data, error }) {
@@ -281,6 +286,22 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         return this.pollChoices.length < 10;
     }
 
+    get markDeadFlowInputs() {
+        return [
+            {
+                name: 'recordId',
+                type: 'String',
+                value: this.recordId
+            }
+        ];
+    }
+
+    get markDeadFlowClass() {
+        return this.showMarkDeadSpinner
+            ? 'mhp-markdead-flow mhp-markdead-flow_hidden'
+            : 'mhp-markdead-flow';
+    }
+
     connectedCallback() {
         this.applyPhoneModalCss();
     }
@@ -318,14 +339,13 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             return;
         }
 
-        // Close More first, then open Mark Dead flow (same as bar button)
-        // so the flow modal is not trapped under the Actions sheet.
+        // Close More first so Mark Dead modal is not under the Actions sheet
         if (value === 'markDead') {
             this.closeMore();
             // eslint-disable-next-line @lwc/lwc/no-async-operation
             window.setTimeout(() => {
-                this.openMarkDeadFromMore();
-            }, 120);
+                this.openMarkDeadFlow();
+            }, 80);
             return;
         }
 
@@ -341,13 +361,84 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         this.invokeQuickAction(value);
     }
 
-    openMarkDeadFromMore() {
-        const markDead = this.template.querySelector('c-mark-dead-button-flow-mobile');
-        if (markDead && typeof markDead.openFlow === 'function') {
-            markDead.openFlow();
+    /**
+     * Same Mark Dead handler for bar button and More sheet (red X → flow).
+     */
+    openMarkDeadFlow() {
+        if (this.isMarkDeadBusy) {
             return;
         }
-        this.showToast('Error', 'Mark Dead button is not available.', 'error');
+        if (!this.recordId) {
+            this.showToast('Error', 'Record Id is missing.', 'error');
+            return;
+        }
+        if (!this.markDeadFlowApiName) {
+            this.showToast('Error', 'Flow API name is missing.', 'error');
+            return;
+        }
+
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+
+        // Remount flow: hide then show
+        this.showMarkDeadModal = false;
+        this.showMarkDeadSpinner = true;
+        this.isMarkDeadBusy = false;
+
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        window.setTimeout(() => {
+            this.isMarkDeadBusy = true;
+            this.showMarkDeadSpinner = true;
+            this.showMarkDeadModal = true;
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            this._markDeadSpinnerTimer = window.setTimeout(() => {
+                this.showMarkDeadSpinner = false;
+                this._markDeadSpinnerTimer = null;
+            }, 500);
+        }, 30);
+    }
+
+    handleMarkDeadFlowStatus(event) {
+        const status = event.detail.status;
+
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+
+        if (
+            status === 'STARTED' ||
+            status === 'PAUSED' ||
+            status === 'FINISHED' ||
+            status === 'FINISHED_SCREEN' ||
+            status === 'ERROR'
+        ) {
+            this.showMarkDeadSpinner = false;
+        }
+
+        if (status === 'ERROR') {
+            this.isMarkDeadBusy = false;
+            this.showToast('Error', 'Mark Dead flow failed to start.', 'error');
+            return;
+        }
+
+        if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
+            this.closeMarkDeadModal();
+            this.dispatchEvent(new RefreshEvent());
+            this.showToast('Success', 'Mark Dead completed.', 'success');
+        }
+    }
+
+    closeMarkDeadModal() {
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+        this.showMarkDeadModal = false;
+        this.showMarkDeadSpinner = true;
+        this.isMarkDeadBusy = false;
     }
 
     handleQuickAction(event) {

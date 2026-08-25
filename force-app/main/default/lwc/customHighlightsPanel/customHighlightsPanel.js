@@ -3,8 +3,6 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
-import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
-import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
 
 const OBJECT_API_NAME = 'Enquiry__c';
@@ -28,7 +26,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     @api recordId;
     @api objectApiName = OBJECT_API_NAME;
 
-    @track isFollowLoading = false;
     @track isActionLoading = false;
     @track contactPhone = '';
     @track requirement = '';
@@ -36,7 +33,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
     @track currentStatus = '';
     @track stage = '';
     @track channel = '';
-    @track following = false;
     @track recordName = '';
     @track profileName = '';
     @track propertySourcingAssistance = false;
@@ -152,19 +148,8 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
         return !this.isHiddenProfile;
     }
 
-    get followLabel() {
-        return this.following ? 'Following' : '+ Follow';
-    }
-
-    get followClass() {
-        return this.following
-            ? 'hp-btn hp-btn-following'
-            : 'hp-btn hp-btn-follow';
-    }
-
     connectedCallback() {
         this.applyModalSize('large');
-        this.loadFollowState();
     }
 
     applyModalSize(size) {
@@ -184,48 +169,6 @@ export default class CustomHighlightsPanel extends NavigationMixin(LightningElem
             // eslint-disable-next-line no-console
             console.error('Modal size style inject failed:', e);
         }
-    }
-
-    loadFollowState() {
-        if (!this.recordId) {
-            return;
-        }
-        isFollowing({ recordId: this.recordId })
-            .then((result) => {
-                this.following = result;
-            })
-            .catch((error) => {
-                // eslint-disable-next-line no-console
-                console.error('Follow check failed:', error);
-            });
-    }
-
-    handleFollow() {
-        if (!this.recordId || this.isFollowLoading) {
-            return;
-        }
-        this.isFollowLoading = true;
-        toggleFollow({ recordId: this.recordId })
-            .then((result) => {
-                this.following = result;
-                this.showToast(
-                    result ? 'Following' : 'Unfollowed',
-                    result
-                        ? 'You are now following this record.'
-                        : 'You have unfollowed this record.',
-                    'success'
-                );
-            })
-            .catch((error) => {
-                this.showToast(
-                    'Error',
-                    this.reduceError(error) || 'Could not update follow status.',
-                    'error'
-                );
-            })
-            .finally(() => {
-                this.isFollowLoading = false;
-            });
     }
 
     handleQuickAction(event) {
