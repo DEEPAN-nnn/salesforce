@@ -19,9 +19,9 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-evenly;
-    gap: 4px;
+    gap: 2px;
     width: 100%;
-    padding: 10px 8px 12px;
+    padding: 8px 6px 10px;
     box-sizing: border-box;
 }
 
@@ -29,8 +29,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    width: 72px;
+    gap: 4px;
+    width: 64px;
     padding: 0;
     border: none;
     background: transparent;
@@ -43,14 +43,21 @@
     cursor: not-allowed;
 }
 
+/* Match standard Salesforce mobile action size */
 .mhp-circle {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.mhp-circle svg {
+    width: 16px;
+    height: 16px;
 }
 
 .mhp-circle-blue {
@@ -58,21 +65,22 @@
 }
 
 .mhp-label {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     line-height: 1.15;
     color: #181818;
     text-align: center;
     width: 100%;
-    max-width: 72px;
+    max-width: 64px;
     word-break: break-word;
 }
 
-/* Keep Mark Dead child aligned with other action circles */
+/* Keep Mark Dead child same footprint as other actions */
 .mhp-bar c-mark-dead-button-flow-mobile {
     flex: 0 0 auto;
-    width: 72px;
+    width: 64px;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .mhp-more-backdrop {
