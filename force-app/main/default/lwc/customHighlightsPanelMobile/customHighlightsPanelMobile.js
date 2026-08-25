@@ -1,0 +1,664 @@
+import { LightningElement, api, wire, track } from 'lwc';
+import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
+import { NavigationMixin } from 'lightning/navigation';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { RefreshEvent } from 'lightning/refresh';
+import LightningConfirm from 'lightning/confirm';
+import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
+import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFeedPost';
+import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
+
+const OBJECT_API_NAME = 'Enquiry__c';
+const HIDDEN_PROFILE = 'Akshay Madane Profile';
+const RESTRICTED_ASSISTANT_PROFILE = 'Transaction Manager - HYD';
+const LOCAL_MENU_ACTIONS = new Set(['edit', 'clone', 'delete', 'post', 'poll']);
+const MODAL_STYLE_ID = 'customHighlightsPanelMobileModalSize';
+const PHONE_MODAL_CSS =
+    '.slds-modal__container{width:100%!important;max-width:100%!important;min-width:0!important;max-height:100%!important;margin:0!important;}' +
+    '.slds-modal__content{max-height:calc(100vh - 6rem)!important;}';
+
+/* Quick Action API names (Record Id Spike removed) */
+const QA = {
+    generateProposalMobile: 'Enquiry__c.Generate_Proposal_Mobile',
+    relatedProperty: 'Enquiry__c.Related_Property',
+    relatedPropertyLwc: 'Enquiry__c.Related_Property_LWC',
+    assignAssistant: 'Enquiry__c.Assign_Assistant',
+    changePropertyAssistant: 'Enquiry__c.Change_Property_Assistant',
+    updateLocation: 'Enquiry__c.Update_Location',
+    deleteRelatedList: 'Enquiry__c.Delete_Related_List',
+    mergeEnquiry: 'Enquiry__c.Merge_Enquiry',
+    sharing: 'Enquiry__c.Sharing'
+};
+
+const SVG = {
+    lightning: 'M11 2L5 13h5v9l7-12h-5l4-8z',
+    closeX:
+        'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+    edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+    copy: 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z',
+    event: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zM7 12h5v5H7z',
+    task: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+    call: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z',
+    chat: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z',
+    chart: 'M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z',
+    delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'
+};
+
+function moreItem(key, value, label, svgPath, circleClass) {
+    return { key, value, label, svgPath, circleClass };
+}
+
+function newPollChoices() {
+    return [
+        { key: 'c0', label: 'Choice 1', value: '' },
+        { key: 'c1', label: 'Choice 2', value: '' }
+    ];
+}
+
+/**
+ * Phone-only Highlights Panel — order + visibility from App Builder Dynamic Actions.
+ * Mark Dead: red circle + X on bar and in More; opens Request_Dead_Approval flow.
+ */
+export default class CustomHighlightsPanelMobile extends NavigationMixin(LightningElement) {
+    @api recordId;
+    @api objectApiName = OBJECT_API_NAME;
+    @api markDeadFlowApiName = 'Request_Dead_Approval';
+
+    lightningPath = SVG.lightning;
+    closeXPath = SVG.closeX;
+
+    @track isActionLoading = false;
+    @track profileName = '';
+    @track propertySourcingAssistance = false;
+    @track showMore = false;
+    @track showPostModal = false;
+    @track showPollModal = false;
+    @track postBody = '';
+    @track pollQuestion = '';
+    @track pollChoices = newPollChoices();
+    @track isChatterSaving = false;
+    @track showMarkDeadModal = false;
+    @track showMarkDeadSpinner = true;
+    @track isMarkDeadBusy = false;
+
+    @wire(getCurrentUserProfileName)
+    wiredProfile({ data, error }) {
+        if (data) {
+            this.profileName = data;
+        } else if (error) {
+            // eslint-disable-next-line no-console
+            console.error('Profile fetch error:', error);
+        }
+    }
+
+    @wire(getRecord, {
+        recordId: '$recordId',
+        fields: ['Enquiry__c.Name'],
+        optionalFields: ['Enquiry__c.Property_Sourcing_Assistance__c']
+    })
+    wiredRecord({ error, data }) {
+        if (data) {
+            this.propertySourcingAssistance = !!getFieldValue(
+                data,
+                'Enquiry__c.Property_Sourcing_Assistance__c'
+            );
+        } else if (error) {
+            // eslint-disable-next-line no-console
+            console.error('Record wire error:', error);
+        }
+    }
+
+    get profileReady() {
+        return !!this.profileName;
+    }
+
+    get isHiddenProfile() {
+        return this.profileName === HIDDEN_PROFILE;
+    }
+
+    /* Visibility from App Builder Dynamic Actions screenshots */
+    get showGenerateProposalMobile() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showRelatedProperty() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showRelatedPropertyLwc() {
+        return true;
+    }
+    get showAssignAssistant() {
+        return (
+            this.profileReady &&
+            !this.propertySourcingAssistance &&
+            this.profileName !== RESTRICTED_ASSISTANT_PROFILE
+        );
+    }
+    get showChangePropertyAssistant() {
+        return (
+            this.profileReady &&
+            this.propertySourcingAssistance &&
+            this.profileName !== RESTRICTED_ASSISTANT_PROFILE
+        );
+    }
+    get showUpdateLocation() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showDeleteRelatedList() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showEdit() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showClone() {
+        return this.profileReady && !this.isHiddenProfile;
+    }
+    get showMergeEnquiry() {
+        return this.profileName === 'System Administrator';
+    }
+
+    /**
+     * Primary circles after Mark Dead (matches standard mobile bar):
+     * Related Property → Related Property (LWC)
+     * Generate Proposal (Mobile) fills a slot if a Related action is hidden.
+     */
+    get primaryActions() {
+        const list = [];
+        if (this.showRelatedProperty) {
+            list.push({
+                key: 'related',
+                label: 'Related Property',
+                apiName: QA.relatedProperty
+            });
+        }
+        if (this.showRelatedPropertyLwc) {
+            list.push({
+                key: 'relatedLwc',
+                label: 'Related Property (LWC)',
+                apiName: QA.relatedPropertyLwc
+            });
+        }
+        if (this.showGenerateProposalMobile) {
+            list.push({
+                key: 'proposalMobile',
+                label: 'Generate Proposal',
+                apiName: QA.generateProposalMobile
+            });
+        }
+        return list.slice(0, 2);
+    }
+
+    /**
+     * More sheet — same order/colors as standard Salesforce mobile Actions.
+     * Lists actions like the native sheet (Mark dead first). No Record Id Spike.
+     */
+    get moreActions() {
+        const items = [];
+        const qa = 'mhp-more-circle mhp-more-circle-purple';
+
+        items.push(
+            moreItem(
+                'markDead',
+                'markDead',
+                'Mark dead',
+                SVG.closeX,
+                'mhp-more-circle mhp-more-circle-red'
+            )
+        );
+
+        if (this.showRelatedProperty) {
+            items.push(moreItem('related', QA.relatedProperty, 'Related Property', SVG.lightning, qa));
+        }
+        if (this.showRelatedPropertyLwc) {
+            items.push(
+                moreItem(
+                    'relatedLwc',
+                    QA.relatedPropertyLwc,
+                    'Related Property (LWC)',
+                    SVG.lightning,
+                    qa
+                )
+            );
+        }
+        // Only in More when not already on the primary bar
+        const onPrimary = new Set(this.primaryActions.map((a) => a.apiName));
+        if (this.showGenerateProposalMobile && !onPrimary.has(QA.generateProposalMobile)) {
+            items.push(
+                moreItem(
+                    'proposalMobile',
+                    QA.generateProposalMobile,
+                    'Generate Proposal (Mobile)',
+                    SVG.lightning,
+                    qa
+                )
+            );
+        }
+        if (this.showAssignAssistant) {
+            items.push(moreItem('assign', QA.assignAssistant, 'Assign Assistant', SVG.lightning, qa));
+        }
+        if (this.showChangePropertyAssistant) {
+            items.push(
+                moreItem(
+                    'change',
+                    QA.changePropertyAssistant,
+                    'Change Property Assistant',
+                    SVG.lightning,
+                    qa
+                )
+            );
+        }
+        if (this.showUpdateLocation) {
+            items.push(moreItem('location', QA.updateLocation, 'Update Location', SVG.lightning, qa));
+        }
+        if (this.showDeleteRelatedList) {
+            items.push(
+                moreItem('deleteRelated', QA.deleteRelatedList, 'Delete Related List', SVG.lightning, qa)
+            );
+        }
+        if (this.showEdit) {
+            items.push(
+                moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-teal')
+            );
+        }
+        if (this.showClone) {
+            items.push(
+                moreItem('clone', 'clone', 'Clone', SVG.copy, 'mhp-more-circle mhp-more-circle-sky')
+            );
+        }
+
+        items.push(
+            moreItem('event', 'Global.NewEvent', 'New Event', SVG.event, 'mhp-more-circle mhp-more-circle-pink'),
+            moreItem('task', 'Global.NewTask', 'New Task', SVG.task, 'mhp-more-circle mhp-more-circle-green'),
+            moreItem('call', 'Global.LogACall', 'Log a Call', SVG.call, 'mhp-more-circle mhp-more-circle-teal'),
+            moreItem('post', 'post', 'Post', SVG.chat, 'mhp-more-circle mhp-more-circle-sky'),
+            moreItem('poll', 'poll', 'Poll', SVG.chart, 'mhp-more-circle mhp-more-circle-sky'),
+            moreItem('sharing', QA.sharing, 'Sharing', SVG.lightning, qa),
+            moreItem('delete', 'delete', 'Delete', SVG.delete, 'mhp-more-circle mhp-more-circle-red')
+        );
+
+        if (this.showMergeEnquiry) {
+            items.push(moreItem('merge', QA.mergeEnquiry, 'Merge Enquiry', SVG.lightning, qa));
+        }
+
+        return items;
+    }
+
+    get canAddPollChoice() {
+        return this.pollChoices.length < 10;
+    }
+
+    get markDeadFlowInputs() {
+        return [
+            {
+                name: 'recordId',
+                type: 'String',
+                value: this.recordId
+            }
+        ];
+    }
+
+    get markDeadFlowClass() {
+        return this.showMarkDeadSpinner
+            ? 'mhp-markdead-flow mhp-markdead-flow_hidden'
+            : 'mhp-markdead-flow';
+    }
+
+    connectedCallback() {
+        this.applyPhoneModalCss();
+    }
+
+    applyPhoneModalCss() {
+        try {
+            let styleEl = document.getElementById(MODAL_STYLE_ID);
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = MODAL_STYLE_ID;
+                const parent = document.head || document.body;
+                if (parent) {
+                    parent.appendChild(styleEl);
+                }
+            }
+            styleEl.textContent = PHONE_MODAL_CSS;
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error('Mobile modal CSS inject failed:', e);
+        }
+    }
+
+    openMore() {
+        this.showMore = true;
+    }
+
+    closeMore() {
+        this.showMore = false;
+    }
+
+    handleMoreSelect(event) {
+        const value = event.currentTarget.dataset.value;
+        if (!value) {
+            this.closeMore();
+            return;
+        }
+
+        // Close More first so Mark Dead modal is not under the Actions sheet
+        if (value === 'markDead') {
+            this.closeMore();
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            window.setTimeout(() => {
+                this.openMarkDeadFlow();
+            }, 80);
+            return;
+        }
+
+        this.closeMore();
+        if (LOCAL_MENU_ACTIONS.has(value)) {
+            if (value === 'edit') this.handleEdit();
+            else if (value === 'clone') this.handleClone();
+            else if (value === 'delete') this.handleDelete();
+            else if (value === 'post') this.openPostModal();
+            else if (value === 'poll') this.openPollModal();
+            return;
+        }
+        this.invokeQuickAction(value);
+    }
+
+    /**
+     * Same Mark Dead handler for bar button and More sheet (red X → flow).
+     */
+    openMarkDeadFlow() {
+        if (this.isMarkDeadBusy) {
+            return;
+        }
+        if (!this.recordId) {
+            this.showToast('Error', 'Record Id is missing.', 'error');
+            return;
+        }
+        if (!this.markDeadFlowApiName) {
+            this.showToast('Error', 'Flow API name is missing.', 'error');
+            return;
+        }
+
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+
+        // Remount flow: hide then show
+        this.showMarkDeadModal = false;
+        this.showMarkDeadSpinner = true;
+        this.isMarkDeadBusy = false;
+
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        window.setTimeout(() => {
+            this.isMarkDeadBusy = true;
+            this.showMarkDeadSpinner = true;
+            this.showMarkDeadModal = true;
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            this._markDeadSpinnerTimer = window.setTimeout(() => {
+                this.showMarkDeadSpinner = false;
+                this._markDeadSpinnerTimer = null;
+            }, 500);
+        }, 30);
+    }
+
+    handleMarkDeadFlowStatus(event) {
+        const status = event.detail.status;
+
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+
+        if (
+            status === 'STARTED' ||
+            status === 'PAUSED' ||
+            status === 'FINISHED' ||
+            status === 'FINISHED_SCREEN' ||
+            status === 'ERROR'
+        ) {
+            this.showMarkDeadSpinner = false;
+        }
+
+        if (status === 'ERROR') {
+            this.isMarkDeadBusy = false;
+            this.showToast('Error', 'Mark Dead flow failed to start.', 'error');
+            return;
+        }
+
+        if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
+            this.closeMarkDeadModal();
+            this.dispatchEvent(new RefreshEvent());
+            this.showToast('Success', 'Mark Dead completed.', 'success');
+        }
+    }
+
+    closeMarkDeadModal() {
+        if (this._markDeadSpinnerTimer) {
+            window.clearTimeout(this._markDeadSpinnerTimer);
+            this._markDeadSpinnerTimer = null;
+        }
+        this.showMarkDeadModal = false;
+        this.showMarkDeadSpinner = true;
+        this.isMarkDeadBusy = false;
+    }
+
+    handleQuickAction(event) {
+        const apiName = (event.currentTarget || event.target).dataset.action;
+        this.invokeQuickAction(apiName);
+    }
+
+    invokeQuickAction(apiName) {
+        if (!apiName) {
+            this.showToast('Error', 'Quick Action API name is missing.', 'error');
+            return;
+        }
+        if (!this.recordId) {
+            this.showToast('Error', 'Record Id is missing.', 'error');
+            return;
+        }
+        this.applyPhoneModalCss();
+        this.isActionLoading = true;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__quickAction',
+            attributes: { apiName: apiName },
+            state: { recordId: this.recordId }
+        });
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        window.setTimeout(() => {
+            this.isActionLoading = false;
+        }, 800);
+    }
+
+    handleEdit() {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: this.recordId,
+                objectApiName: this.objectApiName || OBJECT_API_NAME,
+                actionName: 'edit'
+            }
+        });
+    }
+
+    handleClone() {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: this.recordId,
+                objectApiName: this.objectApiName || OBJECT_API_NAME,
+                actionName: 'clone'
+            }
+        });
+    }
+
+    async handleDelete() {
+        const confirmed = await LightningConfirm.open({
+            message: 'Are you sure you want to delete this record?',
+            label: 'Delete Record',
+            theme: 'warning'
+        });
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await deleteRecord(this.recordId);
+            this.showToast('Success', 'Record deleted.', 'success');
+            this[NavigationMixin.Navigate]({
+                type: 'standard__objectPage',
+                attributes: {
+                    objectApiName: this.objectApiName || OBJECT_API_NAME,
+                    actionName: 'list'
+                },
+                state: { filterName: 'Recent' }
+            });
+        } catch (error) {
+            this.showToast(
+                'Error deleting record',
+                this.reduceError(error) || 'Unknown error',
+                'error'
+            );
+        }
+    }
+
+    openPostModal() {
+        this.postBody = '';
+        this.showPollModal = false;
+        this.showPostModal = true;
+    }
+
+    openPollModal() {
+        this.pollQuestion = '';
+        this.pollChoices = newPollChoices();
+        this.showPostModal = false;
+        this.showPollModal = true;
+    }
+
+    closeChatterModals() {
+        this.showPostModal = false;
+        this.showPollModal = false;
+        this.isChatterSaving = false;
+    }
+
+    stopPropagation(event) {
+        event.stopPropagation();
+    }
+
+    handlePostBodyChange(event) {
+        this.postBody = event.target.value;
+    }
+
+    handlePollQuestionChange(event) {
+        this.pollQuestion = event.target.value;
+    }
+
+    handlePollChoiceChange(event) {
+        const index = Number(event.target.dataset.index);
+        const value = event.target.value;
+        const next = [];
+        for (let i = 0; i < this.pollChoices.length; i++) {
+            const choice = this.pollChoices[i];
+            if (i === index) {
+                next.push({ key: choice.key, label: choice.label, value: value });
+            } else {
+                next.push(choice);
+            }
+        }
+        this.pollChoices = next;
+    }
+
+    addPollChoice() {
+        if (!this.canAddPollChoice) {
+            return;
+        }
+        const next = this.pollChoices.length;
+        this.pollChoices = this.pollChoices.concat([
+            {
+                key: 'c' + String(Date.now()),
+                label: 'Choice ' + String(next + 1),
+                value: ''
+            }
+        ]);
+    }
+
+    submitPost() {
+        const body = (this.postBody || '').trim();
+        if (!body) {
+            this.showToast('Error', 'Enter text to share.', 'error');
+            return;
+        }
+        this.isChatterSaving = true;
+        createFeedPost({ recordId: this.recordId, body: body })
+            .then(() => {
+                this.showToast('Success', 'Post shared.', 'success');
+                this.closeChatterModals();
+            })
+            .catch((error) => {
+                this.showToast(
+                    'Error creating post',
+                    this.reduceError(error) || 'Unknown error',
+                    'error'
+                );
+            })
+            .finally(() => {
+                this.isChatterSaving = false;
+            });
+    }
+
+    submitPoll() {
+        const question = (this.pollQuestion || '').trim();
+        if (!question) {
+            this.showToast('Error', 'Enter a poll question.', 'error');
+            return;
+        }
+        const choices = [];
+        for (let i = 0; i < this.pollChoices.length; i++) {
+            const v = (this.pollChoices[i].value || '').trim();
+            if (v) {
+                choices.push(v);
+            }
+        }
+        if (choices.length < 2) {
+            this.showToast('Error', 'Add at least 2 choices.', 'error');
+            return;
+        }
+        this.isChatterSaving = true;
+        createFeedPoll({
+            recordId: this.recordId,
+            question: question,
+            choicesJson: JSON.stringify(choices)
+        })
+            .then(() => {
+                this.showToast('Success', 'Poll posted.', 'success');
+                this.closeChatterModals();
+            })
+            .catch((error) => {
+                this.showToast(
+                    'Error creating poll',
+                    this.reduceError(error) || 'Unknown error',
+                    'error'
+                );
+            })
+            .finally(() => {
+                this.isChatterSaving = false;
+            });
+    }
+
+    reduceError(error) {
+        if (!error) {
+            return '';
+        }
+        if (Array.isArray(error.body)) {
+            return error.body.map((e) => e.message).join(', ');
+        }
+        if (error.body && typeof error.body.message === 'string') {
+            return error.body.message;
+        }
+        if (typeof error.message === 'string') {
+            return error.message;
+        }
+        return JSON.stringify(error);
+    }
+
+    showToast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    }
+}

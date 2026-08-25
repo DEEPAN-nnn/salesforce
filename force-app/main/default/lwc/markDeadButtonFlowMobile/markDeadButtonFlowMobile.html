@@ -1,0 +1,54 @@
+<template>
+    <div class="mdm-root">
+        <button
+            class="mdm-action"
+            type="button"
+            onclick={openFlow}
+            disabled={isBusy}
+            title="Mark Dead"
+        >
+            <span class="mdm-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" focusable="false">
+                    <path
+                        fill="#ffffff"
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                    ></path>
+                </svg>
+            </span>
+            <span class="mdm-label">Mark dead</span>
+        </button>
+
+        <template if:true={showModal}>
+            <section
+                role="dialog"
+                tabindex="-1"
+                class="mdm-backdrop"
+                onclick={handleBackdropClick}
+            >
+                <div class="mdm-panel" onclick={stopPropagation}>
+                    <button class="mdm-close" type="button" onclick={closeModal} title="Close">
+                        &times;
+                    </button>
+
+                    <template if:true={showSpinner}>
+                        <div class="mdm-spinner-wrap">
+                            <lightning-spinner
+                                alternative-text="Loading"
+                                size="small"
+                            ></lightning-spinner>
+                        </div>
+                    </template>
+
+                    <div class={flowWrapperClass}>
+                        <lightning-flow
+                            flow-api-name={flowApiName}
+                            flow-input-variables={flowInputVariables}
+                            onstatuschange={handleFlowStatusChange}
+                            data-instance={flowInstanceKey}
+                        ></lightning-flow>
+                    </div>
+                </div>
+            </section>
+        </template>
+    </div>
+</template>

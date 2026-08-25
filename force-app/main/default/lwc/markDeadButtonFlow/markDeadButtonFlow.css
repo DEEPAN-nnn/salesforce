@@ -1,0 +1,167 @@
+.button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.button-container_mobile {
+    width: 72px;
+    align-items: flex-start;
+}
+
+.mark-dead-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    min-width: 7rem;
+    background: #f15267;
+    border: 1px solid #b42c3e;
+    border-radius: 4px;
+    color: #000000;
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.mark-dead-btn:hover:not(:disabled) {
+    background: #c4001a;
+}
+
+.mark-dead-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.mark-dead-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(234, 0, 30, 0.25);
+}
+
+.button-icon {
+    --slds-c-icon-color-foreground-default: #ffffff;
+    --slds-c-icon-color-foreground: #ffffff;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+/* Phone: red circle + white X — same size as Salesforce mobile actions */
+.mark-dead-circle-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 72px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mark-dead-circle-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.mark-dead-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ea001e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hp-inline-svg {
+    display: block;
+}
+
+.mark-dead-circle-label {
+    font-size: 0.6875rem;
+    line-height: 1.15;
+    color: #181818;
+    text-align: center;
+    width: 100%;
+    max-width: 72px;
+    word-break: break-word;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-panel {
+    position: relative;
+    width: 90%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 1.25rem 1.25rem 1rem;
+}
+
+@media (max-width: 48em) {
+    .modal-backdrop {
+        padding: 0.5rem;
+        align-items: stretch;
+    }
+
+    .modal-panel {
+        width: 100%;
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 8px;
+        margin: auto 0;
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #706e6b;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.modal-close:hover {
+    color: #181818;
+}
+
+.spinner-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+}
+
+.flow-wrap {
+    min-height: 120px;
+}
+
+.flow-wrap_hidden {
+    display: none;
+}

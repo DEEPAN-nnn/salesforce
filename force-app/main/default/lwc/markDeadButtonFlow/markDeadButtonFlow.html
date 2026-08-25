@@ -1,0 +1,76 @@
+<template>
+    <div class={containerClass}>
+        <!-- Phone: red circle + white X (standard mobile action size) -->
+        <template if:true={isMobileVariant}>
+            <button
+                class="mark-dead-circle-action"
+                onclick={openFlow}
+                disabled={isBusy}
+                type="button"
+                title="Mark Dead"
+            >
+                <span class="mark-dead-circle" aria-hidden="true">
+                    <!-- inline SVG so the X always shows (lightning-icon can fail in App Builder) -->
+                    <svg
+                        class="hp-inline-svg"
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        focusable="false"
+                    >
+                        <path
+                            fill="#ffffff"
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                        ></path>
+                    </svg>
+                </span>
+                <span class="mark-dead-circle-label">Mark dead</span>
+            </button>
+        </template>
+
+        <!-- Desktop: red rectangular button with X -->
+        <template if:false={isMobileVariant}>
+            <button class="mark-dead-btn" onclick={openFlow} disabled={isBusy} type="button">
+                <lightning-icon
+                    icon-name="utility:clear"
+                    size="xx-small"
+                    class="button-icon"
+                    alternative-text=""
+                ></lightning-icon>
+                <span>Mark Dead</span>
+            </button>
+        </template>
+    </div>
+
+    <template if:true={showModal}>
+        <section
+            role="dialog"
+            tabindex="-1"
+            class="modal-backdrop"
+            onclick={handleBackdropClick}
+        >
+            <div class="modal-panel" onclick={stopPropagation}>
+                <button class="modal-close" onclick={closeModal} title="Close">
+                    &times;
+                </button>
+
+                <template if:true={showSpinner}>
+                    <div class="spinner-wrap">
+                        <lightning-spinner
+                            alternative-text="Loading"
+                            size="small"
+                        ></lightning-spinner>
+                    </div>
+                </template>
+
+                <div class={flowWrapperClass}>
+                    <lightning-flow
+                        flow-api-name={flowApiName}
+                        flow-input-variables={flowInputVariables}
+                        onstatuschange={handleFlowStatusChange}
+                    ></lightning-flow>
+                </div>
+            </div>
+        </section>
+    </template>
+</template>

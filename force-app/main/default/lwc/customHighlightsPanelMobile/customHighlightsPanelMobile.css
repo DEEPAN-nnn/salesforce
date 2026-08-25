@@ -1,0 +1,344 @@
+.mhp-wrapper {
+    position: relative;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+.mhp-spinner-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.55);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mhp-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-evenly;
+    gap: 2px;
+    width: 100%;
+    padding: 8px 6px 10px;
+    box-sizing: border-box;
+}
+
+.mhp-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 64px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mhp-action:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Match standard Salesforce mobile action size */
+.mhp-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.mhp-circle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.mhp-circle-blue {
+    background: #7b85d4;
+}
+
+.mhp-circle-red {
+    background: #ea001e;
+}
+
+.mhp-label {
+    font-size: 0.625rem;
+    line-height: 1.15;
+    color: #181818;
+    text-align: center;
+    width: 100%;
+    max-width: 64px;
+    word-break: break-word;
+}
+
+/* Mark Dead flow modal — above More sheet */
+.mhp-markdead-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9100;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+.mhp-markdead-panel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: 95vh;
+    margin: auto 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 1.25rem 1.25rem 1rem;
+    box-sizing: border-box;
+}
+
+.mhp-markdead-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #706e6b;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.mhp-markdead-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+}
+
+.mhp-markdead-flow {
+    min-height: 120px;
+}
+
+.mhp-markdead-flow_hidden {
+    display: none;
+}
+
+/* ── Standard Salesforce mobile Actions bottom sheet ── */
+.mhp-more-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9002;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.mhp-more-sheet {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 85vh;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Sticky header: handle + Actions title stay fixed while list scrolls */
+.mhp-more-header {
+    flex-shrink: 0;
+    padding: 10px 0 0;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.mhp-more-handle {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #706e6b;
+    margin: 0 auto 12px;
+}
+
+.mhp-more-title {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0176d3;
+    padding: 0 16px 12px;
+    line-height: 1.2;
+}
+
+/* Scrollable action list */
+.mhp-more-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 env(safe-area-inset-bottom, 12px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.mhp-more-li {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.mhp-more-li:last-child {
+    border-bottom: none;
+}
+
+.mhp-more-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 56px;
+    padding: 12px 20px;
+    border: none;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mhp-more-item:active {
+    background: #f3f3f3;
+}
+
+.mhp-more-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mhp-more-circle svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Icon circle colors — match standard Salesforce mobile Actions */
+.mhp-more-circle-purple {
+    background: #7b85d4;
+}
+
+.mhp-more-circle-blue {
+    background: #7b85d4;
+}
+
+.mhp-more-circle-sky {
+    background: #1b96ff;
+}
+
+.mhp-more-circle-green {
+    background: #2e844a;
+}
+
+.mhp-more-circle-pink {
+    background: #ca4b8a;
+}
+
+.mhp-more-circle-teal {
+    background: #0b827c;
+}
+
+.mhp-more-circle-red {
+    background: #ea001e;
+}
+
+.mhp-more-item-label {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #181818;
+    line-height: 1.3;
+}
+
+.mhp-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9001;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+.mhp-modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: 95vh;
+    margin: auto 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.mhp-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 4px 12px;
+    border-bottom: 1px solid #dddbda;
+}
+
+.mhp-modal-body {
+    padding: 12px 4px;
+}
+
+.mhp-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 4px 4px;
+    border-top: 1px solid #dddbda;
+}
+
+.mhp-modal-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #706e6b;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.mhp-modal-header .mhp-modal-close {
+    position: static;
+}
+
+.mhp-spinner-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+}
