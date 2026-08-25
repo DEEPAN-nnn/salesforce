@@ -57,7 +57,8 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 9001;
+    /* Above More sheet (9002) so Mark Dead from More works */
+    z-index: 9100;
     display: flex;
     align-items: stretch;
     justify-content: center;

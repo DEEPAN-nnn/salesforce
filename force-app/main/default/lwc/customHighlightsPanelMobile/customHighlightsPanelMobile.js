@@ -191,7 +191,13 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         const qa = 'mhp-more-circle mhp-more-circle-purple';
 
         items.push(
-            moreItem('markDead', 'markDead', 'Mark dead', SVG.lightning, 'mhp-more-circle mhp-more-circle-purple')
+            moreItem(
+                'markDead',
+                'markDead',
+                'Mark dead',
+                SVG.closeX,
+                'mhp-more-circle mhp-more-circle-red'
+            )
         );
 
         if (this.showRelatedProperty) {
@@ -307,14 +313,23 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
 
     handleMoreSelect(event) {
         const value = event.currentTarget.dataset.value;
-        this.closeMore();
         if (!value) {
+            this.closeMore();
             return;
         }
+
+        // Close More first, then open Mark Dead flow (same as bar button)
+        // so the flow modal is not trapped under the Actions sheet.
         if (value === 'markDead') {
-            this.openMarkDeadFromMore();
+            this.closeMore();
+            // eslint-disable-next-line @lwc/lwc/no-async-operation
+            window.setTimeout(() => {
+                this.openMarkDeadFromMore();
+            }, 120);
             return;
         }
+
+        this.closeMore();
         if (LOCAL_MENU_ACTIONS.has(value)) {
             if (value === 'edit') this.handleEdit();
             else if (value === 'clone') this.handleClone();
