@@ -3,7 +3,6 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
-import { RefreshEvent } from 'lightning/refresh';
 import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
 import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
@@ -45,8 +44,8 @@ function newPollChoices() {
 }
 
 /**
- * Phone-only Highlights Panel — same visibility / actions as desktop,
- * Salesforce mobile circular action UI.
+ * Phone-only Highlights Panel — same visibility / actions as desktop.
+ * Mark Dead uses child LWC: markDeadButtonFlowMobile
  */
 export default class CustomHighlightsPanelMobile extends NavigationMixin(LightningElement) {
     @api recordId;
@@ -62,9 +61,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     @track propertySourcingAssistance = false;
 
     @track showMore = false;
-    @track showMarkDeadModal = false;
-    @track showMarkDeadSpinner = true;
-    @track isMarkDeadBusy = false;
 
     @track showPostModal = false;
     @track showPollModal = false;
@@ -242,14 +238,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         return items;
     }
 
-    get markDeadFlowInputs() {
-        return [{ name: 'recordId', type: 'String', value: this.recordId }];
-    }
-
-    get markDeadFlowClass() {
-        return this.showMarkDeadSpinner ? 'mhp-flow mhp-flow_hidden' : 'mhp-flow';
-    }
-
     get canAddPollChoice() {
         return this.pollChoices.length < 10;
     }
@@ -289,59 +277,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
                 // eslint-disable-next-line no-console
                 console.error('Follow check failed:', error);
             });
-    }
-
-    openMarkDead() {
-        if (this.isMarkDeadBusy) {
-            return;
-        }
-        if (!this.recordId) {
-            this.showToast('Error', 'Record Id is missing.', 'error');
-            return;
-        }
-        this.isMarkDeadBusy = true;
-        this.showMarkDeadSpinner = true;
-        this.showMarkDeadModal = true;
-        // eslint-disable-next-line @lwc/lwc/no-async-operation
-        this._markDeadTimer = window.setTimeout(() => {
-            this.showMarkDeadSpinner = false;
-        }, 600);
-    }
-
-    handleMarkDeadFlowStatus(event) {
-        const status = event.detail.status;
-        if (this._markDeadTimer) {
-            window.clearTimeout(this._markDeadTimer);
-            this._markDeadTimer = null;
-        }
-        if (
-            status === 'STARTED' ||
-            status === 'PAUSED' ||
-            status === 'FINISHED' ||
-            status === 'FINISHED_SCREEN' ||
-            status === 'ERROR'
-        ) {
-            this.showMarkDeadSpinner = false;
-        }
-        if (status === 'ERROR') {
-            this.showToast('Error', 'Mark Dead flow failed to start.', 'error');
-            return;
-        }
-        if (status === 'FINISHED' || status === 'FINISHED_SCREEN') {
-            this.closeMarkDead();
-            this.dispatchEvent(new RefreshEvent());
-            this.showToast('Success', 'Mark Dead completed.', 'success');
-        }
-    }
-
-    closeMarkDead() {
-        if (this._markDeadTimer) {
-            window.clearTimeout(this._markDeadTimer);
-            this._markDeadTimer = null;
-        }
-        this.showMarkDeadModal = false;
-        this.showMarkDeadSpinner = true;
-        this.isMarkDeadBusy = false;
     }
 
     openMore() {
