@@ -6,319 +6,140 @@
             </div>
         </template>
 
-        <!-- ===================== PHONE: round actions only ===================== -->
-        <template if:true={isPhone}>
-            <div class="hp-mobile-bar">
+        <div class="hp-header">
+            <div class="hp-title-wrap">
+                <span class="hp-icon-container">
+                    <img
+                        src="/img/icon/t4v35/custom/custom6_120.png"
+                        class="hp-icon"
+                        alt="Sales Funnel"
+                    />
+                </span>
+                <div class="hp-title-text">
+                    <div class="hp-object-label">Sales Funnel</div>
+                    <div class="hp-record-name">{recordName}</div>
+                </div>
+            </div>
+
+            <div class="hp-actions">
+                <button class={followClass} onclick={handleFollow} disabled={isFollowLoading}>
+                    {followLabel}
+                </button>
+
                 <c-mark-dead-button-flow
                     record-id={recordId}
                     flow-api-name="Request_Dead_Approval"
-                    variant="mobile"
                 ></c-mark-dead-button-flow>
 
-                <template for:each={mobilePrimaryActions} for:item="action">
+                <template if:true={showGenerateProposalBtn}>
                     <button
-                        key={action.key}
-                        class="hp-circle-action"
-                        data-action={action.apiName}
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Generate_Proposal"
                         onclick={handleQuickAction}
-                        type="button"
                     >
-                        <span class="hp-circle hp-circle-blue" aria-hidden="true">
-                            <svg
-                                class="hp-inline-svg"
-                                viewBox="0 0 24 24"
-                                width="18"
-                                height="18"
-                                focusable="false"
-                            >
-                                <path
-                                    fill="#ffffff"
-                                    d="M11 2L5 13h5v9l7-12h-5l4-8z"
-                                ></path>
-                            </svg>
-                        </span>
-                        <span class="hp-circle-label">{action.label}</span>
+                        Generate Proposal
                     </button>
                 </template>
 
-                <button
-                    class="hp-circle-action"
-                    type="button"
-                    onclick={openMobileMore}
-                >
-                    <span class="hp-circle hp-circle-blue" aria-hidden="true">
-                        <svg
-                            class="hp-inline-svg"
-                            viewBox="0 0 24 24"
-                            width="18"
-                            height="18"
-                            focusable="false"
-                        >
-                            <circle fill="#ffffff" cx="6" cy="12" r="2"></circle>
-                            <circle fill="#ffffff" cx="12" cy="12" r="2"></circle>
-                            <circle fill="#ffffff" cx="18" cy="12" r="2"></circle>
-                        </svg>
-                    </span>
-                    <span class="hp-circle-label">More</span>
-                </button>
-            </div>
-
-            <template if:true={showMobileMore}>
-                <section
-                    class="hp-more-backdrop"
-                    role="dialog"
-                    tabindex="-1"
-                    onclick={closeMobileMore}
-                >
-                    <div class="hp-more-sheet" onclick={stopPropagation}>
-                        <div class="hp-more-handle"></div>
-                        <div class="hp-more-title">Actions</div>
-                        <ul class="hp-more-list">
-                            <template for:each={mobileMoreActions} for:item="item">
-                                <li key={item.key}>
-                                    <button
-                                        class="hp-more-item"
-                                        type="button"
-                                        data-value={item.value}
-                                        onclick={handleMobileMoreSelect}
-                                    >
-                                        <span class={item.circleClass} aria-hidden="true">
-                                            <svg
-                                                class="hp-inline-svg"
-                                                viewBox="0 0 24 24"
-                                                width="16"
-                                                height="16"
-                                                focusable="false"
-                                            >
-                                                <path fill="#ffffff" d={item.svgPath}></path>
-                                            </svg>
-                                        </span>
-                                        <span class="hp-more-item-label">{item.label}</span>
-                                    </button>
-                                </li>
-                            </template>
-                        </ul>
-                    </div>
-                </section>
-            </template>
-        </template>
-
-        <!-- ===================== DESKTOP: existing panel ===================== -->
-        <template if:false={isPhone}>
-            <div class="hp-header">
-                <div class="hp-title-wrap">
-                    <span class="hp-icon-container">
-                        <img
-                            src="/img/icon/t4v35/custom/custom6_120.png"
-                            class="hp-icon"
-                            alt="Sales Funnel"
-                        />
-                    </span>
-                    <div class="hp-title-text">
-                        <div class="hp-object-label">Sales Funnel</div>
-                        <div class="hp-record-name">{recordName}</div>
-                    </div>
-                </div>
-
-                <div class="hp-actions">
-                    <button class={followClass} onclick={handleFollow} disabled={isFollowLoading}>
-                        {followLabel}
-                    </button>
-
-                    <c-mark-dead-button-flow
-                        record-id={recordId}
-                        flow-api-name="Request_Dead_Approval"
-                    ></c-mark-dead-button-flow>
-
-                    <template if:true={showGenerateProposalBtn}>
-                        <button
-                            class="hp-btn hp-btn-standard"
-                            data-action="Enquiry__c.Generate_Proposal"
-                            onclick={handleQuickAction}
-                        >
-                            Generate Proposal
-                        </button>
-                    </template>
-
-                    <template if:true={showRelatedPropertyBtn}>
-                        <button
-                            class="hp-btn hp-btn-standard"
-                            data-action="Enquiry__c.Related_Property"
-                            onclick={handleQuickAction}
-                        >
-                            Related Property
-                        </button>
-                    </template>
-
-                    <template if:true={showAssignAssistant}>
-                        <button
-                            class="hp-btn hp-btn-standard"
-                            data-action="Enquiry__c.Assign_Assistant"
-                            onclick={handleQuickAction}
-                        >
-                            Assign Assistant
-                        </button>
-                    </template>
-
-                    <template if:true={showChangePropertyAssistant}>
-                        <button
-                            class="hp-btn hp-btn-standard"
-                            data-action="Enquiry__c.Change_Property_Assistant"
-                            onclick={handleQuickAction}
-                        >
-                            Change Property Assistant
-                        </button>
-                    </template>
-
-                    <template if:true={showUpdateLocationBtn}>
-                        <button
-                            class="hp-btn hp-btn-standard"
-                            data-action="Enquiry__c.Update_Location"
-                            onclick={handleQuickAction}
-                        >
-                            Update Location
-                        </button>
-                    </template>
-
-                    <lightning-button-menu
-                        alternative-text="Show more actions"
-                        menu-alignment="right"
-                        icon-size="small"
-                        onselect={handleMenuSelect}
+                <template if:true={showRelatedPropertyBtn}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Related_Property"
+                        onclick={handleQuickAction}
                     >
-                        <template if:true={showDeleteRelatedListItem}>
-                            <lightning-menu-item
-                                value="Enquiry__c.Delete_Related_List"
-                                label="Delete Related List"
-                            ></lightning-menu-item>
-                        </template>
-                        <template if:true={showEditItem}>
-                            <lightning-menu-item value="edit" label="Edit"></lightning-menu-item>
-                        </template>
-                        <template if:true={showCloneItem}>
-                            <lightning-menu-item value="clone" label="Clone"></lightning-menu-item>
-                        </template>
-                        <template if:true={showMergeEnquiry}>
-                            <lightning-menu-item
-                                value="Enquiry__c.Merge_Enquiry"
-                                label="Merge Enquiry"
-                            ></lightning-menu-item>
-                        </template>
+                        Related Property
+                    </button>
+                </template>
 
-                        <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
-                        <lightning-menu-item value="Global.NewTask" label="New Task"></lightning-menu-item>
-                        <lightning-menu-item value="Global.LogACall" label="Log a Call"></lightning-menu-item>
-                        <template if:true={showPostPoll}>
-                            <lightning-menu-item value="post" label="Post"></lightning-menu-item>
-                            <lightning-menu-item value="poll" label="Poll"></lightning-menu-item>
-                        </template>
-                        <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
-                        <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
-                    </lightning-button-menu>
-                </div>
-            </div>
+                <template if:true={showAssignAssistant}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Assign_Assistant"
+                        onclick={handleQuickAction}
+                    >
+                        Assign Assistant
+                    </button>
+                </template>
 
-            <div class="hp-fields">
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Contact 1 Phone">Contact 1 Phone</p>
-                    <p class="hp-field-value" title={contactPhone}>{contactPhoneDisplay}</p>
-                </div>
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Requirement">Requirement</p>
-                    <p class="hp-field-value" title={requirement}>{requirementDisplay}</p>
-                </div>
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Sub-Location">Sub-Location</p>
-                    <p class="hp-field-value" title={subLocation}>{subLocationDisplay}</p>
-                </div>
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Stage">Stage</p>
-                    <p class="hp-field-value" title={currentStatus}>{currentStatusDisplay}</p>
-                </div>
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Action">Action</p>
-                    <p class="hp-field-value" title={stage}>{stageDisplay}</p>
-                </div>
-                <div class="hp-field">
-                    <p class="hp-field-label" title="Channels">Channels</p>
-                    <p class="hp-field-value" title={channel}>{channelDisplay}</p>
-                </div>
+                <template if:true={showChangePropertyAssistant}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Change_Property_Assistant"
+                        onclick={handleQuickAction}
+                    >
+                        Change Property Assistant
+                    </button>
+                </template>
+
+                <template if:true={showUpdateLocationBtn}>
+                    <button
+                        class="hp-btn hp-btn-standard"
+                        data-action="Enquiry__c.Update_Location"
+                        onclick={handleQuickAction}
+                    >
+                        Update Location
+                    </button>
+                </template>
+
+                <lightning-button-menu
+                    alternative-text="Show more actions"
+                    menu-alignment="right"
+                    icon-size="small"
+                    onselect={handleMenuSelect}
+                >
+                    <template if:true={showDeleteRelatedListItem}>
+                        <lightning-menu-item
+                            value="Enquiry__c.Delete_Related_List"
+                            label="Delete Related List"
+                        ></lightning-menu-item>
+                    </template>
+                    <template if:true={showEditItem}>
+                        <lightning-menu-item value="edit" label="Edit"></lightning-menu-item>
+                    </template>
+                    <template if:true={showCloneItem}>
+                        <lightning-menu-item value="clone" label="Clone"></lightning-menu-item>
+                    </template>
+                    <template if:true={showMergeEnquiry}>
+                        <lightning-menu-item
+                            value="Enquiry__c.Merge_Enquiry"
+                            label="Merge Enquiry"
+                        ></lightning-menu-item>
+                    </template>
+
+                    <lightning-menu-item value="Global.NewEvent" label="New Event"></lightning-menu-item>
+                    <lightning-menu-item value="Global.NewTask" label="New Task"></lightning-menu-item>
+                    <lightning-menu-item value="Global.LogACall" label="Log a Call"></lightning-menu-item>
+                    <lightning-menu-item value="Enquiry__c.Sharing" label="Sharing"></lightning-menu-item>
+                    <lightning-menu-item value="delete" label="Delete"></lightning-menu-item>
+                </lightning-button-menu>
             </div>
-        </template>
+        </div>
+
+        <div class="hp-fields">
+            <div class="hp-field">
+                <p class="hp-field-label" title="Contact 1 Phone">Contact 1 Phone</p>
+                <p class="hp-field-value" title={contactPhone}>{contactPhoneDisplay}</p>
+            </div>
+            <div class="hp-field">
+                <p class="hp-field-label" title="Requirement">Requirement</p>
+                <p class="hp-field-value" title={requirement}>{requirementDisplay}</p>
+            </div>
+            <div class="hp-field">
+                <p class="hp-field-label" title="Sub-Location">Sub-Location</p>
+                <p class="hp-field-value" title={subLocation}>{subLocationDisplay}</p>
+            </div>
+            <div class="hp-field">
+                <p class="hp-field-label" title="Stage">Stage</p>
+                <p class="hp-field-value" title={currentStatus}>{currentStatusDisplay}</p>
+            </div>
+            <div class="hp-field">
+                <p class="hp-field-label" title="Action">Action</p>
+                <p class="hp-field-value" title={stage}>{stageDisplay}</p>
+            </div>
+            <div class="hp-field">
+                <p class="hp-field-label" title="Channels">Channels</p>
+                <p class="hp-field-value" title={channel}>{channelDisplay}</p>
+            </div>
+        </div>
     </div>
-
-    <template if:true={showPostModal}>
-        <section role="dialog" tabindex="-1" class="hp-modal-backdrop" onclick={closeChatterModals}>
-            <div class="hp-modal" onclick={stopPropagation}>
-                <div class="hp-modal-header">
-                    <h2 class="slds-text-heading_small">Post</h2>
-                    <button class="modal-close-btn" onclick={closeChatterModals} title="Close">&times;</button>
-                </div>
-                <div class="hp-modal-body">
-                    <lightning-textarea
-                        label="Share an update"
-                        value={postBody}
-                        onchange={handlePostBodyChange}
-                        max-length="10000"
-                    ></lightning-textarea>
-                </div>
-                <div class="hp-modal-footer">
-                    <lightning-button label="Cancel" onclick={closeChatterModals}></lightning-button>
-                    <lightning-button
-                        variant="brand"
-                        label="Share"
-                        onclick={submitPost}
-                        disabled={isChatterSaving}
-                        class="slds-m-left_x-small"
-                    ></lightning-button>
-                </div>
-            </div>
-        </section>
-    </template>
-
-    <template if:true={showPollModal}>
-        <section role="dialog" tabindex="-1" class="hp-modal-backdrop" onclick={closeChatterModals}>
-            <div class="hp-modal" onclick={stopPropagation}>
-                <div class="hp-modal-header">
-                    <h2 class="slds-text-heading_small">Poll</h2>
-                    <button class="modal-close-btn" onclick={closeChatterModals} title="Close">&times;</button>
-                </div>
-                <div class="hp-modal-body">
-                    <lightning-input
-                        label="Question"
-                        value={pollQuestion}
-                        onchange={handlePollQuestionChange}
-                        class="slds-m-bottom_small"
-                    ></lightning-input>
-                    <template for:each={pollChoices} for:item="choice" for:index="index">
-                        <lightning-input
-                            key={choice.key}
-                            label={choice.label}
-                            data-index={index}
-                            value={choice.value}
-                            onchange={handlePollChoiceChange}
-                            class="slds-m-bottom_x-small"
-                        ></lightning-input>
-                    </template>
-                    <template if:true={canAddPollChoice}>
-                        <lightning-button
-                            label="Add choice"
-                            onclick={addPollChoice}
-                            class="slds-m-top_x-small"
-                        ></lightning-button>
-                    </template>
-                </div>
-                <div class="hp-modal-footer">
-                    <lightning-button label="Cancel" onclick={closeChatterModals}></lightning-button>
-                    <lightning-button
-                        variant="brand"
-                        label="Ask"
-                        onclick={submitPoll}
-                        disabled={isChatterSaving}
-                        class="slds-m-left_x-small"
-                    ></lightning-button>
-                </div>
-            </div>
-        </section>
-    </template>
 </template>
