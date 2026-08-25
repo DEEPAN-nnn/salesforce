@@ -138,19 +138,20 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     }
 
     get primaryActions() {
+        // App Builder Actions order (after Mark Dead): Generate Proposal, Related Property, then More
         const candidates = [];
-        if (this.showRelatedPropertyBtn) {
-            candidates.push({
-                key: 'related',
-                label: 'Related Property',
-                apiName: 'Enquiry__c.Related_Property'
-            });
-        }
         if (this.showGenerateProposalBtn) {
             candidates.push({
                 key: 'proposal',
                 label: 'Generate Proposal',
                 apiName: 'Enquiry__c.Generate_Proposal'
+            });
+        }
+        if (this.showRelatedPropertyBtn) {
+            candidates.push({
+                key: 'related',
+                label: 'Related Property',
+                apiName: 'Enquiry__c.Related_Property'
             });
         }
         if (this.showAssignAssistant) {
@@ -181,21 +182,34 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         return new Set(this.primaryActions.map((a) => a.apiName));
     }
 
+    /**
+     * More sheet — same order as App Builder Actions list
+     * (skipping items already on the primary bar).
+     */
     get moreActions() {
         const items = [];
         const primary = this.primaryApiNames;
         const qa = 'mhp-more-circle mhp-more-circle-blue';
 
         if (this.showGenerateProposalBtn && !primary.has('Enquiry__c.Generate_Proposal')) {
-            items.push(moreItem('proposal', 'Enquiry__c.Generate_Proposal', 'Generate Proposal', SVG.lightning, qa));
+            items.push(
+                moreItem('proposal', 'Enquiry__c.Generate_Proposal', 'Generate Proposal', SVG.lightning, qa)
+            );
         }
         if (this.showRelatedPropertyBtn && !primary.has('Enquiry__c.Related_Property')) {
-            items.push(moreItem('related', 'Enquiry__c.Related_Property', 'Related Property', SVG.lightning, qa));
+            items.push(
+                moreItem('related', 'Enquiry__c.Related_Property', 'Related Property', SVG.lightning, qa)
+            );
         }
         if (this.showAssignAssistant && !primary.has('Enquiry__c.Assign_Assistant')) {
-            items.push(moreItem('assign', 'Enquiry__c.Assign_Assistant', 'Assign Assistant', SVG.lightning, qa));
+            items.push(
+                moreItem('assign', 'Enquiry__c.Assign_Assistant', 'Assign Assistant', SVG.lightning, qa)
+            );
         }
-        if (this.showChangePropertyAssistant && !primary.has('Enquiry__c.Change_Property_Assistant')) {
+        if (
+            this.showChangePropertyAssistant &&
+            !primary.has('Enquiry__c.Change_Property_Assistant')
+        ) {
             items.push(
                 moreItem(
                     'change',
@@ -207,33 +221,65 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             );
         }
         if (this.showUpdateLocationBtn && !primary.has('Enquiry__c.Update_Location')) {
-            items.push(moreItem('location', 'Enquiry__c.Update_Location', 'Update Location', SVG.lightning, qa));
+            items.push(
+                moreItem('location', 'Enquiry__c.Update_Location', 'Update Location', SVG.lightning, qa)
+            );
         }
         if (this.showDeleteRelatedListItem) {
             items.push(
-                moreItem('deleteRelated', 'Enquiry__c.Delete_Related_List', 'Delete Related List', SVG.lightning, qa)
+                moreItem(
+                    'deleteRelated',
+                    'Enquiry__c.Delete_Related_List',
+                    'Delete Related List',
+                    SVG.lightning,
+                    qa
+                )
             );
         }
         if (this.showEditItem) {
-            items.push(moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-green'));
+            items.push(
+                moreItem('edit', 'edit', 'Edit', SVG.edit, 'mhp-more-circle mhp-more-circle-green')
+            );
         }
         if (this.showCloneItem) {
             items.push(moreItem('clone', 'clone', 'Clone', SVG.copy, qa));
         }
-        if (this.showMergeEnquiry) {
-            items.push(moreItem('merge', 'Enquiry__c.Merge_Enquiry', 'Merge Enquiry', SVG.lightning, qa));
-        }
 
         items.push(
-            moreItem('event', 'Global.NewEvent', 'New Event', SVG.event, 'mhp-more-circle mhp-more-circle-pink'),
-            moreItem('task', 'Global.NewTask', 'New Task', SVG.task, 'mhp-more-circle mhp-more-circle-green'),
-            moreItem('call', 'Global.LogACall', 'Log a Call', SVG.call, 'mhp-more-circle mhp-more-circle-teal'),
+            moreItem(
+                'event',
+                'Global.NewEvent',
+                'New Event',
+                SVG.event,
+                'mhp-more-circle mhp-more-circle-pink'
+            ),
+            moreItem(
+                'task',
+                'Global.NewTask',
+                'New Task',
+                SVG.task,
+                'mhp-more-circle mhp-more-circle-green'
+            ),
+            moreItem(
+                'call',
+                'Global.LogACall',
+                'Log a Call',
+                SVG.call,
+                'mhp-more-circle mhp-more-circle-teal'
+            ),
             moreItem('post', 'post', 'Post', SVG.chat, qa),
             moreItem('poll', 'poll', 'Poll', SVG.chart, qa),
             moreItem('sharing', 'Enquiry__c.Sharing', 'Sharing', SVG.lightning, qa),
-            moreItem('follow', 'follow', this.followLabel, SVG.adduser, qa),
             moreItem('delete', 'delete', 'Delete', SVG.delete, 'mhp-more-circle mhp-more-circle-red')
         );
+
+        if (this.showMergeEnquiry) {
+            items.push(
+                moreItem('merge', 'Enquiry__c.Merge_Enquiry', 'Merge Enquiry', SVG.lightning, qa)
+            );
+        }
+
+        items.push(moreItem('follow', 'follow', this.followLabel, SVG.adduser, qa));
 
         return items;
     }
