@@ -3,8 +3,6 @@ import { getRecord, getFieldValue, deleteRecord } from 'lightning/uiRecordApi';
 import { NavigationMixin } from 'lightning/navigation';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningConfirm from 'lightning/confirm';
-import isFollowing from '@salesforce/apex/HighlightsPanelController.isFollowing';
-import toggleFollow from '@salesforce/apex/HighlightsPanelController.toggleFollow';
 import getCurrentUserProfileName from '@salesforce/apex/HighlightsPanelController.getCurrentUserProfileName';
 import createFeedPost from '@salesforce/apex/HighlightsPanelController.createFeedPost';
 import createFeedPoll from '@salesforce/apex/HighlightsPanelController.createFeedPoll';
@@ -42,8 +40,6 @@ const SVG = {
     call: 'M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z',
     chat: 'M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z',
     chart: 'M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z',
-    adduser:
-        'M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
     delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'
 };
 
@@ -70,8 +66,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     lightningPath = SVG.lightning;
 
     @track isActionLoading = false;
-    @track isFollowLoading = false;
-    @track following = false;
     @track profileName = '';
     @track propertySourcingAssistance = false;
     @track showMore = false;
@@ -155,10 +149,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
     }
     get showMergeEnquiry() {
         return this.profileName === 'System Administrator';
-    }
-
-    get followLabel() {
-        return this.following ? 'Following' : '+ Follow';
     }
 
     /**
@@ -278,8 +268,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
             items.push(moreItem('merge', QA.mergeEnquiry, 'Merge Enquiry', SVG.lightning, qa));
         }
 
-        items.push(moreItem('follow', 'follow', this.followLabel, SVG.adduser, qa));
-
         return items;
     }
 
@@ -289,7 +277,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
 
     connectedCallback() {
         this.applyPhoneModalCss();
-        this.loadFollowState();
     }
 
     applyPhoneModalCss() {
@@ -310,20 +297,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         }
     }
 
-    loadFollowState() {
-        if (!this.recordId) {
-            return;
-        }
-        isFollowing({ recordId: this.recordId })
-            .then((result) => {
-                this.following = result;
-            })
-            .catch((error) => {
-                // eslint-disable-next-line no-console
-                console.error('Follow check failed:', error);
-            });
-    }
-
     openMore() {
         this.showMore = true;
     }
@@ -336,10 +309,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         const value = event.currentTarget.dataset.value;
         this.closeMore();
         if (!value) {
-            return;
-        }
-        if (value === 'follow') {
-            this.handleFollow();
             return;
         }
         if (value === 'markDead') {
@@ -391,34 +360,6 @@ export default class CustomHighlightsPanelMobile extends NavigationMixin(Lightni
         window.setTimeout(() => {
             this.isActionLoading = false;
         }, 800);
-    }
-
-    handleFollow() {
-        if (!this.recordId || this.isFollowLoading) {
-            return;
-        }
-        this.isFollowLoading = true;
-        toggleFollow({ recordId: this.recordId })
-            .then((result) => {
-                this.following = result;
-                this.showToast(
-                    result ? 'Following' : 'Unfollowed',
-                    result
-                        ? 'You are now following this record.'
-                        : 'You have unfollowed this record.',
-                    'success'
-                );
-            })
-            .catch((error) => {
-                this.showToast(
-                    'Error',
-                    this.reduceError(error) || 'Could not update follow status.',
-                    'error'
-                );
-            })
-            .finally(() => {
-                this.isFollowLoading = false;
-            });
     }
 
     handleEdit() {
