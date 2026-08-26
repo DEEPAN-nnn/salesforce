@@ -1,55 +1,55 @@
-# Skip cancel of Exported BDC Work Orders
+# Work Order: BDC - Update Status to Completed
 
-Flow: `Work_Order_BDC_Update_Status_to_Completed` (currently v9 in the org)
+Record-triggered **after save** flow on Work Order. It keeps Salesforce `Status` in sync with client `POStatus__c` for BDC jobs.
 
-## Why Failed Flow Interviews piled up
+## What this flow does
 
-The flow is **record-triggered after save** on Work Order.
+It runs when **all** of these are true:
 
-Entry logic was:
+- `Job_Category__c` starts with **BDC**
+- `POStatus__c` **changed**
+- And either:
+  - Client status is **Completed** / **completed** and Salesforce status is **Scheduled** or **Past Due**, or
+  - Client status is **cancelled** (any Salesforce status)
 
-```
-( ( (POStatus Completed/completed AND Status Scheduled/Past Due) OR POStatus cancelled ) )
-AND POStatus IsChanged
-AND Job_Category starts with BDC
-```
+Then it does one of three things:
 
-The **OR POStatus = cancelled** branch does **not** require Status = Scheduled or Past Due.
+| Client POStatus | Salesforce Status | What the flow does |
+|---|---|---|
+| Completed | Scheduled or Past Due, and the service appointment end time is in the past | Sets Salesforce `Status` = **Completed**, `Sub_Status__c` = **Pending Installer Pay**, stamps `Completed_Date__c` |
+| cancelled | Not Exported | Sets Salesforce `Status` = **Canceled**, `Sub_Status__c` = **Client Canceled** |
+| cancelled | **Exported** | **Does not cancel.** Shows an error on `POStatus__c` and **rolls back** the save so the user knows the WO cannot be cancelled |
 
-So when client `POStatus__c` changes to `cancelled` on a Work Order that is already **Exported**, the flow still runs.
+Exported work orders are locked after they are sent to accounting. The org already has a validation rule for that. Previously the flow still tried to set Status = Canceled, the rule blocked it, and the user only saw a **Failed Flow Interview** (or a generic flow fault) — not a clear “you cannot cancel” message.
 
-It then takes **Copy 1 of Update WO Status** and sets:
+## Fix in this version
 
-- `Status` = `Canceled`
-- `Sub_Status__c` = `Client Canceled`
+1. **Cancel Eligibility** decision runs first (before Get SA).
+2. If `POStatus__c` = cancelled and `Status` = Exported → **Custom Error** on `POStatus__c`:
 
-That hits the Work Order validation rule:
+   > Sorry, you cannot cancel a Work Order in Exported Status. Exported work orders are locked after they have been sent to accounting.
 
-> Sorry, you cannot cancel a Work Order in "Exported" Status.
-
-`WorkOrderFlowBypass` runs first, but this validation rule does **not** honor that bypass.
-
-Example that failed: `0WO4x000001JOVUGA4` — Status **Exported**, already closed, Completed Date July 2023. Client status changed to cancelled years later.
-
-## Fix (this package)
-
-1. **Start condition** also requires `Status != Exported` so those records never start an interview.
-2. **Cancelled** decision requires `Status != Exported` (defense in depth). Those interviews end on the default path instead of updating.
-3. **Fault connector** on the cancel Update Records element (same as the complete path).
+   Custom Error does **not** create a failed interview. The record change is rolled back, so client status does not stay cancelled while Salesforce stays Exported.
+3. Other cancels and the complete path are unchanged. Cancel update has a fault connector like the complete path.
 
 ## Deploy
-
-1. Deploy Flow `Work_Order_BDC_Update_Status_to_Completed`.
-2. Confirm the new version is **Active** (this metadata is Active; it should activate on deploy).
-3. Optional: deactivate old v9 if Salesforce left it as an inactive version (normal).
-4. Failed interviews already in the list stay there; they are history. New Exported + cancelled updates should not add more.
 
 ```bash
 sf project deploy start --manifest manifest/package.xml
 ```
 
-## What this does not change
+Confirm the new flow version is **Active**.
 
-- Completing Scheduled / Past Due BDC WOs when `POStatus__c` becomes Completed.
-- Canceling BDC WOs that are **not** Exported (those still set Status = Canceled).
-- The validation rule itself (it is correct for accounting/export). If you ever need to cancel an Exported WO, do that as a controlled data fix, not via this automation.
+## Test plan
+
+1. **Exported + cancel (must see the message)**  
+   BDC Work Order with `Status` = Exported. Set `POStatus__c` to cancelled and save.  
+   Expect: save fails, field/page error that you cannot cancel an Exported WO, Status stays Exported, **no** new Failed Flow Interview.
+
+2. **Scheduled + cancel (still allowed)**  
+   BDC Work Order with `Status` = Scheduled. Set `POStatus__c` to cancelled.  
+   Expect: `Status` = Canceled, `Sub_Status__c` = Client Canceled.
+
+3. **Scheduled/Past Due + complete**  
+   BDC Work Order Scheduled or Past Due, appointment end time in the past, `POStatus__c` → Completed.  
+   Expect: `Status` = Completed, `Sub_Status__c` = Pending Installer Pay.
