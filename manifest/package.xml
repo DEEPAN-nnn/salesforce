@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Work_Order_BDC_Update_Status_to_Completed</members>
+        <name>Flow</name>
+    </types>
+    <version>62.0</version>
+</Package>
