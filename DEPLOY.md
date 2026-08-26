@@ -1,5 +1,8 @@
 # Deploy Amount Paid rollup
 
+Do **not** deploy `Work_Order_Client_PO_Status_Changed`. That flow does not write Amount Paid; it is checked in only as evidence. See `docs/AMOUNT_PAID_INVESTIGATION.md`.
+
+
 ## What to deploy
 
 - `AmountPaidRollup`

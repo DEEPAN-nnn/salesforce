@@ -1,8 +1,31 @@
 # Work Order Amount Paid vs Payment Records
 
+## Is `Work Order: Client PO Status Changed` updating Amount Paid?
+
+**No.** That active after-save flow **reads** Work Order `Amount_Paid__c`. It never assigns it.
+
+What it actually does with Amount Paid:
+
+1. **Start condition** `(POStatus__c IsChanged OR Amount_Paid__c IsChanged) AND Status != Exported`
+2. Decision branches compare `$Record.Amount_Paid__c` to `$Record.Amount__c` (PO amount)
+3. Those branches only set `var_PONote` text such as “Client Check # [client check number] Imported. PO Paid in Full”
+4. The only Work Order **updates** in the flow are `Status` and `Sub_Status__c`, and only on **Canceled / Not Found** paths
+
+So Amount Paid must already be written by something else (client check import, integration, or a user). This flow then posts a PO note. The 09/20/23 description even says they added **Status does not equal Exported** on purpose.
+
+On WO **05101444**, `Status = Exported`, so this flow **does not run at all** — even if Amount Paid later changed.
+
+The Amount Paid decision paths also have **When first condition is met** (`doesRequireRecordChangedToMeetCriteria`). They fire only when Amount Paid (or the compared criteria) **changes on that update**, not when a Payment Record is created.
+
+Literal note text `[client check number]` is a placeholder, not a merge from Check Number.
+
+`dcn Create Note` requires metadata `PO_Notes_on_Schedule_Actions__c = true` **and** `Get_PO_Note_Action_Metadata IsNull = true` at the same time, which cannot both be true. Notes on the Amount Paid paths may never insert.
+
+Checked-in copy: `force-app/main/default/flows/Work_Order_Client_PO_Status_Changed.flow-meta.xml` (not in the deploy package).
+
 ## Answer for bizdev
 
-**Work Order `Amount Paid` is supposed to hold a dollar amount, but it is not wired to Payment Records today.**
+**Work Order `Amount Paid` is supposed to hold a dollar amount, but it is not wired to Payment Records today.** This PO Status flow does not fill it either.
 
 It will **not** update just because a Payment Record exists. Those are two different fields on two different objects.
 
@@ -26,7 +49,7 @@ The Work Order field shows an **inline-edit pencil**. In Salesforce:
 
 So Work Order Amount Paid is a normal writable currency field. Payment Record Amount Paid can be $126 while the parent stays empty unless a Flow, Apex trigger, Process Builder, or accounting writeback **copies** it.
 
-This GitHub project has no existing Flow/Trigger that writes Work Order Amount Paid. Prior org work only showed export lock behavior (`Status = Exported`) and Intacct/Sage installer fields — not a payment roll-up.
+`Work Order: Client PO Status Changed` is the Amount Paid **consumer** (notes), not the **writer**. Look next at whatever **imports client checks** onto Work Order `Amount_Paid__c` (and `Amount__c`). Payment Record Amount Paid is a different object/field.
 
 ## Timeline on WO 05101444 (why it looks “stuck”)
 
