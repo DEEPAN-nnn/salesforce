@@ -48,7 +48,7 @@ export default class MobileMyDayScreen extends NavigationMixin(
   wiredTeamReports({ data, error }) {
     this.teamReportsReady = true;
     if (data) {
-      this.teamReports = data;
+      this.teamReports = data.map((card) => this.decorateReportCard(card));
     } else if (error) {
       this.teamReports = [];
     }
@@ -174,6 +174,96 @@ export default class MobileMyDayScreen extends NavigationMixin(
     return this.hasMoreTeamReports
       ? "scroll-cap-inner"
       : "scroll-cap-inner no-fade";
+  }
+
+  decorateReportCard(card) {
+    if (card.isFunnel && card.stages && card.stages.length) {
+      const laid = this.layoutPoints(
+        card.stages.map((stage) => stage.value),
+        100,
+        28
+      );
+      const stages = card.stages.map((stage, index) => ({
+        ...stage,
+        cx: laid[index].cx,
+        cy: laid[index].cy
+      }));
+      return {
+        ...card,
+        stages,
+        sparkPoints: laid.map((point) => `${point.cx},${point.cy}`).join(" ")
+      };
+    }
+    const parsed = this.parseSpark(card.sparkPoints);
+    const laid = parsed.length
+      ? this.scalePoints(parsed, 100, 24)
+      : this.layoutPoints([1, 1, 1, 1], 100, 24);
+    return {
+      ...card,
+      sparkPoints: laid.map((point) => `${point.cx},${point.cy}`).join(" "),
+      sparkDots: laid.map((point, index) => ({
+        key: `d${index}`,
+        cx: point.cx,
+        cy: point.cy
+      }))
+    };
+  }
+
+  layoutPoints(values, width, height) {
+    const list = values && values.length ? values : [0];
+    let maxVal = 1;
+    list.forEach((value) => {
+      const num = Number(value) || 0;
+      if (num > maxVal) {
+        maxVal = num;
+      }
+    });
+    const padX = 6;
+    const padY = 6;
+    const n = list.length;
+    return list.map((value, index) => {
+      const cx =
+        n === 1
+          ? width / 2
+          : padX + ((width - 2 * padX) * index) / (n - 1);
+      const cy =
+        height - padY - ((height - 2 * padY) * ((Number(value) || 0) / maxVal));
+      return { cx: cx.toFixed(1), cy: cy.toFixed(1) };
+    });
+  }
+
+  parseSpark(sparkPoints) {
+    if (!sparkPoints) {
+      return [];
+    }
+    return sparkPoints
+      .trim()
+      .split(/\s+/)
+      .map((pair) => {
+        const parts = pair.split(",");
+        return {
+          x: Number(parts[0]),
+          y: Number(parts[1])
+        };
+      })
+      .filter((point) => !Number.isNaN(point.x) && !Number.isNaN(point.y));
+  }
+
+  scalePoints(points, width, height) {
+    let maxX = 1;
+    let maxY = 1;
+    points.forEach((point) => {
+      if (point.x > maxX) {
+        maxX = point.x;
+      }
+      if (point.y > maxY) {
+        maxY = point.y;
+      }
+    });
+    return points.map((point) => ({
+      cx: ((point.x / maxX) * width).toFixed(1),
+      cy: ((point.y / maxY) * height).toFixed(1)
+    }));
   }
 
   handleCall(event) {

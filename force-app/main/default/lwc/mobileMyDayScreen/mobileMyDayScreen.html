@@ -35,45 +35,78 @@
                 <p class="lead-remark">{card.warning}</p>
               </template>
               <template if:true={card.isFunnel}>
-                <div class="funnel-row">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="funnel-seg"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      <span class="funnel-count">{stage.displayValue}</span>
-                    </button>
-                  </template>
-                </div>
-                <div class="funnel-labels">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="funnel-label"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      {stage.label}
-                    </button>
-                  </template>
-                </div>
-              </template>
-              <template if:false={card.isFunnel}>
-                <div class="metric-strip">
-                  <span class="metric-number">{card.displayValue}</span>
-                  <svg class="spark" viewBox="0 0 80 24" aria-hidden="true">
+                <div class="dropoff">
+                  <div class="dropoff-values">
+                    <template for:each={card.stages} for:item="stage">
+                      <button
+                        key={stage.key}
+                        class="dropoff-value"
+                        data-report-id={card.reportId}
+                        data-value={stage.label}
+                        onclick={handleFunnelStage}
+                      >
+                        {stage.displayValue}
+                      </button>
+                    </template>
+                  </div>
+                  <svg class="dropoff-svg" viewBox="0 0 100 28" aria-hidden="true">
                     <polyline
                       points={card.sparkPoints}
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="2"
+                      stroke-width="1.8"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     ></polyline>
+                    <template for:each={card.stages} for:item="stage">
+                      <circle
+                        key={stage.key}
+                        class="dropoff-dot"
+                        cx={stage.cx}
+                        cy={stage.cy}
+                        r="2.6"
+                        data-report-id={card.reportId}
+                        data-value={stage.label}
+                        onclick={handleFunnelStage}
+                      ></circle>
+                    </template>
+                  </svg>
+                  <div class="dropoff-labels">
+                    <template for:each={card.stages} for:item="stage">
+                      <button
+                        key={stage.key}
+                        class="funnel-label"
+                        data-report-id={card.reportId}
+                        data-value={stage.label}
+                        onclick={handleFunnelStage}
+                      >
+                        {stage.label}
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </template>
+              <template if:false={card.isFunnel}>
+                <div class="metric-stack">
+                  <span class="metric-number">{card.displayValue}</span>
+                  <svg class="spark spark-wide" viewBox="0 0 100 24" aria-hidden="true">
+                    <polyline
+                      points={card.sparkPoints}
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    ></polyline>
+                    <template for:each={card.sparkDots} for:item="dot">
+                      <circle
+                        key={dot.key}
+                        cx={dot.cx}
+                        cy={dot.cy}
+                        r="2.2"
+                        fill="currentColor"
+                      ></circle>
+                    </template>
                   </svg>
                 </div>
               </template>
