@@ -1,0 +1,135 @@
+<template>
+    <div class="home-root">
+        <template lwc:if={isLoading}>
+            <div class="loading">
+                <lightning-spinner alternative-text="Loading home" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <template lwc:elseif={loadError}>
+            <div class="banner error">{loadError}</div>
+        </template>
+
+        <template lwc:else>
+            <template lwc:if={warning}>
+                <div class="banner warn">{warning}</div>
+            </template>
+
+            <header class="greeting-block">
+                <h1 class="greeting">{greeting}</h1>
+                <p class="date-label">{dateLabel}</p>
+            </header>
+
+            <section class="section">
+                <div class="section-head">
+                    <h2 class="section-title">TODAY'S FOLLOW-UPS</h2>
+                    <span class="count-pill" lwc:if={followUpHiddenCount}>{followUpHiddenCount}</span>
+                </div>
+                <template for:each={followUps} for:item="item">
+                    <article key={item.recordId} class="card follow-card">
+                        <div class="card-accent"></div>
+                        <div class="card-body">
+                            <div class="card-top">
+                                <button class="name-link" data-id={item.recordId} onclick={handleOpenRecord}>
+                                    {item.title}
+                                </button>
+                                <template lwc:if={item.overdue}>
+                                    <span class="overdue-wrap">
+                                        <span class="overdue-badge">OVERDUE</span>
+                                        <span class="overdue-days" lwc:if={item.overdueDays}>{item.overdueDays}</span>
+                                    </span>
+                                </template>
+                            </div>
+                            <p class="subtitle">{item.subtitle}</p>
+                            <p class="remarks">{item.remarks}</p>
+                            <div class="actions">
+                                <button class="btn btn-call" data-phone={item.phone} onclick={handleCall}>Call</button>
+                                <button class="btn btn-wa" data-phone={item.phone} onclick={handleWhatsApp}>WA</button>
+                                <button class="btn btn-update" data-id={item.recordId} onclick={handleOpenRecord}>Update</button>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+                <p class="empty" lwc:if={noFollowUps}>No follow-ups for today.</p>
+            </section>
+
+            <section class="section compact">
+                <div class="compact-row">
+                    <div>
+                        <h2 class="section-title">TODAY'S INSPECTIONS</h2>
+                        <p class="muted" lwc:if={noInspections}>{inspectionEmpty}</p>
+                    </div>
+                    <span class="side-count">{inspectionCount}</span>
+                </div>
+            </section>
+
+            <section class="section compact">
+                <div class="compact-row">
+                    <div>
+                        <h2 class="section-title">NEW ASSIGNMENTS</h2>
+                        <p class="muted" lwc:if={noAssignments}>{assignmentEmpty}</p>
+                    </div>
+                    <span class="side-count">{newAssignmentCount}</span>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-head">
+                    <h2 class="section-title">Prospects ({prospectCount})</h2>
+                </div>
+                <p class="prospect-kicker">{prospectHeadline}</p>
+                <template for:each={prospects} for:item="item">
+                    <article key={item.recordId} class="card prospect-card">
+                        <div class="card-body">
+                            <div class="card-top">
+                                <button class="name-link" data-id={item.recordId} onclick={handleOpenRecord}>
+                                    {item.title}
+                                </button>
+                                <span class="stage-badge">{item.badgeLabel}</span>
+                            </div>
+                            <p class="subtitle">{item.subtitle}</p>
+                            <p class="remarks">{item.statusLine}</p>
+                            <div class="pipeline">
+                                <span class={item.shortlistClass}>Site Shortlist</span>
+                                <span class={item.traceClass}>Trace</span>
+                                <span class={item.legalClass}>Legal</span>
+                                <span class={item.registrationClass}>Registration</span>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-call" data-phone={item.phone} onclick={handleCall}>Call</button>
+                                <button class="btn btn-wa" data-phone={item.phone} onclick={handleWhatsApp}>WA</button>
+                                <button class="btn btn-timeline" data-id={item.recordId} onclick={handleOpenRecord}>Timeline</button>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+                <p class="empty" lwc:if={noProspects}>No active prospects in site-shortlist to registration.</p>
+            </section>
+
+            <section class="section leads-section">
+                <div class="tabs">
+                    <button class="tab tab-active">My Leads</button>
+                    <button class="tab" disabled title="Coming with your next change">My Activity</button>
+                </div>
+                <div class="filters">
+                    <button class={dueTodayFilterClass} data-filter="dueToday" onclick={handleFilter}>
+                        Due Today
+                    </button>
+                    <button class={overdueFilterClass} data-filter="overdue" onclick={handleFilter}>
+                        Overdue ({overdueLeadCount})
+                    </button>
+                    <button class={hotFilterClass} data-filter="hot" onclick={handleFilter}>Hot ({hotLeadCount})</button>
+                    <button class={allFilterClass} data-filter="all" onclick={handleFilter}>All ({allLeadCount})</button>
+                </div>
+                <p class="sort-hint">Sorted by: Due Time</p>
+                <template for:each={visibleLeads} for:item="item">
+                    <article key={item.recordId} class="card lead-card">
+                        <button class="name-link" data-id={item.recordId} onclick={handleOpenRecord}>{item.title}</button>
+                        <p class="subtitle">{item.subtitle}</p>
+                    </article>
+                </template>
+                <p class="empty" lwc:if={noVisibleLeads}>No leads in this filter just now.</p>
+            </section>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fairdeal Phone Home preview</title>
+  <style>
+    body { margin: 0; background: #1b1b1b; font-family: Arial, sans-serif; }
+    .frame {
+      width: 390px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #f3f3f3;
+      padding: 12px 12px 24px;
+      box-sizing: border-box;
+      color: #181818;
+    }
+    .greeting { margin: 0; font-size: 22px; font-weight: 700; color: #032d60; }
+    .date-label { margin: 2px 0 14px; color: #706e6b; font-size: 12px; }
+    .section { margin-bottom: 16px; }
+    .section-title { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.04em; font-weight: 700; color: #0b827c; }
+    .section-head { display: flex; justify-content: space-between; }
+    .count { color: #706e6b; font-size: 12px; font-weight: 600; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.12); margin-bottom: 8px; overflow: hidden; display: flex; }
+    .accent { width: 4px; background: #c23934; }
+    .card-body { padding: 10px; flex: 1; }
+    .card-top { display: flex; justify-content: space-between; gap: 8px; }
+    .name { color: #0b5cab; font-size: 14px; font-weight: 700; text-decoration: underline; }
+    .overdue { background: #fce4e4; color: #c23934; font-size: 9px; font-weight: 800; border-radius: 4px; padding: 2px 6px; }
+    .sub, .remarks, .muted, .empty { margin: 2px 0 0; font-size: 12px; color: #706e6b; }
+    .remarks { margin: 4px 0 10px; }
+    .actions { display: flex; gap: 8px; }
+    .btn { border: 0; border-radius: 6px; color: #fff; font-weight: 700; font-size: 13px; padding: 6px 14px; }
+    .call { background: #0176d3; }
+    .wa { background: #2e844a; }
+    .update { background: #0b827c; }
+    .timeline { background: #5859b4; }
+    .kicker { margin: 0 0 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; color: #dd7a01; }
+    .prospect { border: 1px solid #fe9339; display: block; }
+    .badge { background: #eaf6ed; color: #2e844a; font-size: 9px; font-weight: 800; border-radius: 4px; padding: 3px 6px; }
+    .pipeline { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin: 8px 0 10px; }
+    .pipe { font-size: 10px; font-weight: 700; text-align: center; border-radius: 4px; padding: 6px 2px; background: #f3f3f3; color: #706e6b; }
+    .on { background: #2e844a; color: #fff; }
+    .leads { background: #fff; border-radius: 8px; }
+    .tabs { display: flex; border-bottom: 1px solid #e5e5e5; }
+    .tab { flex: 1; text-align: center; padding: 12px 8px; font-weight: 700; color: #444; }
+    .tab.on { color: #0176d3; box-shadow: inset 0 -3px 0 #0176d3; }
+    .filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; }
+    .chip { border: 1px solid #dddbda; border-radius: 16px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+    .chip.on { background: #0176d3; border-color: #0176d3; color: #fff; }
+    .empty { padding: 0 10px 12px; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h1 class="greeting">Good Evening, UNKrishnan!</h1>
+    <p class="date-label">Tuesday, 1 September 2026</p>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="section-title">TODAY'S FOLLOW-UPS</h2>
+        <span class="count">27</span>
+      </div>
+      <article class="card">
+        <div class="accent"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="name">[DEMO] Gautam Badalia</span>
+            <span class="overdue">OVERDUE</span>
+          </div>
+          <p class="sub">Mumbai Bandra-Dahisar | New Enquiry</p>
+          <p class="remarks">No remarks logged yet</p>
+          <div class="actions">
+            <span class="btn call">Call</span>
+            <span class="btn wa">WA</span>
+            <span class="btn update">Update</span>
+          </div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="accent"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="name">[DEMO] Farhan Ansari</span>
+            <span class="overdue">OVERDUE</span>
+          </div>
+          <p class="sub">Office | Mumbai Bandra-Dahisar | New Enquiry</p>
+          <p class="remarks">No remarks logged yet</p>
+          <div class="actions">
+            <span class="btn call">Call</span>
+            <span class="btn wa">WA</span>
+            <span class="btn update">Update</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">TODAY'S INSPECTIONS</h2>
+          <p class="muted">No inspections scheduled for today.</p>
+        </div>
+        <span class="count">0</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">NEW ASSIGNMENTS</h2>
+          <p class="muted">No new assignments in the last 2 days.</p>
+        </div>
+        <span class="count">0</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Prospects (1)</h2>
+      <p class="kicker">ACTIVE PROSPECTS — SITE SHORTLISTED TO REGISTRATION</p>
+      <article class="card prospect">
+        <div class="card-body">
+          <div class="card-top">
+            <span class="name">[DEMO 7D] Rakesh Bhatia (Hot candidate)</span>
+            <span class="badge">SITE SHORTLISTED</span>
+          </div>
+          <p class="sub">Office | Mumbai (west) | 3 Cr - 3.5 Cr</p>
+          <p class="remarks">Site shortlisted - awaiting next step</p>
+          <div class="pipeline">
+            <span class="pipe on">Site Shortlist</span>
+            <span class="pipe">Trace</span>
+            <span class="pipe">Legal</span>
+            <span class="pipe">Registration</span>
+          </div>
+          <div class="actions">
+            <span class="btn call">Call</span>
+            <span class="btn wa">WA</span>
+            <span class="btn timeline">Timeline</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="leads">
+      <div class="tabs">
+        <div class="tab on">My Leads</div>
+        <div class="tab">My Activity</div>
+      </div>
+      <div class="filters">
+        <span class="chip on">Due Today</span>
+        <span class="chip">Overdue (16)</span>
+        <span class="chip">Hot (8)</span>
+        <span class="chip">All (37)</span>
+      </div>
+      <p class="empty">No leads in this filter just now.</p>
+    </section>
+  </div>
+</body>
+</html>
