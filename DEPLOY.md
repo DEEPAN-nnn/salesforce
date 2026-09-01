@@ -10,18 +10,17 @@ sf project deploy start --metadata ApexClass:TeamReportsController,ApexClass:Tea
 
 `mobileMyDayScreen` in this repo is your existing My Day component **plus** the Team Reports section above Follow-ups. Follow-ups / Inspections / Assignments handlers are unchanged.
 
-## Report names
+## Reports (exact list you sent)
 
-Edit `TeamReportsController.reportSpecs()` if a name does not match. Cards look up `Report.Name` with contains-match:
+Looked up by **DeveloperName**, then **Id**, then **Name**.
 
-| Match | Type |
-|---|---|
-| Action Wise Conversion | Funnel (D) — names under stages |
-| Collection Target | Metric |
-| Payments Report | Metric |
-| Token Target | Metric |
-| Token Achieved | Metric |
-| Outstanding Payment | Metric |
+| Name | DeveloperName | Id | Type |
+|---|---|---|---|
+| My Team Token Achieved | My_Team_Token_Achieved_ISv | 00OOW00000Mq1GH2AZ | Metric |
+| My Team Payments Report | My_Team_Payments_Report_FkC | 00OOW00000GfZBt2AN | Metric |
+| My Team's Target Report | My_Teams_Target_Report_ZVQ | 00O9F000000JQqfUAG | Metric |
+| Team's Outstanding Payment | Outstanding_Tqu | 00O9F000000JTUcUAO | Metric |
+| Action Wise Conversion Report - Overview | Action_Wise_Conversion_Report_OjA | 00OOW000006EKY52AO | Funnel (D) |
 
 ## Clicks
 

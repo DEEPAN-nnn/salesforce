@@ -1,15 +1,19 @@
 /**
  * Team Reports for Mobile My Day. New class only — does not change EnquiryMyDayController.
  *
- * Edit REPORT_SPECS to choose which reports appear. NameMatch is matched against Report.Name
- * (contains, case-insensitive). Kind FUNNEL = Action Wise Conversion (option D). METRIC = number strip.
+ * Only the reports supplied from the org (Id + DeveloperName + Name).
+ * Kind FUNNEL = Action Wise Conversion (option D). METRIC = number strip.
  */
 public with sharing class TeamReportsController {
     public class ReportSpec {
-        public String nameMatch;
+        public String reportId;
+        public String developerName;
+        public String name;
         public String kind;
-        public ReportSpec(String nameMatch, String kind) {
-            this.nameMatch = nameMatch;
+        public ReportSpec(String reportId, String developerName, String name, String kind) {
+            this.reportId = reportId;
+            this.developerName = developerName;
+            this.name = name;
             this.kind = kind;
         }
     }
@@ -35,17 +39,41 @@ public with sharing class TeamReportsController {
     }
 
     /**
-     * Only these reports are shown. Add/remove rows here — do not change Mobile My Day follow-ups.
+     * Only these five reports. Order is the list you sent.
      */
     @TestVisible
     private static List<ReportSpec> reportSpecs() {
         return new List<ReportSpec>{
-            new ReportSpec('Action Wise Conversion', 'FUNNEL'),
-            new ReportSpec('Collection Target', 'METRIC'),
-            new ReportSpec('Payments Report', 'METRIC'),
-            new ReportSpec('Token Target', 'METRIC'),
-            new ReportSpec('Token Achieved', 'METRIC'),
-            new ReportSpec('Outstanding Payment', 'METRIC')
+            new ReportSpec(
+                '00OOW00000Mq1GH2AZ',
+                'My_Team_Token_Achieved_ISv',
+                'My Team Token Achieved',
+                'METRIC'
+            ),
+            new ReportSpec(
+                '00OOW00000GfZBt2AN',
+                'My_Team_Payments_Report_FkC',
+                'My Team Payments Report',
+                'METRIC'
+            ),
+            new ReportSpec(
+                '00O9F000000JQqfUAG',
+                'My_Teams_Target_Report_ZVQ',
+                'My Team\'s Target Report',
+                'METRIC'
+            ),
+            new ReportSpec(
+                '00O9F000000JTUcUAO',
+                'Outstanding_Tqu',
+                'Team\'s Outstanding Payment',
+                'METRIC'
+            ),
+            new ReportSpec(
+                '00OOW000006EKY52AO',
+                'Action_Wise_Conversion_Report_OjA',
+                'Action Wise Conversion Report - Overview',
+                'FUNNEL'
+            )
         };
     }
 
@@ -57,31 +85,36 @@ public with sharing class TeamReportsController {
             return cards;
         }
 
-        List<String> likeParts = new List<String>();
+        Set<Id> ids = new Set<Id>();
+        Set<String> developerNames = new Set<String>();
         for (ReportSpec spec : specs) {
-            likeParts.add(
-                'Name LIKE \'%' + String.escapeSingleQuotes(spec.nameMatch) + '%\''
-            );
+            if (String.isNotBlank(spec.reportId)) {
+                ids.add((Id) spec.reportId);
+            }
+            if (String.isNotBlank(spec.developerName)) {
+                developerNames.add(spec.developerName);
+            }
         }
-        String soql =
-            'SELECT Id, Name, DeveloperName FROM Report WHERE ' +
-            String.join(likeParts, ' OR ') +
-            ' LIMIT 200';
-        List<Report> reports = Database.query(soql);
+
+        List<Report> reports = [
+            SELECT Id, Name, DeveloperName
+            FROM Report
+            WHERE Id IN :ids OR DeveloperName IN :developerNames
+        ];
 
         for (ReportSpec spec : specs) {
-            Report match = findReport(reports, spec.nameMatch);
+            Report match = findReport(reports, spec);
             TeamReportCard card = new TeamReportCard();
-            card.name = spec.nameMatch;
+            card.name = spec.name;
             card.kind = spec.kind;
             card.isFunnel = spec.kind == 'FUNNEL';
-            card.colorClass = colorClassFor(spec.nameMatch, spec.kind);
+            card.colorClass = colorClassFor(spec.name, spec.kind);
             card.stages = new List<FunnelStage>();
             card.sparkPoints = '0,20 20,16 40,18 60,14 80,12';
             card.displayValue = '—';
             if (match == null) {
-                card.id = 'missing-' + spec.nameMatch;
-                card.warning = 'Report not found: ' + spec.nameMatch;
+                card.id = 'missing-' + spec.developerName;
+                card.warning = 'Report not found: ' + spec.name;
                 cards.add(card);
                 continue;
             }
@@ -98,10 +131,19 @@ public with sharing class TeamReportsController {
         return cards;
     }
 
-    private static Report findReport(List<Report> reports, String nameMatch) {
-        String needle = nameMatch.toLowerCase();
+    private static Report findReport(List<Report> reports, ReportSpec spec) {
         for (Report row : reports) {
-            if (row.Name != null && row.Name.toLowerCase().contains(needle)) {
+            if (row.DeveloperName == spec.developerName) {
+                return row;
+            }
+        }
+        for (Report row : reports) {
+            if (String.valueOf(row.Id) == spec.reportId) {
+                return row;
+            }
+        }
+        for (Report row : reports) {
+            if (row.Name == spec.name) {
                 return row;
             }
         }
