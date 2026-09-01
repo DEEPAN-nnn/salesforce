@@ -117,6 +117,14 @@
   mask-image: none;
 }
 
+/* Team Reports: tall enough for a full funnel (name + bars + labels). */
+.scroll-cap.reports .scroll-cap-inner {
+  max-height: 17.2rem;
+  padding-bottom: 1rem;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
 .more-hint {
   font-size: 0.62rem;
   color: #706e6b;
@@ -337,7 +345,7 @@
   display: flex;
   align-items: stretch;
   gap: 3px;
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
 }
 
 .funnel-seg {
@@ -347,8 +355,8 @@
   background: #1b96ff;
   color: #fff;
   font-weight: 700;
-  font-size: 0.72rem;
-  padding: 0.45rem 0.15rem;
+  font-size: 0.62rem;
+  padding: 0.32rem 0.1rem;
   cursor: pointer;
   clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%, 7px 50%);
 }

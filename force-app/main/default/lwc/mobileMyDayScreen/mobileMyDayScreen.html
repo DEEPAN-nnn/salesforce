@@ -17,7 +17,7 @@
       <template if:true={hasNoTeamReports}>
         <p class="empty-state">No team reports to show.</p>
       </template>
-      <div class="scroll-cap roomy">
+      <div class="scroll-cap reports">
         <div class={teamReportsInnerClass}>
           <template for:each={teamReports} for:item="card">
             <div key={card.id} class={card.colorClass}>
