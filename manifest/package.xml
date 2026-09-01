@@ -9,6 +9,7 @@
     </types>
     <types>
         <members>fairdealHomeMobile</members>
+        <members>mobileHomeGreeting</members>
         <members>mobileMyDayScreen</members>
         <name>LightningComponentBundle</name>
     </types>
