@@ -1,81 +1,27 @@
 import { LightningElement, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import { getRecord, getFieldValue } from "lightning/uiRecordApi";
-import USER_ID from "@salesforce/user/Id";
-import FIRST_NAME_FIELD from "@salesforce/schema/User.FirstName";
-import getMyDayData from "@salesforce/apex/EnquiryMyDayController.getMyDayData";
 import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReports";
 
-// Sections show at most this many cards before scrolling internally.
-const VISIBLE_CAP = 2;
 const VISIBLE_CAP_REPORTS = 3;
 
 export default class MobileMyDayScreen extends NavigationMixin(
   LightningElement
 ) {
-  followUps = [];
-  inspections = [];
-  newAssignments = [];
   teamReports = [];
   teamReportsReady = false;
-  isLoading = true;
   error;
-
-  @wire(getRecord, { recordId: USER_ID, fields: [FIRST_NAME_FIELD] })
-  userRecord;
-
-  @wire(getMyDayData)
-  wiredMyDay({ data, error }) {
-    this.isLoading = false;
-    if (data) {
-      this.followUps = data.followUps.map((item) => ({
-        ...item,
-        telHref: item.phone ? `tel:${item.phone}` : undefined
-      }));
-      this.inspections = data.inspections;
-      this.newAssignments = data.newAssignments;
-      this.error = undefined;
-    } else if (error) {
-      this.error = error;
-      this.followUps = [];
-      this.inspections = [];
-      this.newAssignments = [];
-    }
-  }
 
   @wire(getTeamReports)
   wiredTeamReports({ data, error }) {
     this.teamReportsReady = true;
     if (data) {
       this.teamReports = data.map((card) => this.decorateReportCard(card));
+      this.error = undefined;
     } else if (error) {
       this.teamReports = [];
+      this.error = error;
     }
-  }
-
-  get userFirstName() {
-    return getFieldValue(this.userRecord?.data, FIRST_NAME_FIELD) || "there";
-  }
-
-  get greetingPhrase() {
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      return "Good Morning";
-    }
-    if (hour < 17) {
-      return "Good Afternoon";
-    }
-    return "Good Evening";
-  }
-
-  get today() {
-    return new Date().toLocaleDateString("en-IN", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
   }
 
   get hasError() {
@@ -83,83 +29,15 @@ export default class MobileMyDayScreen extends NavigationMixin(
   }
 
   get errorMessage() {
-    return this.error?.body?.message || "Unable to load My Day data.";
-  }
-
-  get followUpsCount() {
-    return this.followUps.length;
-  }
-
-  get inspectionsCount() {
-    return this.inspections.length;
-  }
-
-  get newAssignmentsCount() {
-    return this.newAssignments.length;
+    return this.error?.body?.message || "Unable to load team reports.";
   }
 
   get teamReportsCount() {
     return this.teamReports.length;
   }
 
-  get hasNoFollowUps() {
-    return !this.isLoading && !this.hasError && this.followUps.length === 0;
-  }
-
-  get hasNoInspections() {
-    return !this.isLoading && !this.hasError && this.inspections.length === 0;
-  }
-
-  get hasNoNewAssignments() {
-    return (
-      !this.isLoading && !this.hasError && this.newAssignments.length === 0
-    );
-  }
-
   get hasNoTeamReports() {
-    return this.teamReportsReady && this.teamReports.length === 0;
-  }
-
-  get hasMoreFollowUps() {
-    return this.followUps.length > VISIBLE_CAP;
-  }
-
-  get moreFollowUpsLabel() {
-    return `+${this.followUps.length - VISIBLE_CAP} more · scroll within section`;
-  }
-
-  get followUpsInnerClass() {
-    return this.hasMoreFollowUps
-      ? "scroll-cap-inner"
-      : "scroll-cap-inner no-fade";
-  }
-
-  get hasMoreInspections() {
-    return this.inspections.length > VISIBLE_CAP;
-  }
-
-  get moreInspectionsLabel() {
-    return `+${this.inspections.length - VISIBLE_CAP} more · scroll within section`;
-  }
-
-  get inspectionsInnerClass() {
-    return this.hasMoreInspections
-      ? "scroll-cap-inner"
-      : "scroll-cap-inner no-fade";
-  }
-
-  get hasMoreNewAssignments() {
-    return this.newAssignments.length > VISIBLE_CAP;
-  }
-
-  get moreNewAssignmentsLabel() {
-    return `+${this.newAssignments.length - VISIBLE_CAP} more · scroll within section`;
-  }
-
-  get newAssignmentsInnerClass() {
-    return this.hasMoreNewAssignments
-      ? "scroll-cap-inner"
-      : "scroll-cap-inner no-fade";
+    return this.teamReportsReady && this.teamReports.length === 0 && !this.hasError;
   }
 
   get hasMoreTeamReports() {
@@ -250,93 +128,10 @@ export default class MobileMyDayScreen extends NavigationMixin(
   }
 
   scalePoints(points, width, height) {
-    let maxX = 1;
-    let maxY = 1;
-    points.forEach((point) => {
-      if (point.x > maxX) {
-        maxX = point.x;
-      }
-      if (point.y > maxY) {
-        maxY = point.y;
-      }
-    });
     return points.map((point) => ({
-      cx: ((point.x / maxX) * width).toFixed(1),
-      cy: ((point.y / maxY) * height).toFixed(1)
+      cx: ((point.x / 80) * width).toFixed(1),
+      cy: ((point.y / 24) * height).toFixed(1)
     }));
-  }
-
-  handleCall(event) {
-    // The Call button is a real <a href="tel:..."> now - Lightning Locker's
-    // SecureWindow.open only allows http:/https:/mailto:/relative URLs, so
-    // window.open("tel:...") is blocked on the Salesforce mobile app.
-    // Native anchor navigation isn't subject to that restriction.
-    const phone = event.currentTarget.dataset.phone;
-    if (!phone) {
-      event.preventDefault();
-      this.showNoPhoneToast();
-    }
-  }
-
-  handleWhatsApp(event) {
-    const phone = event.currentTarget.dataset.phone;
-    if (!phone) {
-      this.showNoPhoneToast();
-      return;
-    }
-    window.open(`https://wa.me/${phone.replace("+", "")}`, "_blank");
-  }
-
-  showNoPhoneToast() {
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "No phone on file",
-        message:
-          "Add a contact number to this enquiry before calling or messaging.",
-        variant: "warning"
-      })
-    );
-  }
-
-  handleUpdate(event) {
-    const recordId = event.currentTarget.dataset.id;
-    this[NavigationMixin.Navigate]({
-      type: "standard__recordPage",
-      attributes: {
-        recordId,
-        objectApiName: "Enquiry__c",
-        actionName: "view"
-      }
-    });
-  }
-
-  handleInspect(event) {
-    const name = event.currentTarget.dataset.name;
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Coming soon",
-        message: `In production this opens the Inspection quick action for ${name}.`,
-        variant: "info"
-      })
-    );
-  }
-
-  handleNavigate(event) {
-    const location = event.currentTarget.dataset.location;
-    if (!location) {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "No location on file",
-          message: "This enquiry has no building or city set to navigate to.",
-          variant: "warning"
-        })
-      );
-      return;
-    }
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`,
-      "_blank"
-    );
   }
 
   handleViewReport(event) {
@@ -345,7 +140,8 @@ export default class MobileMyDayScreen extends NavigationMixin(
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Report not found",
-          message: "This report is not in the org yet. Check the report name in TeamReportsController.",
+          message:
+            "This report is not in the org yet. Check TeamReportsController.",
           variant: "warning"
         })
       );
