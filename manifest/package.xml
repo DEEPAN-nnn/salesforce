@@ -11,6 +11,7 @@
         <members>fairdealHomeMobile</members>
         <members>mobileHomeGreeting</members>
         <members>mobileMyDayScreen</members>
+        <members>teamReportsMobile</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>

@@ -1,115 +1,128 @@
 <template>
-  <div class="team-reports">
+  <div class="my-day">
     <template if:true={hasError}>
       <p class="error-banner">{errorMessage}</p>
     </template>
 
-    <div class="section-header-row">
-      <p class="section-header">Team Reports</p>
-      <span class="section-count">{teamReportsCount}</span>
-    </div>
-    <template if:true={hasNoTeamReports}>
-      <p class="empty-state">No team reports to show.</p>
-    </template>
-    <div class="scroll-cap reports">
-      <div class={teamReportsInnerClass}>
-        <template for:each={teamReports} for:item="card">
-          <div key={card.id} class={card.colorClass}>
-            <div class="card-top">
-              <p class="lead-name">{card.name}</p>
-              <button
-                class="link-navigate"
-                data-report-id={card.reportId}
-                onclick={handleViewReport}
-              >
-                View Report
-              </button>
-            </div>
-            <template if:true={card.warning}>
-              <p class="lead-remark">{card.warning}</p>
-            </template>
-            <template if:true={card.isFunnel}>
-              <div class="dropoff">
-                <div class="dropoff-values">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="dropoff-value"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      {stage.displayValue}
-                    </button>
-                  </template>
-                </div>
-                <svg class="dropoff-svg" viewBox="0 0 100 28" aria-hidden="true">
-                  <polyline
-                    points={card.sparkPoints}
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></polyline>
-                  <template for:each={card.stages} for:item="stage">
-                    <circle
-                      key={stage.key}
-                      class="dropoff-dot"
-                      cx={stage.cx}
-                      cy={stage.cy}
-                      r="2.6"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    ></circle>
-                  </template>
-                </svg>
-                <div class="dropoff-labels">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="funnel-label"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      {stage.label}
-                    </button>
-                  </template>
-                </div>
-              </div>
-            </template>
-            <template if:false={card.isFunnel}>
-              <div class="metric-stack">
-                <span class="metric-number">{card.displayValue}</span>
-                <svg class="spark spark-wide" viewBox="0 0 100 24" aria-hidden="true">
-                  <polyline
-                    points={card.sparkPoints}
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></polyline>
-                  <template for:each={card.sparkDots} for:item="dot">
-                    <circle
-                      key={dot.key}
-                      cx={dot.cx}
-                      cy={dot.cy}
-                      r="2.2"
-                      fill="currentColor"
-                    ></circle>
-                  </template>
-                </svg>
-              </div>
-            </template>
-          </div>
-        </template>
+    <div class="section-block">
+      <div class="section-header-row">
+        <p class="section-header">Today's Follow-ups</p>
+        <span class="section-count">{followUpsCount}</span>
       </div>
+      <template if:true={hasNoFollowUps}>
+        <p class="empty-state">Nothing due today. You're all caught up.</p>
+      </template>
+      <div class="scroll-cap roomy">
+        <div class={followUpsInnerClass}>
+          <template for:each={followUps} for:item="lead">
+            <div key={lead.id} class={lead.priorityClass}>
+              <div class="card-top">
+                <p class="lead-name">{lead.name}</p>
+                <span class={lead.badgeClass}>{lead.statusLabel}</span>
+              </div>
+              <p class="lead-meta">{lead.metaLine}</p>
+              <p class="lead-remark">{lead.remark}</p>
+              <div class="action-row">
+                <a
+                  class="btn btn-call"
+                  href={lead.telHref}
+                  data-phone={lead.phone}
+                  onclick={handleCall}
+                >
+                  Call
+                </a>
+                <button
+                  class="btn btn-wa"
+                  data-phone={lead.phone}
+                  onclick={handleWhatsApp}
+                >
+                  WA
+                </button>
+                <button
+                  class="btn btn-update"
+                  data-id={lead.id}
+                  onclick={handleUpdate}
+                >
+                  Update
+                </button>
+                <template if:true={lead.showInspect}>
+                  <button
+                    class="btn btn-inspect"
+                    data-name={lead.name}
+                    onclick={handleInspect}
+                  >
+                    Inspect
+                  </button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+      <template if:true={hasMoreFollowUps}>
+        <p class="more-hint">{moreFollowUpsLabel}</p>
+      </template>
     </div>
-    <template if:true={hasMoreTeamReports}>
-      <p class="more-hint">{moreTeamReportsLabel}</p>
-    </template>
+
+    <div class="section-block">
+      <div class="section-header-row">
+        <p class="section-header">Today's Inspections</p>
+        <span class="section-count">{inspectionsCount}</span>
+      </div>
+      <template if:true={hasNoInspections}>
+        <p class="empty-state">No inspections scheduled for today.</p>
+      </template>
+      <div class="scroll-cap tight">
+        <div class={inspectionsInnerClass}>
+          <template for:each={inspections} for:item="insp">
+            <div key={insp.id} class="card-inspection">
+              <div class="card-top">
+                <p class="lead-name">{insp.name}</p>
+                <span class="badge-inspection">Today</span>
+              </div>
+              <p class="lead-meta">
+                {insp.location} ·
+                <span
+                  class="link-navigate"
+                  data-location={insp.location}
+                  onclick={handleNavigate}
+                >
+                  Navigate &rarr;
+                </span>
+              </p>
+            </div>
+          </template>
+        </div>
+      </div>
+      <template if:true={hasMoreInspections}>
+        <p class="more-hint">{moreInspectionsLabel}</p>
+      </template>
+    </div>
+
+    <div class="section-block">
+      <div class="section-header-row">
+        <p class="section-header">New Assignments</p>
+        <span class="section-count">{newAssignmentsCount}</span>
+      </div>
+      <template if:true={hasNoNewAssignments}>
+        <p class="empty-state">No new assignments in the last 2 days.</p>
+      </template>
+      <div class="scroll-cap tight">
+        <div class={newAssignmentsInnerClass}>
+          <template for:each={newAssignments} for:item="assignment">
+            <div key={assignment.id} class="card-assignment">
+              <div class="card-top">
+                <p class="lead-name">{assignment.name}</p>
+                <span class="badge-new">New</span>
+              </div>
+              <p class="lead-meta">{assignment.summaryLine}</p>
+            </div>
+          </template>
+        </div>
+      </div>
+      <template if:true={hasMoreNewAssignments}>
+        <p class="more-hint">{moreNewAssignmentsLabel}</p>
+      </template>
+    </div>
   </div>
 </template>

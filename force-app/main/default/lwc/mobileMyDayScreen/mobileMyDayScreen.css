@@ -1,15 +1,25 @@
-.team-reports {
+.my-day {
   font-family: -apple-system, "Salesforce Sans", Arial, sans-serif;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 0.7rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.section-block {
+  flex: 0 0 auto;
 }
 
 .error-banner {
+  flex: 0 0 auto;
   font-size: 0.72rem;
   color: #ba0517;
   background: #fde3e3;
   border-radius: 0.3rem;
   padding: 0.4rem 0.6rem;
-  margin-bottom: 0.4rem;
 }
 
 .empty-state {
@@ -39,6 +49,14 @@
   color: #706e6b;
 }
 
+.scroll-cap.roomy .scroll-cap-inner {
+  max-height: 12.2rem;
+}
+
+.scroll-cap.tight .scroll-cap-inner {
+  max-height: 6.1rem;
+}
+
 .scroll-cap-inner {
   overflow-y: auto;
   display: flex;
@@ -47,6 +65,16 @@
   padding-right: 6px;
   scrollbar-width: thin;
   scrollbar-color: #b0adab transparent;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 14px),
+    transparent 100%
+  );
 }
 
 .scroll-cap-inner::-webkit-scrollbar {
@@ -67,16 +95,44 @@
   mask-image: none;
 }
 
-.scroll-cap.reports .scroll-cap-inner {
-  max-height: 17.2rem;
-  padding-bottom: 1rem;
-}
-
 .more-hint {
   font-size: 0.62rem;
   color: #706e6b;
   text-align: center;
   margin: 0.2rem 0 0 0;
+}
+
+.card-overdue,
+.card-due-today,
+.card-due-soon,
+.card-inspection,
+.card-assignment {
+  flex: 0 0 auto;
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-left: 5px solid transparent;
+}
+
+.card-overdue {
+  border-left-color: #ea001e;
+}
+
+.card-due-today {
+  border-left-color: #ffb75d;
+}
+
+.card-due-soon {
+  border-left-color: #0176d3;
+}
+
+.card-inspection {
+  border-left-color: #2e844a;
+}
+
+.card-assignment {
+  border-left-color: #5867e8;
 }
 
 .card-top {
@@ -96,6 +152,15 @@
   white-space: nowrap;
 }
 
+.lead-meta {
+  font-size: 0.68rem;
+  color: #444;
+  margin: 0.15rem 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lead-remark {
   font-size: 0.64rem;
   font-style: italic;
@@ -106,6 +171,82 @@
   white-space: nowrap;
 }
 
+.badge-overdue,
+.badge-due-today,
+.badge-due-soon,
+.badge-inspection,
+.badge-new {
+  flex: 0 0 auto;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.65rem;
+}
+
+.badge-overdue {
+  color: #ea001e;
+  background: #fde3e3;
+}
+
+.badge-due-today {
+  color: #8a5b00;
+  background: #fff0d6;
+}
+
+.badge-due-soon {
+  color: #0176d3;
+  background: #e3f1fc;
+}
+
+.badge-inspection {
+  color: #2e844a;
+  background: #e3f5e9;
+}
+
+.badge-new {
+  color: #5867e8;
+  background: #e8e9fb;
+}
+
+.action-row {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.btn-call {
+  background: #0176d3;
+}
+
+.btn-wa {
+  background: #25d366;
+}
+
+.btn-update {
+  background: #0b8a8f;
+}
+
+.btn-inspect {
+  background: #5867e8;
+}
+
 .link-navigate {
   background: none;
   border: none;
@@ -114,104 +255,4 @@
   font-weight: 600;
   padding: 0;
   cursor: pointer;
-}
-
-.card-report-red,
-.card-report-green,
-.card-report-blue,
-.card-report-amber {
-  flex: 0 0 auto;
-  border-radius: 0.35rem;
-  padding: 0.4rem 0.55rem 0.45rem;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  border-left: 5px solid transparent;
-}
-
-.card-report-red {
-  border-left-color: #ea001e;
-  color: #ea001e;
-}
-
-.card-report-green {
-  border-left-color: #2e844a;
-  color: #2e844a;
-}
-
-.card-report-blue {
-  border-left-color: #0176d3;
-  color: #0176d3;
-}
-
-.card-report-amber {
-  border-left-color: #dd7a01;
-  color: #dd7a01;
-}
-
-.metric-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  margin-top: 0.1rem;
-}
-
-.metric-number {
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-
-.spark-wide {
-  width: 100%;
-  height: 22px;
-}
-
-.dropoff {
-  margin-top: 0.15rem;
-}
-
-.dropoff-values,
-.dropoff-labels {
-  display: flex;
-  gap: 2px;
-}
-
-.dropoff-value {
-  flex: 1 1 0;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: inherit;
-  text-align: center;
-  cursor: pointer;
-}
-
-.dropoff-svg {
-  display: block;
-  width: 100%;
-  height: 28px;
-}
-
-.dropoff-dot {
-  fill: currentColor;
-  cursor: pointer;
-}
-
-.funnel-label {
-  flex: 1 1 0;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 0.52rem;
-  line-height: 1.15;
-  color: #706e6b;
-  text-align: center;
-  cursor: pointer;
-  white-space: normal;
-  word-break: break-word;
 }
