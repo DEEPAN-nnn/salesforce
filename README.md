@@ -2,12 +2,10 @@
 
 Fairdeal Salesforce metadata.
 
-## Mobile Home
+## Mobile My Day — Team Reports
 
-Phone Home is a **separate Lightning form factor** from the desktop Home screenshot (follow-ups + prospects).
+Additive section on existing `mobileMyDayScreen` (above Today's Follow-ups). Does not change Follow-ups, Inspections, or Assignments.
 
-- LWC: `fairdealHomeMobile`
-- Apex: `FairdealHomeMobileController`
-- FlexiPage: `Fairdeal_Mobile_Home`
-- Setup: [docs/MOBILE_HOME.md](docs/MOBILE_HOME.md)
+- Apex: `TeamReportsController` (new)
+- LWC: `mobileMyDayScreen`
 - Deploy: [DEPLOY.md](DEPLOY.md)

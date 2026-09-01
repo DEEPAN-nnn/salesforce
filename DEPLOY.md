@@ -1,30 +1,33 @@
-# Deploy Fairdeal Phone Home
+# Deploy Team Reports on Mobile My Day
 
-## 1. Deploy metadata
+Do **not** deploy `EnquiryMyDayController`. That class stays in the org unchanged.
+
+## Deploy
 
 ```bash
-sf project deploy start --manifest manifest/package.xml
+sf project deploy start --metadata ApexClass:TeamReportsController,ApexClass:TeamReportsControllerTest,LightningComponentBundle:mobileMyDayScreen
 ```
 
-Or deploy: Apex `FairdealHomeMobileController` (+ test), LWC `fairdealHomeMobile`, FlexiPage `Fairdeal_Mobile_Home`.
+`mobileMyDayScreen` in this repo is your existing My Day component **plus** the Team Reports section above Follow-ups. Follow-ups / Inspections / Assignments handlers are unchanged.
 
-## 2. Activate Phone Home
+## Report names
 
-1. **Setup → Lightning App Builder**
-2. Open **Fairdeal Mobile Home** (or edit the existing Home page and switch to **Phone**)
-3. Confirm **Fairdeal Home Mobile** is in the main region
-4. **Activation**
-   - App: **Fairdeal**
-   - Form factor: **Phone**
-   - Assign as org / app default for Phone
-5. Leave the current two-column page as the **Desktop** Home
+Edit `TeamReportsController.reportSpecs()` if a name does not match. Cards look up `Report.Name` with contains-match:
 
-## 3. Check in the Salesforce mobile app
+| Match | Type |
+|---|---|
+| Action Wise Conversion | Funnel (D) — names under stages |
+| Collection Target | Metric |
+| Payments Report | Metric |
+| Token Target | Metric |
+| Token Achieved | Metric |
+| Outstanding Payment | Metric |
 
-Open the **Fairdeal** app → **Home**. You should see a single column: greeting → follow-ups → inspections → assignments → prospects → My Leads.
+## Clicks
 
-Desktop browser Home should be unchanged.
+- **View Report** → that Salesforce report
+- **Funnel step or label** → same report with `fv0=<stage name>` (same idea as dashboard drill). If the report has no filter slot, add a filter on the grouping field in Report Builder so `fv0` maps.
 
-## Data notes
+## Section scroll
 
-Lists read **Enquiry__c** owned by the running user. Date, phone, status, location, and hot-flag fields are detected if they exist. If a section is empty after deploy, send the Enquiry field API names used on desktop Home and we will pin them.
+Team Reports uses the same `scroll-cap roomy` height as Follow-ups. `VISIBLE_CAP_REPORTS = 3` — extra cards stay behind the fade and scroll inside the section.
