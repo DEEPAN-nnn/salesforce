@@ -108,21 +108,6 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     }
   }
 
-  handleConversionDate() {
-    const conversion = this.conversionCard;
-    if (conversion && conversion.reportId) {
-      this.openReport(conversion.reportId);
-      return;
-    }
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title: "Conversion report",
-        message: "Action Wise Conversion is not available.",
-        variant: "info"
-      })
-    );
-  }
-
   handleViewReport(event) {
     this.openReport(event.currentTarget.dataset.reportId);
   }

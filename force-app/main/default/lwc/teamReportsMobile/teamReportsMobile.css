@@ -1,8 +1,8 @@
 .dash {
-  font-family: -apple-system, "Salesforce Sans", Arial, sans-serif;
-  background: #f4f6f9;
-  padding: 0.75rem 0.8rem 1rem;
-  color: #16325c;
+  font-family: "Salesforce Sans", Arial, sans-serif;
+  background: transparent;
+  padding: 0.15rem 0.15rem 0.35rem;
+  color: #181818;
 }
 
 .error-banner {
@@ -25,54 +25,34 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.65rem;
 }
 
 .dash-title {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #0b1f3a;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #0176d3;
 }
 
 .dash-asof {
   margin: 0.15rem 0 0;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #706e6b;
 }
 
 .dash-refresh {
   flex: 0 0 auto;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid #d8dde6;
-  border-radius: 50%;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid #dddbda;
+  border-radius: 0.25rem;
   background: #fff;
   color: #0176d3;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   line-height: 1;
-  cursor: pointer;
-}
-
-.dash-filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #3e3e3c;
-  padding: 0.15rem 0.15rem 0.65rem;
-}
-
-.dash-filter-link {
-  border: none;
-  background: none;
-  color: #3e3e3c;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0;
   cursor: pointer;
 }
 
@@ -128,23 +108,23 @@
 .metric-card,
 .conversion-card {
   background: #fff;
-  border-radius: 0.7rem;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
-  padding: 0.7rem 0.75rem 0.65rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  padding: 0.55rem 0.6rem 0.5rem;
 }
 
 .metric-title {
   margin: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #3e3e3c;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #16325c;
   line-height: 1.25;
 }
 
 .metric-num {
-  margin: 0.45rem 0 0.15rem;
-  font-size: 1.55rem;
-  font-weight: 800;
+  margin: 0.35rem 0 0.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
@@ -188,7 +168,7 @@
 
 .bar-label {
   font-size: 0.72rem;
-  color: #3e3e3c;
+  color: #444;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
