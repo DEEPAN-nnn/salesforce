@@ -3,7 +3,7 @@
     <apiVersion>62.0</apiVersion>
     <isExposed>true</isExposed>
     <masterLabel>Team Reports</masterLabel>
-    <description>Team Reports only. Drop-off line for conversion, metric cards for counts.</description>
+    <description>My Dashboard: two-column metrics and horizontal conversion bars.</description>
     <targets>
         <target>lightning__HomePage</target>
         <target>lightning__AppPage</target>

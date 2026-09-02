@@ -10,11 +10,19 @@ public with sharing class TeamReportsController {
         public String developerName;
         public String name;
         public String kind;
-        public ReportSpec(String reportId, String developerName, String name, String kind) {
+        public String shortLabel;
+        public ReportSpec(
+            String reportId,
+            String developerName,
+            String name,
+            String kind,
+            String shortLabel
+        ) {
             this.reportId = reportId;
             this.developerName = developerName;
             this.name = name;
             this.kind = kind;
+            this.shortLabel = shortLabel;
         }
     }
 
@@ -35,6 +43,7 @@ public with sharing class TeamReportsController {
         @AuraEnabled public String colorClass;
         @AuraEnabled public String sparkPoints;
         @AuraEnabled public List<FunnelStage> stages;
+        @AuraEnabled public String displayName;
         @AuraEnabled public String warning;
     }
 
@@ -45,34 +54,39 @@ public with sharing class TeamReportsController {
     private static List<ReportSpec> reportSpecs() {
         return new List<ReportSpec>{
             new ReportSpec(
-                '00OOW00000Mq1GH2AZ',
-                'My_Team_Token_Achieved_ISv',
-                'My Team Token Achieved',
-                'METRIC'
+                '00O9F000000JQqfUAG',
+                'My_Teams_Target_Report_ZVQ',
+                'My Team\'s Target Report',
+                'METRIC',
+                'Collection Target'
             ),
             new ReportSpec(
                 '00OOW00000GfZBt2AN',
                 'My_Team_Payments_Report_FkC',
                 'My Team Payments Report',
-                'METRIC'
+                'METRIC',
+                'My Collection Report'
             ),
             new ReportSpec(
-                '00O9F000000JQqfUAG',
-                'My_Teams_Target_Report_ZVQ',
-                'My Team\'s Target Report',
-                'METRIC'
+                '00OOW00000Mq1GH2AZ',
+                'My_Team_Token_Achieved_ISv',
+                'My Team Token Achieved',
+                'METRIC',
+                'Token Achieved'
             ),
             new ReportSpec(
                 '00O9F000000JTUcUAO',
                 'Outstanding_Tqu',
                 'Team\'s Outstanding Payment',
-                'METRIC'
+                'METRIC',
+                'Billed & Outstanding'
             ),
             new ReportSpec(
                 '00OOW000006EKY52AO',
                 'Action_Wise_Conversion_Report_OjA',
                 'Action Wise Conversion Report - Overview',
-                'FUNNEL'
+                'FUNNEL',
+                'My Action Wise Conversion Report'
             )
         };
     }
@@ -106,6 +120,7 @@ public with sharing class TeamReportsController {
             Report match = findReport(reports, spec);
             TeamReportCard card = new TeamReportCard();
             card.name = spec.name;
+            card.displayName = spec.shortLabel;
             card.kind = spec.kind;
             card.isFunnel = spec.kind == 'FUNNEL';
             card.colorClass = colorClassFor(spec.name, spec.kind);
@@ -120,7 +135,9 @@ public with sharing class TeamReportsController {
             }
             card.id = match.Id;
             card.reportId = match.Id;
-            card.name = match.Name;
+            if (String.isBlank(card.displayName)) {
+                card.displayName = match.Name;
+            }
             try {
                 fillFromReport(card, match.Id, spec.kind);
             } catch (Exception e) {
@@ -262,7 +279,7 @@ public with sharing class TeamReportsController {
             return '0';
         }
         if (val == val.setScale(0)) {
-            return String.valueOf(val.longValue());
+            return val.setScale(0).format();
         }
         return String.valueOf(val.setScale(2));
     }

@@ -1,115 +1,78 @@
 <template>
-  <div class="team-reports">
+  <div class="dash">
     <template if:true={hasError}>
       <p class="error-banner">{errorMessage}</p>
     </template>
 
-    <div class="section-header-row">
-      <p class="section-header">Team Reports</p>
-      <span class="section-count">{teamReportsCount}</span>
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">My Dashboard</h1>
+        <p class="dash-asof">{asOfLabel}</p>
+      </div>
+      <button class="dash-refresh" title="Refresh" onclick={handleRefresh}>
+        ↻
+      </button>
     </div>
+
+    <div class="dash-filters">
+      <span>This Month</span>
+      <button class="dash-filter-link" onclick={handleConversionDate}>
+        Edit / Conversion Date
+      </button>
+    </div>
+
     <template if:true={hasNoTeamReports}>
       <p class="empty-state">No team reports to show.</p>
     </template>
-    <div class="scroll-cap reports">
-      <div class={teamReportsInnerClass}>
-        <template for:each={teamReports} for:item="card">
-          <div key={card.id} class={card.colorClass}>
-            <div class="card-top">
-              <p class="lead-name">{card.name}</p>
-              <button
-                class="link-navigate"
-                data-report-id={card.reportId}
-                onclick={handleViewReport}
-              >
-                View Report
-              </button>
-            </div>
-            <template if:true={card.warning}>
-              <p class="lead-remark">{card.warning}</p>
-            </template>
-            <template if:true={card.isFunnel}>
-              <div class="dropoff">
-                <div class="dropoff-values">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="dropoff-value"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      {stage.displayValue}
-                    </button>
-                  </template>
-                </div>
-                <svg class="dropoff-svg" viewBox="0 0 100 28" aria-hidden="true">
-                  <polyline
-                    points={card.sparkPoints}
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></polyline>
-                  <template for:each={card.stages} for:item="stage">
-                    <circle
-                      key={stage.key}
-                      class="dropoff-dot"
-                      cx={stage.cx}
-                      cy={stage.cy}
-                      r="2.6"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    ></circle>
-                  </template>
-                </svg>
-                <div class="dropoff-labels">
-                  <template for:each={card.stages} for:item="stage">
-                    <button
-                      key={stage.key}
-                      class="funnel-label"
-                      data-report-id={card.reportId}
-                      data-value={stage.label}
-                      onclick={handleFunnelStage}
-                    >
-                      {stage.label}
-                    </button>
-                  </template>
-                </div>
-              </div>
-            </template>
-            <template if:false={card.isFunnel}>
-              <div class="metric-stack">
-                <span class="metric-number">{card.displayValue}</span>
-                <svg class="spark spark-wide" viewBox="0 0 100 24" aria-hidden="true">
-                  <polyline
-                    points={card.sparkPoints}
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  ></polyline>
-                  <template for:each={card.sparkDots} for:item="dot">
-                    <circle
-                      key={dot.key}
-                      cx={dot.cx}
-                      cy={dot.cy}
-                      r="2.2"
-                      fill="currentColor"
-                    ></circle>
-                  </template>
-                </svg>
-              </div>
-            </template>
-          </div>
-        </template>
-      </div>
+
+    <div class="metric-grid">
+      <template for:each={metricCards} for:item="card">
+        <article key={card.id} class="metric-card">
+          <p class="metric-title">{card.displayName}</p>
+          <p class={card.numberClass}>{card.displayValue}</p>
+          <template if:true={card.warning}>
+            <p class="lead-remark">{card.warning}</p>
+          </template>
+          <button
+            class="view-report"
+            data-report-id={card.reportId}
+            onclick={handleViewReport}
+          >
+            View Report
+          </button>
+        </article>
+      </template>
     </div>
-    <template if:true={hasMoreTeamReports}>
-      <p class="more-hint">{moreTeamReportsLabel}</p>
+
+    <template if:true={conversionCard}>
+      <article class="conversion-card">
+        <p class="metric-title">{conversionCard.displayName}</p>
+        <template for:each={conversionCard.stages} for:item="stage">
+          <button
+            key={stage.key}
+            class="bar-row"
+            data-report-id={conversionCard.reportId}
+            data-value={stage.label}
+            onclick={handleFunnelStage}
+          >
+            <span class="bar-label">{stage.label}</span>
+            <span class="bar-track">
+              <span class="bar-fill" style={stage.barStyle}></span>
+            </span>
+            <span class="bar-count">{stage.displayValue}</span>
+          </button>
+        </template>
+        <template if:true={conversionCard.warning}>
+          <p class="lead-remark">{conversionCard.warning}</p>
+        </template>
+        <button
+          class="view-report"
+          data-report-id={conversionCard.reportId}
+          onclick={handleViewReport}
+        >
+          View Report
+        </button>
+      </article>
     </template>
   </div>
 </template>
