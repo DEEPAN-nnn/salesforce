@@ -1,6 +1,7 @@
 import { LightningElement, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { refreshApex } from "@salesforce/apex";
 import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReports";
 
 const VISIBLE_CAP_REPORTS = 3;
@@ -9,10 +10,13 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
   teamReports = [];
   teamReportsReady = false;
   error;
+  wiredResult;
 
   @wire(getTeamReports)
-  wiredTeamReports({ data, error }) {
+  wiredTeamReports(result) {
+    this.wiredResult = result;
     this.teamReportsReady = true;
+    const { data, error } = result;
     if (data) {
       this.teamReports = data;
       this.error = undefined;
@@ -30,6 +34,18 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return this.error?.body?.message || "Unable to load team reports.";
   }
 
+  get asOfLabel() {
+    const stamp = new Date().toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
+    return "As of " + stamp;
+  }
+
   get metrics() {
     return this.teamReports.filter((card) => this.valueKindOf(card) !== "CHART");
   }
@@ -42,26 +58,32 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return this.metrics.filter((card) => this.valueKindOf(card) === "COUNT");
   }
 
-  get compareCards() {
-    const amounts = this.amountMetrics;
+  get progressCards() {
     const cards = [];
+    const amounts = this.amountMetrics;
     if (amounts.length >= 2) {
-      cards.push(this.buildCompareCard(amounts[0], amounts[1]));
-    } else if (amounts.length === 1) {
-      cards.push(this.buildAmountCard(amounts[0]));
+      cards.push(this.buildProgressCard(amounts[0], amounts[1]));
     }
     this.countMetrics.forEach((card) => {
-      cards.push(this.buildCountCard(card));
+      cards.push(this.buildKpiCard(card));
     });
     return cards;
   }
 
-  get extraCards() {
+  get splitCards() {
     const amounts = this.amountMetrics;
     if (amounts.length < 3) {
-      return [];
+      return amounts.length === 1 ? [this.buildKpiCard(amounts[0])] : [];
     }
-    return amounts.slice(2).map((card) => this.buildAmountCard(card));
+    return amounts.slice(2).map((card) => this.buildKpiCard(card));
+  }
+
+  get hasSplitRow() {
+    return this.splitCards.length > 1;
+  }
+
+  get fullKpiCards() {
+    return this.splitCards.length === 1 ? this.splitCards : [];
   }
 
   get conversionCard() {
@@ -83,17 +105,17 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
       warning: card.warning,
       stages: stages.map((stage) => {
         const value = Number(stage.value) || 0;
-        const px = Math.max(4, Math.round((value / maxVal) * 70));
+        const pct = Math.max(8, Math.round((value / maxVal) * 100));
         return {
           ...stage,
-          barStyle: "height:" + px + "px"
+          barStyle: "width:" + pct + "%"
         };
       })
     };
   }
 
   get sectionCount() {
-    return this.compareCards.length + (this.conversionCard ? 1 : 0) + this.extraCards.length;
+    return this.progressCards.length + this.splitCards.length + (this.conversionCard ? 1 : 0);
   }
 
   get hasNoTeamReports() {
@@ -131,53 +153,69 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return card.displayName || card.name || "Report";
   }
 
-  buildCompareCard(targetCard, actualCard) {
+  buildProgressCard(targetCard, actualCard) {
     const targetNum = this.parseAmount(targetCard.displayValue);
     const actualNum = this.parseAmount(actualCard.displayValue);
-    const percent = targetNum > 0 ? Math.round((actualNum / targetNum) * 100) : 0;
-    const zero = actualNum === 0;
+    const achieved = targetNum > 0 ? Math.round((actualNum / targetNum) * 100) : 0;
+    const behind = targetNum > 0 && actualNum < targetNum;
+    const shortPct = targetNum > 0 ? Math.round(((targetNum - actualNum) / targetNum) * 100) : 0;
+    const tone = behind ? "down" : "up";
     return {
       id: "pair-" + (actualCard.id || "amount"),
-      isCompare: true,
+      hasTarget: true,
       title: this.reportLabel(actualCard),
-      targetLabel: this.reportLabel(targetCard),
-      actualLabel: this.reportLabel(actualCard),
-      targetDisplay: targetCard.displayValue || "—",
+      titleClass: "title " + tone,
+      heroClass: "hero " + tone,
+      badgeClass: "badge " + tone,
+      barClass: "bar " + tone,
+      percentLabel: behind ? "~" + Math.abs(shortPct) + "%" : achieved + "%",
       actualDisplay: actualCard.displayValue || "—",
-      percentLabel: percent + "%",
-      percentClass: zero ? "big bad" : "big ok",
-      actualClass: zero ? "score-value bad" : "score-value ok",
-      targetReportId: targetCard.reportId,
-      actualReportId: actualCard.reportId,
+      targetDisplay: targetCard.displayValue || "—",
+      gapLabel: this.gapLabel(targetNum, actualNum, targetCard.displayValue, actualCard.displayValue),
+      barStyle: "width:" + Math.min(100, Math.max(4, achieved)) + "%",
       viewReportId: actualCard.reportId,
       warning: [targetCard.warning, actualCard.warning].filter(Boolean).join(" · ")
     };
   }
 
-  buildAmountCard(card) {
+  buildKpiCard(card) {
     const actualNum = this.parseAmount(card.displayValue);
+    const tone = actualNum === 0 ? "down" : "up";
     return {
-      id: card.id || "amount",
-      isCompare: false,
+      id: card.id || this.reportLabel(card),
+      hasTarget: false,
       title: this.reportLabel(card),
+      titleClass: "title " + tone,
+      heroClass: "hero " + tone,
       actualDisplay: card.displayValue || "—",
-      actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
+      gapLabel: "",
       viewReportId: card.reportId,
       warning: card.warning
     };
   }
 
-  buildCountCard(card) {
-    const actualNum = this.parseAmount(card.displayValue);
-    return {
-      id: card.id || "count",
-      isCompare: false,
-      title: this.reportLabel(card),
-      actualDisplay: card.displayValue || "—",
-      actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
-      viewReportId: card.reportId,
-      warning: card.warning
-    };
+  gapLabel(targetNum, actualNum, targetDisplay, actualDisplay) {
+    const gap = targetNum - actualNum;
+    if (!targetNum) {
+      return "";
+    }
+    const money = String(targetDisplay).includes("₹") || String(actualDisplay).includes("₹");
+    const suffix = this.unitSuffix(targetDisplay) || this.unitSuffix(actualDisplay);
+    const abs = Math.abs(gap);
+    const n = Number.isInteger(abs) ? String(abs) : abs.toFixed(1);
+    const value = (money ? "₹" : "") + n + suffix;
+    if (gap > 0) {
+      return value + " short";
+    }
+    if (gap < 0) {
+      return value + " ahead";
+    }
+    return "On target";
+  }
+
+  unitSuffix(displayValue) {
+    const match = String(displayValue || "").match(/L|Cr/i);
+    return match ? match[0] : "";
   }
 
   parseAmount(displayValue) {
@@ -187,6 +225,12 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     const cleaned = String(displayValue).replace(/[^0-9.-]/g, "");
     const num = Number(cleaned);
     return Number.isNaN(num) ? 0 : num;
+  }
+
+  handleRefresh() {
+    if (this.wiredResult) {
+      refreshApex(this.wiredResult);
+    }
   }
 
   handleViewReport(event) {

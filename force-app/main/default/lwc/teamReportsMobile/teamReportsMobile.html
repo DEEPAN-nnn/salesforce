@@ -1,113 +1,137 @@
 <template>
-  <div class="team-reports">
+  <div class="dash">
     <template if:true={hasError}>
       <p class="error-banner">{errorMessage}</p>
     </template>
 
-    <div class="section-header-row">
-      <p class="section-header">Team Reports</p>
-      <span class="section-count">{sectionCount}</span>
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">My Dashboard</h1>
+        <p class="dash-sub">My Team</p>
+        <p class="dash-asof">{asOfLabel}</p>
+      </div>
+      <button class="dash-refresh" title="Refresh" onclick={handleRefresh}>
+        ↻
+      </button>
     </div>
+
     <template if:true={hasNoTeamReports}>
       <p class="empty-state">No team reports to show.</p>
     </template>
+
     <div class="scroll-cap reports">
       <div class={teamReportsInnerClass}>
-        <template for:each={compareCards} for:item="card">
-          <div key={card.id} class="report-card">
+        <template for:each={progressCards} for:item="card">
+          <article key={card.id} class="card">
             <div class="card-top">
-              <p class="lead-name">{card.title}</p>
-              <button
-                class="link-navigate"
-                data-report-id={card.viewReportId}
-                onclick={handleViewReport}
-              >
-                View
-              </button>
+              <p class={card.titleClass}>{card.title}</p>
+              <template if:true={card.hasTarget}>
+                <span class={card.badgeClass}>{card.percentLabel}</span>
+              </template>
             </div>
             <template if:true={card.warning}>
               <p class="lead-remark">{card.warning}</p>
             </template>
-            <template if:true={card.isCompare}>
-              <div class="score">
-                <button
-                  class="score-side"
-                  data-report-id={card.targetReportId}
-                  onclick={handleViewReport}
-                >
-                  <span class="thin">{card.targetLabel}</span>
-                  <span class="score-value mut">{card.targetDisplay}</span>
-                </button>
-                <div class="score-mid">
-                  <span class={card.percentClass}>{card.percentLabel}</span>
-                  <span class="thin">achieved</span>
-                </div>
-                <button
-                  class="score-side"
-                  data-report-id={card.actualReportId}
-                  onclick={handleViewReport}
-                >
-                  <span class="thin">{card.actualLabel}</span>
-                  <span class={card.actualClass}>{card.actualDisplay}</span>
-                </button>
+            <p class="hero-line">
+              <span class={card.heroClass}>{card.actualDisplay}</span>
+              <template if:true={card.hasTarget}>
+                <span class="of-target"> of {card.targetDisplay} target</span>
+              </template>
+            </p>
+            <template if:true={card.hasTarget}>
+              <div class="track">
+                <span class={card.barClass} style={card.barStyle}></span>
               </div>
             </template>
-            <template if:false={card.isCompare}>
-              <p class={card.actualClass}>{card.actualDisplay}</p>
+            <div class="card-foot">
+              <span class="gap">{card.gapLabel}</span>
+              <button
+                class="view-link"
+                data-report-id={card.viewReportId}
+                onclick={handleViewReport}
+              >
+                View Report ›
+              </button>
+            </div>
+          </article>
+        </template>
+
+        <template for:each={fullKpiCards} for:item="card">
+          <article key={card.id} class="card">
+            <p class={card.titleClass}>{card.title}</p>
+            <template if:true={card.warning}>
+              <p class="lead-remark">{card.warning}</p>
+            </template>
+            <p class="hero-line">
+              <span class={card.heroClass}>{card.actualDisplay}</span>
+            </p>
+            <div class="card-foot">
+              <span class="gap"></span>
+              <button
+                class="view-link"
+                data-report-id={card.viewReportId}
+                onclick={handleViewReport}
+              >
+                View Report ›
+              </button>
+            </div>
+          </article>
+        </template>
+
+        <template if:true={hasSplitRow}>
+          <div class="split">
+            <template for:each={splitCards} for:item="card">
+              <article key={card.id} class="card split-card">
+                <p class={card.titleClass}>{card.title}</p>
+                <template if:true={card.warning}>
+                  <p class="lead-remark">{card.warning}</p>
+                </template>
+                <p class={card.heroClass}>{card.actualDisplay}</p>
+                <button
+                  class="view-link"
+                  data-report-id={card.viewReportId}
+                  onclick={handleViewReport}
+                >
+                  View Report ›
+                </button>
+              </article>
             </template>
           </div>
         </template>
 
         <template if:true={conversionCard}>
-          <div class="report-card">
+          <article class="card">
             <div class="card-top">
-              <p class="lead-name">{conversionCard.title}</p>
+              <p class="title">{conversionCard.title}</p>
               <button
-                class="link-navigate"
+                class="view-link"
                 data-report-id={conversionCard.reportId}
                 onclick={handleViewReport}
               >
-                View
+                View Report ›
               </button>
             </div>
             <template if:true={conversionCard.warning}>
               <p class="lead-remark">{conversionCard.warning}</p>
             </template>
-            <div class="conv-cols">
+            <div class="funnel">
               <template for:each={conversionCard.stages} for:item="stage">
                 <button
                   key={stage.key}
-                  class="conv-col"
+                  class="funnel-row"
                   data-report-id={conversionCard.reportId}
                   data-value={stage.label}
                   onclick={handleFunnelStage}
                 >
-                  <span class="conv-n">{stage.displayValue}</span>
-                  <span class="conv-bar" style={stage.barStyle}></span>
-                  <span class="conv-l">{stage.label}</span>
+                  <span class="funnel-label">{stage.label}</span>
+                  <span class="funnel-track">
+                    <span class="funnel-fill" style={stage.barStyle}></span>
+                  </span>
+                  <span class="funnel-n">{stage.displayValue}</span>
                 </button>
               </template>
             </div>
-          </div>
-        </template>
-
-        <template for:each={extraCards} for:item="card">
-          <div key={card.id} class="report-card">
-            <div class="card-top">
-              <p class="lead-name">{card.title}</p>
-              <button
-                class="link-navigate"
-                data-report-id={card.viewReportId}
-                onclick={handleViewReport}
-              >
-                View
-              </button>
-            </div>
-            <template if:true={card.warning}>
-              <p class="lead-remark">{card.warning}</p>
-            </template>
-            <p class={card.actualClass}>{card.actualDisplay}</p>
-          </div>
+          </article>
         </template>
       </div>
     </div>
