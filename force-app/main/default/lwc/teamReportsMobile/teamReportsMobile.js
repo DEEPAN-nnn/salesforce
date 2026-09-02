@@ -1,22 +1,20 @@
 import { LightningElement, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import { refreshApex } from "@salesforce/apex";
 import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReports";
+
+const VISIBLE_CAP_REPORTS = 3;
 
 export default class TeamReportsMobile extends NavigationMixin(LightningElement) {
   teamReports = [];
   teamReportsReady = false;
   error;
-  wiredResult;
 
   @wire(getTeamReports)
-  wiredTeamReports(result) {
-    this.wiredResult = result;
+  wiredTeamReports({ data, error }) {
     this.teamReportsReady = true;
-    const { data, error } = result;
     if (data) {
-      this.teamReports = data.map((card) => this.decorateReportCard(card));
+      this.teamReports = data;
       this.error = undefined;
     } else if (error) {
       this.teamReports = [];
@@ -32,65 +30,118 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return this.error?.body?.message || "Unable to load team reports.";
   }
 
-  get hasNoTeamReports() {
-    return this.teamReportsReady && this.teamReports.length === 0 && !this.hasError;
-  }
-
-  get asOfLabel() {
-    const stamp = new Date().toLocaleString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    });
-    return "As of " + stamp;
-  }
-
-  get metricCards() {
+  get metrics() {
     return this.teamReports.filter((card) => !card.isFunnel);
   }
 
-  get conversionCard() {
+  get conversionRaw() {
     return this.teamReports.find((card) => card.isFunnel);
   }
 
-  get hasDashOverflow() {
-    const metricRows = Math.ceil(this.metricCards.length / 2);
-    return metricRows > 3 || !!this.conversionCard;
+  get compareCards() {
+    const metrics = this.metrics;
+    const cards = [];
+    if (metrics.length >= 2) {
+      cards.push(this.buildCompareCard("collection", "Collection", metrics[0], metrics[1]));
+    } else if (metrics.length === 1) {
+      cards.push(this.buildActualCard(metrics[0], metrics[0].displayName || metrics[0].name));
+    }
+    if (metrics.length >= 3) {
+      cards.push(this.buildActualCard(metrics[2], "Token"));
+    }
+    return cards;
   }
 
-  get dashMoreHint() {
-    return "Scroll within dashboard for more";
+  get extraCards() {
+    const metrics = this.metrics;
+    if (metrics.length < 4) {
+      return [];
+    }
+    return [this.buildActualCard(metrics[3], metrics[3].displayName || "Billed & Outstanding")];
   }
 
-  get dashScrollInnerClass() {
-    return this.hasDashOverflow ? "dash-scroll-inner" : "dash-scroll-inner no-fade";
-  }
-
-  decorateReportCard(card) {
-    const displayName = card.displayName || card.name;
-    const numeric = this.parseAmount(card.displayValue);
-    const numberClass = numeric === 0 ? "metric-num num-red" : "metric-num num-green";
-    if (card.isFunnel && card.stages && card.stages.length) {
-      let maxVal = 1;
-      card.stages.forEach((stage) => {
+  get conversionCard() {
+    const card = this.conversionRaw;
+    if (!card) {
+      return null;
+    }
+    const stages = card.stages || [];
+    let maxVal = 1;
+    stages.forEach((stage) => {
+      const value = Number(stage.value) || 0;
+      if (value > maxVal) {
+        maxVal = value;
+      }
+    });
+    return {
+      title: "Action Wise Conversion",
+      reportId: card.reportId,
+      warning: card.warning,
+      stages: stages.map((stage) => {
         const value = Number(stage.value) || 0;
-        if (value > maxVal) {
-          maxVal = value;
-        }
-      });
-      const stages = card.stages.map((stage) => {
-        const value = Number(stage.value) || 0;
+        const px = Math.max(4, Math.round((value / maxVal) * 70));
         return {
           ...stage,
-          barStyle: "width:" + Math.round((value / maxVal) * 100) + "%"
+          barStyle: "height:" + px + "px"
         };
-      });
-      return { ...card, displayName, stages, numberClass };
-    }
-    return { ...card, displayName, numberClass };
+      })
+    };
+  }
+
+  get sectionCount() {
+    return this.compareCards.length + (this.conversionCard ? 1 : 0) + this.extraCards.length;
+  }
+
+  get hasNoTeamReports() {
+    return this.teamReportsReady && this.sectionCount === 0 && !this.hasError;
+  }
+
+  get hasMoreTeamReports() {
+    return this.sectionCount > VISIBLE_CAP_REPORTS;
+  }
+
+  get moreTeamReportsLabel() {
+    return `+${this.sectionCount - VISIBLE_CAP_REPORTS} more · scroll within section`;
+  }
+
+  get teamReportsInnerClass() {
+    return this.hasMoreTeamReports
+      ? "scroll-cap-inner"
+      : "scroll-cap-inner no-fade";
+  }
+
+  buildCompareCard(id, title, targetCard, actualCard) {
+    const targetNum = this.parseAmount(targetCard.displayValue);
+    const actualNum = this.parseAmount(actualCard.displayValue);
+    const percent = targetNum > 0 ? Math.round((actualNum / targetNum) * 100) : 0;
+    const zero = actualNum === 0;
+    return {
+      id,
+      title,
+      hasTarget: true,
+      targetDisplay: targetCard.displayValue || "—",
+      actualDisplay: actualCard.displayValue || "—",
+      percentLabel: percent + "%",
+      percentClass: zero ? "big bad" : "big ok",
+      actualClass: zero ? "score-value bad" : "score-value ok",
+      targetReportId: targetCard.reportId,
+      actualReportId: actualCard.reportId,
+      viewReportId: actualCard.reportId,
+      warning: [targetCard.warning, actualCard.warning].filter(Boolean).join(" · ")
+    };
+  }
+
+  buildActualCard(card, title) {
+    const actualNum = this.parseAmount(card.displayValue);
+    return {
+      id: card.id || title,
+      title,
+      hasTarget: false,
+      actualDisplay: card.displayValue || "—",
+      actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
+      viewReportId: card.reportId,
+      warning: card.warning
+    };
   }
 
   parseAmount(displayValue) {
@@ -102,17 +153,8 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return Number.isNaN(num) ? 0 : num;
   }
 
-  handleRefresh() {
-    if (this.wiredResult) {
-      refreshApex(this.wiredResult);
-    }
-  }
-
   handleViewReport(event) {
-    this.openReport(event.currentTarget.dataset.reportId);
-  }
-
-  openReport(reportId) {
+    const reportId = event.currentTarget.dataset.reportId;
     if (!reportId) {
       this.dispatchEvent(
         new ShowToastEvent({
@@ -140,7 +182,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
       return;
     }
     if (!value) {
-      this.openReport(reportId);
+      this.handleViewReport(event);
       return;
     }
     this[NavigationMixin.Navigate]({

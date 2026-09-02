@@ -1,78 +1,118 @@
 <template>
-  <div class="dash">
+  <div class="team-reports">
     <template if:true={hasError}>
       <p class="error-banner">{errorMessage}</p>
     </template>
 
-    <div class="dash-head">
-      <div>
-        <h1 class="dash-title">My Dashboard</h1>
-        <p class="dash-asof">{asOfLabel}</p>
-      </div>
-      <button class="dash-refresh" title="Refresh" onclick={handleRefresh}>
-        ↻
-      </button>
+    <div class="section-header-row">
+      <p class="section-header">Team Reports</p>
+      <span class="section-count">{sectionCount}</span>
     </div>
-
     <template if:true={hasNoTeamReports}>
       <p class="empty-state">No team reports to show.</p>
     </template>
-
-    <div class="dash-scroll">
-      <div class={dashScrollInnerClass}>
-        <div class="metric-grid">
-          <template for:each={metricCards} for:item="card">
-            <article key={card.id} class="metric-card">
-              <p class="metric-title">{card.displayName}</p>
-              <p class={card.numberClass}>{card.displayValue}</p>
-              <template if:true={card.warning}>
-                <p class="lead-remark">{card.warning}</p>
-              </template>
+    <div class="scroll-cap reports">
+      <div class={teamReportsInnerClass}>
+        <template for:each={compareCards} for:item="card">
+          <div key={card.id} class="report-card">
+            <div class="card-top">
+              <p class="lead-name">{card.title}</p>
               <button
-                class="view-report"
-                data-report-id={card.reportId}
+                class="link-navigate"
+                data-report-id={card.viewReportId}
                 onclick={handleViewReport}
               >
-                View Report
+                View
               </button>
-            </article>
-          </template>
-        </div>
+            </div>
+            <template if:true={card.warning}>
+              <p class="lead-remark">{card.warning}</p>
+            </template>
+            <template if:true={card.hasTarget}>
+              <div class="score">
+                <button
+                  class="score-side"
+                  data-report-id={card.targetReportId}
+                  onclick={handleViewReport}
+                >
+                  <span class="thin">Target</span>
+                  <span class="score-value mut">{card.targetDisplay}</span>
+                </button>
+                <div class="score-mid">
+                  <span class={card.percentClass}>{card.percentLabel}</span>
+                  <span class="thin">achieved</span>
+                </div>
+                <button
+                  class="score-side"
+                  data-report-id={card.actualReportId}
+                  onclick={handleViewReport}
+                >
+                  <span class="thin">Actual</span>
+                  <span class={card.actualClass}>{card.actualDisplay}</span>
+                </button>
+              </div>
+            </template>
+            <template if:false={card.hasTarget}>
+              <p class={card.actualClass}>{card.actualDisplay}</p>
+            </template>
+          </div>
+        </template>
 
         <template if:true={conversionCard}>
-          <article class="conversion-card">
-            <p class="metric-title">{conversionCard.displayName}</p>
-            <template for:each={conversionCard.stages} for:item="stage">
+          <div class="report-card">
+            <div class="card-top">
+              <p class="lead-name">{conversionCard.title}</p>
               <button
-                key={stage.key}
-                class="bar-row"
+                class="link-navigate"
                 data-report-id={conversionCard.reportId}
-                data-value={stage.label}
-                onclick={handleFunnelStage}
+                onclick={handleViewReport}
               >
-                <span class="bar-label">{stage.label}</span>
-                <span class="bar-track">
-                  <span class="bar-fill" style={stage.barStyle}></span>
-                </span>
-                <span class="bar-count">{stage.displayValue}</span>
+                View
               </button>
-            </template>
+            </div>
             <template if:true={conversionCard.warning}>
               <p class="lead-remark">{conversionCard.warning}</p>
             </template>
-            <button
-              class="view-report"
-              data-report-id={conversionCard.reportId}
-              onclick={handleViewReport}
-            >
-              View Report
-            </button>
-          </article>
+            <div class="conv-cols">
+              <template for:each={conversionCard.stages} for:item="stage">
+                <button
+                  key={stage.key}
+                  class="conv-col"
+                  data-report-id={conversionCard.reportId}
+                  data-value={stage.label}
+                  onclick={handleFunnelStage}
+                >
+                  <span class="conv-n">{stage.displayValue}</span>
+                  <span class="conv-bar" style={stage.barStyle}></span>
+                  <span class="conv-l">{stage.label}</span>
+                </button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <template for:each={extraCards} for:item="card">
+          <div key={card.id} class="report-card">
+            <div class="card-top">
+              <p class="lead-name">{card.title}</p>
+              <button
+                class="link-navigate"
+                data-report-id={card.viewReportId}
+                onclick={handleViewReport}
+              >
+                View
+              </button>
+            </div>
+            <template if:true={card.warning}>
+              <p class="lead-remark">{card.warning}</p>
+            </template>
+            <p class={card.actualClass}>{card.actualDisplay}</p>
+          </div>
         </template>
       </div>
-      <template if:true={hasDashOverflow}>
-        <p class="more-hint">{dashMoreHint}</p>
-      </template>
     </div>
+    <template if:true={hasMoreTeamReports}>
+      <p class="more-hint">{moreTeamReportsLabel}</p>
+    </template>
   </div>
 </template>

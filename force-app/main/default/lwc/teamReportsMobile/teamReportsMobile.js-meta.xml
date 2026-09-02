@@ -3,7 +3,7 @@
     <apiVersion>62.0</apiVersion>
     <isExposed>true</isExposed>
     <masterLabel>Team Reports</masterLabel>
-    <description>My Dashboard: two-column metrics and horizontal conversion bars.</description>
+    <description>Team Reports: target vs achievement cards and conversion columns.</description>
     <targets>
         <target>lightning__HomePage</target>
         <target>lightning__AppPage</target>
