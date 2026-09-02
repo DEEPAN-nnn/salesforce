@@ -76,6 +76,49 @@
   cursor: pointer;
 }
 
+.dash-scroll-inner {
+  max-height: 18.4rem;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #b0adab transparent;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 14px),
+    transparent 100%
+  );
+}
+
+.dash-scroll-inner::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dash-scroll-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dash-scroll-inner::-webkit-scrollbar-thumb {
+  background: #b0adab;
+  border-radius: 4px;
+}
+
+.dash-scroll-inner.no-fade {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.more-hint {
+  font-size: 0.62rem;
+  color: #706e6b;
+  margin: 0.25rem 0 0;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

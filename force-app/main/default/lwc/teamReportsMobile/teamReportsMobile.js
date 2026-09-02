@@ -56,6 +56,19 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return this.teamReports.find((card) => card.isFunnel);
   }
 
+  get hasDashOverflow() {
+    const metricRows = Math.ceil(this.metricCards.length / 2);
+    return metricRows > 3 || !!this.conversionCard;
+  }
+
+  get dashMoreHint() {
+    return "Scroll within dashboard for more";
+  }
+
+  get dashScrollInnerClass() {
+    return this.hasDashOverflow ? "dash-scroll-inner" : "dash-scroll-inner no-fade";
+  }
+
   decorateReportCard(card) {
     const displayName = card.displayName || card.name;
     const numeric = this.parseAmount(card.displayValue);
