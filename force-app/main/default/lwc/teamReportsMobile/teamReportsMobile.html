@@ -28,14 +28,14 @@
             <template if:true={card.warning}>
               <p class="lead-remark">{card.warning}</p>
             </template>
-            <template if:true={card.hasTarget}>
+            <template if:true={card.layout == 'compare'}>
               <div class="score">
                 <button
                   class="score-side"
                   data-report-id={card.targetReportId}
                   onclick={handleViewReport}
                 >
-                  <span class="thin">Target</span>
+                  <span class="thin">{card.targetLabel}</span>
                   <span class="score-value mut">{card.targetDisplay}</span>
                 </button>
                 <div class="score-mid">
@@ -47,12 +47,15 @@
                   data-report-id={card.actualReportId}
                   onclick={handleViewReport}
                 >
-                  <span class="thin">Actual</span>
+                  <span class="thin">{card.actualLabel}</span>
                   <span class={card.actualClass}>{card.actualDisplay}</span>
                 </button>
               </div>
             </template>
-            <template if:false={card.hasTarget}>
+            <template if:true={card.layout == 'count'}>
+              <p class={card.actualClass}>{card.actualDisplay}</p>
+            </template>
+            <template if:true={card.layout == 'amount'}>
               <p class={card.actualClass}>{card.actualDisplay}</p>
             </template>
           </div>

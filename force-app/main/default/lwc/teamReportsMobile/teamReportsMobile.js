@@ -31,37 +31,41 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
   }
 
   get metrics() {
-    return this.teamReports.filter((card) => !card.isFunnel);
+    return this.teamReports.filter((card) => this.valueKindOf(card) !== "CHART");
   }
 
-  get conversionRaw() {
-    return this.teamReports.find((card) => card.isFunnel);
+  get amountMetrics() {
+    return this.metrics.filter((card) => this.valueKindOf(card) === "AMOUNT");
+  }
+
+  get countMetrics() {
+    return this.metrics.filter((card) => this.valueKindOf(card) === "COUNT");
   }
 
   get compareCards() {
-    const metrics = this.metrics;
+    const amounts = this.amountMetrics;
     const cards = [];
-    if (metrics.length >= 2) {
-      cards.push(this.buildCompareCard("collection", "Collection", metrics[0], metrics[1]));
-    } else if (metrics.length === 1) {
-      cards.push(this.buildActualCard(metrics[0], metrics[0].displayName || metrics[0].name));
+    if (amounts.length >= 2) {
+      cards.push(this.buildCompareCard(amounts[0], amounts[1]));
+    } else if (amounts.length === 1) {
+      cards.push(this.buildAmountCard(amounts[0]));
     }
-    if (metrics.length >= 3) {
-      cards.push(this.buildActualCard(metrics[2], "Token"));
-    }
+    this.countMetrics.forEach((card) => {
+      cards.push(this.buildCountCard(card));
+    });
     return cards;
   }
 
   get extraCards() {
-    const metrics = this.metrics;
-    if (metrics.length < 4) {
+    const amounts = this.amountMetrics;
+    if (amounts.length < 3) {
       return [];
     }
-    return [this.buildActualCard(metrics[3], metrics[3].displayName || "Billed & Outstanding")];
+    return amounts.slice(2).map((card) => this.buildAmountCard(card));
   }
 
   get conversionCard() {
-    const card = this.conversionRaw;
+    const card = this.teamReports.find((row) => this.valueKindOf(row) === "CHART");
     if (!card) {
       return null;
     }
@@ -74,7 +78,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
       }
     });
     return {
-      title: "Action Wise Conversion",
+      title: this.reportLabel(card),
       reportId: card.reportId,
       warning: card.warning,
       stages: stages.map((stage) => {
@@ -110,15 +114,34 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
       : "scroll-cap-inner no-fade";
   }
 
-  buildCompareCard(id, title, targetCard, actualCard) {
+  valueKindOf(card) {
+    if (card.valueKind) {
+      return card.valueKind;
+    }
+    if (card.isFunnel) {
+      return "CHART";
+    }
+    if (String(card.displayValue || "").includes("₹")) {
+      return "AMOUNT";
+    }
+    return "COUNT";
+  }
+
+  reportLabel(card) {
+    return card.displayName || card.name || "Report";
+  }
+
+  buildCompareCard(targetCard, actualCard) {
     const targetNum = this.parseAmount(targetCard.displayValue);
     const actualNum = this.parseAmount(actualCard.displayValue);
     const percent = targetNum > 0 ? Math.round((actualNum / targetNum) * 100) : 0;
     const zero = actualNum === 0;
     return {
-      id,
-      title,
-      hasTarget: true,
+      id: "pair-" + (actualCard.id || "amount"),
+      layout: "compare",
+      title: this.reportLabel(actualCard),
+      targetLabel: this.reportLabel(targetCard),
+      actualLabel: this.reportLabel(actualCard),
       targetDisplay: targetCard.displayValue || "—",
       actualDisplay: actualCard.displayValue || "—",
       percentLabel: percent + "%",
@@ -131,12 +154,25 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     };
   }
 
-  buildActualCard(card, title) {
+  buildAmountCard(card) {
     const actualNum = this.parseAmount(card.displayValue);
     return {
-      id: card.id || title,
-      title,
-      hasTarget: false,
+      id: card.id || "amount",
+      layout: "amount",
+      title: this.reportLabel(card),
+      actualDisplay: card.displayValue || "—",
+      actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
+      viewReportId: card.reportId,
+      warning: card.warning
+    };
+  }
+
+  buildCountCard(card) {
+    const actualNum = this.parseAmount(card.displayValue);
+    return {
+      id: card.id || "count",
+      layout: "count",
+      title: this.reportLabel(card),
       actualDisplay: card.displayValue || "—",
       actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
       viewReportId: card.reportId,

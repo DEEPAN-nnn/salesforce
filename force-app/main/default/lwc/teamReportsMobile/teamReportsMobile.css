@@ -102,6 +102,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 78%;
 }
 
 .lead-remark {
@@ -139,9 +140,11 @@
 
 .thin {
   display: block;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   color: #706e6b;
   font-weight: 600;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 .score-value {

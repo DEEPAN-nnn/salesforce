@@ -11,18 +11,21 @@ public with sharing class TeamReportsController {
         public String name;
         public String kind;
         public String shortLabel;
+        public String valueKind;
         public ReportSpec(
             String reportId,
             String developerName,
             String name,
             String kind,
-            String shortLabel
+            String shortLabel,
+            String valueKind
         ) {
             this.reportId = reportId;
             this.developerName = developerName;
             this.name = name;
             this.kind = kind;
             this.shortLabel = shortLabel;
+            this.valueKind = valueKind;
         }
     }
 
@@ -45,6 +48,7 @@ public with sharing class TeamReportsController {
         @AuraEnabled public List<FunnelStage> stages;
         @AuraEnabled public String displayName;
         @AuraEnabled public String warning;
+        @AuraEnabled public String valueKind;
     }
 
     /**
@@ -58,35 +62,40 @@ public with sharing class TeamReportsController {
                 'My_Teams_Target_Report_ZVQ',
                 'My Team\'s Target Report',
                 'METRIC',
-                'Collection Target'
+                'Collection Target',
+                'AMOUNT'
             ),
             new ReportSpec(
                 '00OOW00000GfZBt2AN',
                 'My_Team_Payments_Report_FkC',
                 'My Team Payments Report',
                 'METRIC',
-                'My Collection Report'
+                'My Collection Report',
+                'AMOUNT'
             ),
             new ReportSpec(
                 '00OOW00000Mq1GH2AZ',
                 'My_Team_Token_Achieved_ISv',
                 'My Team Token Achieved',
                 'METRIC',
-                'Token Achieved'
+                'Token Achieved',
+                'COUNT'
             ),
             new ReportSpec(
                 '00O9F000000JTUcUAO',
                 'Outstanding_Tqu',
                 'Team\'s Outstanding Payment',
                 'METRIC',
-                'Billed & Outstanding'
+                'Billed & Outstanding',
+                'AMOUNT'
             ),
             new ReportSpec(
                 '00OOW000006EKY52AO',
                 'Action_Wise_Conversion_Report_OjA',
                 'Action Wise Conversion Report - Overview',
                 'FUNNEL',
-                'My Action Wise Conversion Report'
+                'Action Wise Conversion Report - Overview',
+                'CHART'
             )
         };
     }
@@ -122,7 +131,8 @@ public with sharing class TeamReportsController {
             card.name = spec.name;
             card.displayName = spec.shortLabel;
             card.kind = spec.kind;
-            card.isFunnel = spec.kind == 'FUNNEL';
+            card.valueKind = spec.valueKind;
+            card.isFunnel = spec.kind == 'FUNNEL' || spec.valueKind == 'CHART';
             card.colorClass = colorClassFor(spec.name, spec.kind);
             card.stages = new List<FunnelStage>();
             card.sparkPoints = '0,20 20,16 40,18 60,14 80,12';
