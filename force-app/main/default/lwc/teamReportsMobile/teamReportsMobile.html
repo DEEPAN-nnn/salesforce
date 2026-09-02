@@ -28,7 +28,7 @@
             <template if:true={card.warning}>
               <p class="lead-remark">{card.warning}</p>
             </template>
-            <template if:true={card.layout == 'compare'}>
+            <template if:true={card.isCompare}>
               <div class="score">
                 <button
                   class="score-side"
@@ -52,10 +52,7 @@
                 </button>
               </div>
             </template>
-            <template if:true={card.layout == 'count'}>
-              <p class={card.actualClass}>{card.actualDisplay}</p>
-            </template>
-            <template if:true={card.layout == 'amount'}>
+            <template if:false={card.isCompare}>
               <p class={card.actualClass}>{card.actualDisplay}</p>
             </template>
           </div>

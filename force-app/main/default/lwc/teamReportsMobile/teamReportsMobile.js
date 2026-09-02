@@ -138,7 +138,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     const zero = actualNum === 0;
     return {
       id: "pair-" + (actualCard.id || "amount"),
-      layout: "compare",
+      isCompare: true,
       title: this.reportLabel(actualCard),
       targetLabel: this.reportLabel(targetCard),
       actualLabel: this.reportLabel(actualCard),
@@ -158,7 +158,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     const actualNum = this.parseAmount(card.displayValue);
     return {
       id: card.id || "amount",
-      layout: "amount",
+      isCompare: false,
       title: this.reportLabel(card),
       actualDisplay: card.displayValue || "—",
       actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
@@ -171,7 +171,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     const actualNum = this.parseAmount(card.displayValue);
     return {
       id: card.id || "count",
-      layout: "count",
+      isCompare: false,
       title: this.reportLabel(card),
       actualDisplay: card.displayValue || "—",
       actualClass: actualNum === 0 ? "metric-number bad" : "metric-number ok",
