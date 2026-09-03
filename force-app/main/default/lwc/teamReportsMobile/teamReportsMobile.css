@@ -124,6 +124,10 @@
 
 .dash__filter lightning-combobox {
   --slds-c-input-font-size: var(--fd-size-label);
+  --slds-c-input-line-height: 1.5;
+  --slds-c-input-sizing-min-height: 2.75rem;
+  --slds-c-input-spacing-block-start: 0.7rem;
+  --slds-c-input-spacing-block-end: 0.7rem;
 }
 
 .dash__spinner {
