@@ -49,6 +49,7 @@ public with sharing class TeamReportsController {
         @AuraEnabled public String sparkPoints;
         @AuraEnabled public List<FunnelStage> stages;
         @AuraEnabled public String displayName;
+        @AuraEnabled public String tileKey;
         @AuraEnabled public String warning;
         @AuraEnabled public String valueKind;
     }
@@ -141,7 +142,8 @@ public with sharing class TeamReportsController {
             Report match = findReport(reports, spec);
             TeamReportCard card = new TeamReportCard();
             card.name = spec.name;
-            card.displayName = spec.shortLabel;
+            card.displayName = spec.name;
+            card.tileKey = tileKeyFor(spec);
             card.kind = spec.kind;
             card.valueKind = spec.valueKind;
             card.isFunnel = spec.kind == 'FUNNEL' || spec.valueKind == 'CHART';
@@ -159,7 +161,8 @@ public with sharing class TeamReportsController {
             }
             card.id = match.Id;
             card.reportId = match.Id;
-            if (String.isBlank(card.displayName)) {
+            if (String.isNotBlank(match.Name)) {
+                card.name = match.Name;
                 card.displayName = match.Name;
             }
             try {
@@ -170,6 +173,25 @@ public with sharing class TeamReportsController {
             cards.add(card);
         }
         return cards;
+    }
+
+    private static String tileKeyFor(ReportSpec spec) {
+        if (spec.developerName == 'My_Teams_Target_Report_ZVQ') {
+            return 'collectionTarget';
+        }
+        if (spec.developerName == 'My_Team_Payments_Report_FkC') {
+            return 'collectionAchieved';
+        }
+        if (spec.developerName == 'My_Team_Token_Achieved_ISv') {
+            return 'tokenAchieved';
+        }
+        if (spec.developerName == 'Outstanding_Tqu') {
+            return 'billedOutstanding';
+        }
+        if (spec.developerName == 'Action_Wise_Conversion_Report_OjA') {
+            return 'conversion';
+        }
+        return spec.developerName;
     }
 
     private static Report findReport(List<Report> reports, ReportSpec spec) {

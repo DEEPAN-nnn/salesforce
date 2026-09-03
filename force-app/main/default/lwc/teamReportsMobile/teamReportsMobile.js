@@ -19,7 +19,6 @@ import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReport
 const TARGET_PAIRS = [
   {
     key: "collection",
-    label: "Collection",
     targetKey: "collectionTarget",
     achievedKey: "collectionAchieved"
   }
@@ -53,13 +52,6 @@ const FUNNEL_ORDER = [
   "Token"
 ];
 
-const KEY_BY_DISPLAY_NAME = {
-  "Collection Target": "collectionTarget",
-  "My Collection Report": "collectionAchieved",
-  "Token Achieved": "tokenAchieved",
-  "Billed & Outstanding": "billedOutstanding"
-};
-
 export default class TeamReportsMobile extends NavigationMixin(
   LightningElement
 ) {
@@ -70,6 +62,7 @@ export default class TeamReportsMobile extends NavigationMixin(
   targetPairs = [];
   tiles = [];
   conversion = [];
+  conversionTitle = "Action Wise Conversion Report - Overview";
   reportIdsByKey = {};
   conversionReportId;
   problems = [];
@@ -106,14 +99,11 @@ export default class TeamReportsMobile extends NavigationMixin(
     return this.problems && this.problems.length > 0;
   }
 
-  get conversionTitle() {
-    return "Action Wise Conversion";
-  }
-
   applyPayload(cards) {
     this.asOf = this.formatAsOf(new Date().toISOString());
     this.conversion = [];
     this.conversionReportId = undefined;
+    this.conversionTitle = "Action Wise Conversion Report - Overview";
     const byKey = {};
     const problems = [];
     (cards || []).forEach((card) => {
@@ -121,7 +111,7 @@ export default class TeamReportsMobile extends NavigationMixin(
       if (key) {
         byKey[key] = {
           key,
-          label: card.displayName || card.name,
+          label: card.name || card.displayName,
           value: Number(card.metricValue) || 0,
           displayUnits: card.isCurrency ? "Auto" : "Integer",
           isCurrency: !!card.isCurrency,
@@ -130,6 +120,10 @@ export default class TeamReportsMobile extends NavigationMixin(
         };
       }
       if (this.valueKindOf(card) === "CHART") {
+        this.conversionTitle =
+          card.name ||
+          card.displayName ||
+          "Action Wise Conversion Report - Overview";
         this.conversionReportId = card.reportId;
         this.conversion = this.orderFunnel(card.stages || []).map((row) => {
           const value = Number(row.value) || 0;
@@ -155,10 +149,13 @@ export default class TeamReportsMobile extends NavigationMixin(
   }
 
   keyFor(card) {
+    if (card.tileKey) {
+      return card.tileKey;
+    }
     if (this.valueKindOf(card) === "CHART") {
       return "conversion";
     }
-    return KEY_BY_DISPLAY_NAME[card.displayName] || KEY_BY_DISPLAY_NAME[card.name];
+    return undefined;
   }
 
   valueKindOf(card) {
@@ -180,7 +177,7 @@ export default class TeamReportsMobile extends NavigationMixin(
       }
       return this.decorateTargetPair({
         key: spec.key,
-        label: spec.label,
+        label: achieved.label,
         target: target.value || 0,
         achieved: achieved.value || 0,
         displayUnits: target.displayUnits,
