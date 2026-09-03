@@ -3,7 +3,7 @@
     <apiVersion>62.0</apiVersion>
     <isExposed>true</isExposed>
     <masterLabel>Team Reports</masterLabel>
-    <description>My Dashboard: mobileMyDashboard layout with org team reports.</description>
+    <description>My Dashboard parent. Uses org child LWCs; does not replace them.</description>
     <targets>
         <target>lightning__HomePage</target>
         <target>lightning__AppPage</target>
