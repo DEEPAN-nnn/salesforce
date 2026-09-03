@@ -3,8 +3,9 @@
  *
  * The --fd-* custom properties below are the single place the dashboard's
  * type scale, colour and shape are defined. Custom properties inherit across
- * the shadow boundary, so mobileKpiTile, mobileTargetCard and
- * mobileConversionChart pick these up automatically.
+ * the shadow boundary, so the org's mobileKpiTile, mobileTargetCard and
+ * mobileConversionChart pick these up if they read var(--fd-*). Those
+ * children are not part of this bundle and must not be overwritten.
  *
  * Sizing follows Salesforce's accessible mobile design guidelines:
  * tap targets >= 44px, nothing below 14px (0.875rem).

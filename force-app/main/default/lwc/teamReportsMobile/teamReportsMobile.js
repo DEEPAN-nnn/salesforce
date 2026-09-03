@@ -14,6 +14,10 @@ import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReport
  * Data still comes from TeamReportsController (the five org reports). There is
  * no Token Target report in this org, so Token is a standalone count tile.
  * There is no team roster payload yet, so that block is omitted.
+ *
+ * Presentation children (c-mobile-target-card, c-mobile-kpi-tile,
+ * c-mobile-conversion-chart) already exist in the org and are not modified
+ * here. This bundle only changes teamReportsMobile + Apex.
  */
 
 const TARGET_PAIRS = [
