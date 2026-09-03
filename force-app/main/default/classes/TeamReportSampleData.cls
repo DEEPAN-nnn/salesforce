@@ -2,6 +2,7 @@
  * Inspect the five dashboard reports and create SAMPLE_* records that should
  * appear in them. Run from Developer Console → Anonymous Apex:
  *
+ *   System.debug(TeamReportSampleData.whatToCreate());
  *   System.debug(TeamReportSampleData.inspect());
  *   System.debug(TeamReportSampleData.createSamples());
  *   System.debug(TeamReportSampleData.deleteSamples());
@@ -129,8 +130,11 @@ public with sharing class TeamReportSampleData {
                     'Report type: ' +
                         (rType == null ? '(none)' : rType.getType() + ' / ' + rType.getLabel())
                 );
-                String source = sourceObject(rType == null ? null : rType.getType());
-                lines.add('Likely source object: ' + (source == null ? '(unknown)' : source));
+                String source = sourceFromMeta(
+                    meta,
+                    rType == null ? null : rType.getType()
+                );
+                lines.addAll(createThisRecordLines(source));
                 lines.add('Scope: ' + String.valueOf(meta.getScope()));
                 Reports.StandardDateFilter sdf = meta.getStandardDateFilter();
                 if (sdf != null) {
@@ -197,6 +201,82 @@ public with sharing class TeamReportSampleData {
     }
 
     /**
+     * Short list: which existing Salesforce record to click New on.
+     * This does not create a custom object. The object already exists in the org.
+     */
+    public static String whatToCreate() {
+        List<String> lines = new List<String>();
+        lines.add(
+            'You do NOT create a new object in Setup. Each report already runs on an existing record (Enquiry, Payment, Target, …).'
+        );
+        lines.add(
+            'Find it in the UI: App Launcher → Reports → open the report name → Edit. The report type at the top is the record you must create.'
+        );
+        lines.add('');
+        Map<String, Report> found = loadReports();
+        for (Spec spec : specs()) {
+            lines.add('======== ' + spec.name + ' ========');
+            Report match = found.get(spec.developerName);
+            if (match == null) {
+                lines.add(
+                    'Report not in this org. Search Reports for "' +
+                        spec.name +
+                        '". If missing, copy it from prod; do not create a new object.'
+                );
+                lines.add('');
+                continue;
+            }
+            try {
+                Reports.ReportDescribeResult described = Reports.ReportManager.describeReport(
+                    match.Id
+                );
+                Reports.ReportMetadata meta = described.getReportMetadata();
+                Reports.ReportType rType = meta.getReportType();
+                String source = sourceFromMeta(
+                    meta,
+                    rType == null ? null : rType.getType()
+                );
+                lines.addAll(createThisRecordLines(source));
+                if (rType != null && String.isNotBlank(rType.getLabel())) {
+                    lines.add('Report type (UI name): ' + rType.getLabel());
+                }
+                String grouping = firstGroupingField(meta);
+                if (String.isNotBlank(grouping)) {
+                    lines.add('Set this field on the record: ' + grouping);
+                    if (spec.developerName == 'Action_Wise_Conversion_Report_OjA') {
+                        lines.add(
+                            'Create 5 records, one for each value: Shown Interest, Qualify Meet, Inspection, Site Shortlisted, Token'
+                        );
+                    }
+                }
+                Reports.StandardDateFilter sdf = meta.getStandardDateFilter();
+                if (sdf != null && String.isNotBlank(sdf.getColumn())) {
+                    lines.add(
+                        'Set date field ' +
+                            sdf.getColumn() +
+                            ' to TODAY so it passes "' +
+                            sdf.getDurationValue() +
+                            '"'
+                    );
+                }
+                lines.add('Owner: you (' + UserInfo.getName() + ')');
+            } catch (Exception e) {
+                lines.add('Could not read report: ' + e.getMessage());
+                lines.add(
+                    'Manual: Reports → ' +
+                        spec.name +
+                        ' → Edit → note the report type → App Launcher → New on that item.'
+                );
+            }
+            lines.add('');
+        }
+        lines.add(
+            'To insert SAMPLE_TEAM_REPORT_* rows automatically after this: System.debug(TeamReportSampleData.createSamples());'
+        );
+        return String.join(lines, '\n');
+    }
+
+    /**
      * Creates SAMPLE_TEAM_REPORT_* rows on the source object of each report.
      * Conversion report gets one Enquiry (or source object) per funnel stage.
      * Metric reports get one currency/count row owned by the running user, dated today.
@@ -220,7 +300,8 @@ public with sharing class TeamReportSampleData {
                     match.Id
                 );
                 Reports.ReportMetadata meta = described.getReportMetadata();
-                objectApi = sourceObject(
+                objectApi = sourceFromMeta(
+                    meta,
                     meta.getReportType() == null ? null : meta.getReportType().getType()
                 );
                 groupingField = firstGroupingField(meta);
@@ -305,10 +386,10 @@ public with sharing class TeamReportSampleData {
                 Reports.ReportDescribeResult described = Reports.ReportManager.describeReport(
                     match.Id
                 );
-                String objectApi = sourceObject(
-                    described.getReportMetadata().getReportType() == null
-                        ? null
-                        : described.getReportMetadata().getReportType().getType()
+                Reports.ReportMetadata meta = described.getReportMetadata();
+                String objectApi = sourceFromMeta(
+                    meta,
+                    meta.getReportType() == null ? null : meta.getReportType().getType()
                 );
                 if (objectApi != null) {
                     objects.add(objectApi);
@@ -394,6 +475,79 @@ public with sharing class TeamReportSampleData {
             }
         }
         return byDev;
+    }
+
+    private static List<String> createThisRecordLines(String source) {
+        List<String> lines = new List<String>();
+        if (String.isBlank(source)) {
+            lines.add(
+                'CREATE THIS RECORD: (unknown) — open the report → Edit and read the report type.'
+            );
+            return lines;
+        }
+        String label = objectLabel(source);
+        String plural = objectPlural(source);
+        lines.add('CREATE THIS RECORD: ' + label);
+        lines.add('API name: ' + source);
+        lines.add(
+            'How: App Launcher → search "' +
+                (String.isBlank(plural) ? label : plural) +
+                '" → New. Do not create a custom object in Setup.'
+        );
+        return lines;
+    }
+
+    private static String sourceFromMeta(Reports.ReportMetadata meta, String reportType) {
+        String fromColumn = objectFromColumns(meta);
+        if (String.isNotBlank(fromColumn)) {
+            return fromColumn;
+        }
+        return sourceObject(reportType);
+    }
+
+    private static String objectFromColumns(Reports.ReportMetadata meta) {
+        if (meta == null) {
+            return null;
+        }
+        List<String> names = new List<String>();
+        if (meta.getGroupingsDown() != null) {
+            for (Reports.GroupingInfo g : meta.getGroupingsDown()) {
+                names.add(g.getName());
+            }
+        }
+        if (meta.getDetailColumns() != null) {
+            names.addAll(meta.getDetailColumns());
+        }
+        if (meta.getAggregates() != null) {
+            names.addAll(meta.getAggregates());
+        }
+        for (String raw : names) {
+            if (String.isBlank(raw) || !raw.contains('.')) {
+                continue;
+            }
+            String first = raw.substringBefore('.');
+            if (first == 'CUST_NAME' || first == 'CUST' || first.startsWith('Bucket')) {
+                continue;
+            }
+            if (Schema.getGlobalDescribe().containsKey(first)) {
+                return first;
+            }
+        }
+        return null;
+    }
+
+    private static String objectLabel(String api) {
+        if (String.isBlank(api) || !Schema.getGlobalDescribe().containsKey(api)) {
+            return api;
+        }
+        return Schema.getGlobalDescribe().get(api).getDescribe().getLabel();
+    }
+
+    private static String objectPlural(String api) {
+        if (String.isBlank(api) || !Schema.getGlobalDescribe().containsKey(api)) {
+            return api;
+        }
+        return Schema.getGlobalDescribe().get(api).getDescribe().getLabelPlural();
     }
 
     private static String sourceObject(String reportType) {

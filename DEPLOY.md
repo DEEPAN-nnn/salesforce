@@ -29,16 +29,21 @@ Looked up by **DeveloperName**, then **Id**, then **Name**.
 
 ## Sample data to prove the reports
 
-The dashboard does **not** query `Enquiry__c` itself. It runs the five saved reports. To see which **object + fields + filters** each report uses, deploy `TeamReportSampleData` and run:
+The dashboard does **not** query `Enquiry__c` itself. It runs the five saved reports. You do **not** create a new object in Setup. You create **records** of the object each report already uses.
+
+**Find it in the UI (no Apex):** App Launcher → **Reports** → open e.g. `Action Wise Conversion Report - Overview` → **Edit**. The **report type** at the top is the record (Enquiry, Payment, …). App Launcher → that name → **New**.
+
+**Or run Apex** after deploying `TeamReportSampleData`:
 
 ```apex
+System.debug(TeamReportSampleData.whatToCreate());
 System.debug(TeamReportSampleData.inspect());
 System.debug(TeamReportSampleData.createSamples());
 // later
 System.debug(TeamReportSampleData.deleteSamples());
 ```
 
-`inspect()` prints source object, groupings, columns, and saved filters. `createSamples()` inserts `SAMPLE_TEAM_REPORT_*` rows on that object (conversion = one row per stage: Shown Interest → Token).
+`whatToCreate()` prints **CREATE THIS RECORD** plus the App Launcher name. `createSamples()` inserts `SAMPLE_TEAM_REPORT_*` rows (conversion = one row per stage: Shown Interest → Token).
 
 ## Section scroll
 
