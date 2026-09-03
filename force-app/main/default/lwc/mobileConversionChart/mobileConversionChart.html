@@ -1,0 +1,21 @@
+<template>
+  <button class="chart" type="button" onclick={handleTap}>
+    <p class="chart__title">{title}</p>
+    <template if:true={hasRows}>
+      <div class="chart__rows">
+        <template for:each={rows} for:item="row">
+          <div key={row.key} class="chart__row">
+            <span class="chart__label">{row.label}</span>
+            <span class="chart__track">
+              <span class="chart__bar" style={row.barStyle}></span>
+            </span>
+            <span class="chart__n">{row.displayValue}</span>
+          </div>
+        </template>
+      </div>
+    </template>
+    <template if:false={hasRows}>
+      <p class="chart__empty">No conversion rows in this range.</p>
+    </template>
+  </button>
+</template>

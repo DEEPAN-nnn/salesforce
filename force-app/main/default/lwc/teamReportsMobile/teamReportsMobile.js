@@ -4,149 +4,165 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { refreshApex } from "@salesforce/apex";
 import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReports";
 
-const VISIBLE_CAP_REPORTS = 3;
+/**
+ * teamReportsMobile
+ * -----------------
+ * Phone-first "My Dashboard". Layout, tokens, and tap-through follow the
+ * mobileMyDashboard pattern: header + date range + target cards + KPI grid +
+ * conversion chart.
+ *
+ * Data still comes from TeamReportsController (the five org reports). There is
+ * no Token Target report in this org, so Token is a standalone count tile.
+ * There is no team roster payload yet, so that block is omitted.
+ */
 
-export default class TeamReportsMobile extends NavigationMixin(LightningElement) {
-  teamReports = [];
-  teamReportsReady = false;
+const TARGET_PAIRS = [
+  {
+    key: "collection",
+    label: "Collection",
+    targetKey: "collectionTarget",
+    achievedKey: "collectionAchieved"
+  }
+];
+
+const STANDALONE_TILES = ["tokenAchieved", "billedOutstanding"];
+
+const DATE_RANGE_OPTIONS = [
+  { label: "Today", value: "TODAY" },
+  { label: "Yesterday", value: "YESTERDAY" },
+  { label: "This Week", value: "THIS_WEEK" },
+  { label: "Last Week", value: "LAST_WEEK" },
+  { label: "This Month", value: "THIS_MONTH" },
+  { label: "Last Month", value: "LAST_MONTH" },
+  { label: "Last 3 Days", value: "LAST_N_DAYS:3" },
+  { label: "Last 7 Days", value: "LAST_N_DAYS:7" },
+  { label: "Last 15 Days", value: "LAST_N_DAYS:15" },
+  { label: "Last 30 Days", value: "LAST_N_DAYS:30" },
+  { label: "Last 60 Days", value: "LAST_N_DAYS:60" },
+  { label: "Last 120 Days", value: "LAST_N_DAYS:120" }
+];
+
+const TONE_POSITIVE = "#64c864";
+const TONE_NEGATIVE = "#fa1602";
+
+const FUNNEL_ORDER = [
+  "Shown Interest",
+  "Qualify Meet",
+  "Inspection",
+  "Site Shortlisted",
+  "Token"
+];
+
+const KEY_BY_DISPLAY_NAME = {
+  "Collection Target": "collectionTarget",
+  "My Collection Report": "collectionAchieved",
+  "Token Achieved": "tokenAchieved",
+  "Billed & Outstanding": "billedOutstanding"
+};
+
+export default class TeamReportsMobile extends NavigationMixin(
+  LightningElement
+) {
+  isLoading = true;
   error;
+  selectedRange = "THIS_MONTH";
+  asOf;
+  targetPairs = [];
+  tiles = [];
+  conversion = [];
+  reportIdsByKey = {};
+  conversionReportId;
+  problems = [];
   wiredResult;
-  isRefreshing = false;
-  asOfMs = Date.now();
 
-  @wire(getTeamReports)
+  @wire(getTeamReports, { dateRange: "$selectedRange" })
   wiredTeamReports(result) {
     this.wiredResult = result;
-    this.teamReportsReady = true;
     const { data, error } = result;
     if (data) {
-      this.teamReports = data;
+      this.applyPayload(data);
       this.error = undefined;
-      if (!this.isRefreshing) {
-        this.asOfMs = Date.now();
-      }
     } else if (error) {
-      this.teamReports = [];
       this.error = error;
+      this.problems = [];
+      this.targetPairs = [];
+      this.tiles = [];
+      this.conversion = [];
     }
+    if (data || error) {
+      this.isLoading = false;
+    }
+  }
+
+  get dateRangeOptions() {
+    return DATE_RANGE_OPTIONS;
+  }
+
+  get scopeLabel() {
+    return "My Team";
   }
 
   get hasError() {
     return !!this.error;
   }
 
-  get errorMessage() {
-    return this.error?.body?.message || "Unable to load team reports.";
+  get hasProblems() {
+    return this.problems && this.problems.length > 0;
   }
 
-  get asOfLabel() {
-    const stamp = new Date(this.asOfMs).toLocaleString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    });
-    return "As of " + stamp;
+  get conversionTitle() {
+    return "Action Wise Conversion";
   }
 
-  get refreshClass() {
-    return this.isRefreshing ? "dash-refresh is-loading" : "dash-refresh";
-  }
-
-  get dashClass() {
-    return this.isRefreshing ? "dash is-loading" : "dash";
-  }
-
-  get metrics() {
-    return this.teamReports.filter((card) => this.valueKindOf(card) !== "CHART");
-  }
-
-  get amountMetrics() {
-    return this.metrics.filter((card) => this.valueKindOf(card) === "AMOUNT");
-  }
-
-  get countMetrics() {
-    return this.metrics.filter((card) => this.valueKindOf(card) === "COUNT");
-  }
-
-  get progressCards() {
-    const cards = [];
-    const amounts = this.amountMetrics;
-    if (amounts.length >= 2) {
-      cards.push(this.buildProgressCard(amounts[0], amounts[1]));
-    }
-    this.countMetrics.forEach((card) => {
-      cards.push(this.buildKpiCard(card));
-    });
-    return cards;
-  }
-
-  get splitCards() {
-    const amounts = this.amountMetrics;
-    if (amounts.length < 3) {
-      return amounts.length === 1 ? [this.buildKpiCard(amounts[0])] : [];
-    }
-    return amounts.slice(2).map((card) => this.buildKpiCard(card));
-  }
-
-  get hasSplitRow() {
-    return this.splitCards.length > 1;
-  }
-
-  get fullKpiCards() {
-    return this.splitCards.length === 1 ? this.splitCards : [];
-  }
-
-  get conversionCard() {
-    const card = this.teamReports.find((row) => this.valueKindOf(row) === "CHART");
-    if (!card) {
-      return null;
-    }
-    const stages = card.stages || [];
-    let maxVal = 1;
-    stages.forEach((stage) => {
-      const value = Number(stage.value) || 0;
-      if (value > maxVal) {
-        maxVal = value;
+  applyPayload(cards) {
+    this.asOf = this.formatAsOf(new Date().toISOString());
+    this.conversion = [];
+    this.conversionReportId = undefined;
+    const byKey = {};
+    const problems = [];
+    (cards || []).forEach((card) => {
+      const key = this.keyFor(card);
+      if (key) {
+        byKey[key] = {
+          key,
+          label: card.displayName || card.name,
+          value: Number(card.metricValue) || 0,
+          displayUnits: card.isCurrency ? "Auto" : "Integer",
+          isCurrency: !!card.isCurrency,
+          reportId: card.reportId,
+          warning: card.warning
+        };
+      }
+      if (this.valueKindOf(card) === "CHART") {
+        this.conversionReportId = card.reportId;
+        this.conversion = this.orderFunnel(card.stages || []).map((row) => {
+          const value = Number(row.value) || 0;
+          return { ...row, value };
+        });
+        if (card.warning) {
+          problems.push(card.warning);
+        }
+      } else if (card.warning) {
+        problems.push(card.warning);
       }
     });
-    return {
-      title: this.reportLabel(card),
-      reportId: card.reportId,
-      warning: card.warning,
-      stages: stages.map((stage) => {
-        const value = Number(stage.value) || 0;
-        const pct = Math.max(8, Math.round((value / maxVal) * 100));
-        return {
-          ...stage,
-          barStyle: "width:" + pct + "%"
-        };
-      })
-    };
+    this.reportIdsByKey = byKey;
+    this.problems = problems.map((text, index) => ({
+      id: "p-" + index,
+      text
+    }));
+    this.targetPairs = this.buildPairs(byKey);
+    this.tiles = STANDALONE_TILES.map((key) => byKey[key])
+      .filter((tile) => tile !== undefined)
+      .map((tile) => this.decorateTile(this.withTone(tile)));
+    this.conversion = this.withBarWidths(this.conversion);
   }
 
-  get sectionCount() {
-    return this.progressCards.length + this.splitCards.length + (this.conversionCard ? 1 : 0);
-  }
-
-  get hasNoTeamReports() {
-    return this.teamReportsReady && this.sectionCount === 0 && !this.hasError;
-  }
-
-  get hasMoreTeamReports() {
-    return this.sectionCount > VISIBLE_CAP_REPORTS;
-  }
-
-  get moreTeamReportsLabel() {
-    return `+${this.sectionCount - VISIBLE_CAP_REPORTS} more · scroll within section`;
-  }
-
-  get teamReportsInnerClass() {
-    return this.hasMoreTeamReports
-      ? "scroll-cap-inner"
-      : "scroll-cap-inner no-fade";
+  keyFor(card) {
+    if (this.valueKindOf(card) === "CHART") {
+      return "conversion";
+    }
+    return KEY_BY_DISPLAY_NAME[card.displayName] || KEY_BY_DISPLAY_NAME[card.name];
   }
 
   valueKindOf(card) {
@@ -156,147 +172,181 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     if (card.isFunnel) {
       return "CHART";
     }
-    if (String(card.displayValue || "").includes("₹")) {
-      return "AMOUNT";
-    }
     return "COUNT";
   }
 
-  reportLabel(card) {
-    return card.displayName || card.name || "Report";
+  buildPairs(byKey) {
+    return TARGET_PAIRS.map((spec) => {
+      const target = byKey[spec.targetKey];
+      const achieved = byKey[spec.achievedKey];
+      if (!target || !achieved) {
+        return undefined;
+      }
+      return this.decorateTargetPair({
+        key: spec.key,
+        label: spec.label,
+        target: target.value || 0,
+        achieved: achieved.value || 0,
+        displayUnits: target.displayUnits,
+        isCurrency: target.isCurrency
+      });
+    }).filter((pair) => pair !== undefined);
   }
 
-  buildProgressCard(targetCard, actualCard) {
-    const targetNum = this.parseAmount(targetCard.displayValue);
-    const actualNum = this.parseAmount(actualCard.displayValue);
-    const achieved = targetNum > 0 ? Math.round((actualNum / targetNum) * 100) : 0;
-    const behind = targetNum > 0 && actualNum < targetNum;
-    const shortPct = targetNum > 0 ? Math.round(((targetNum - actualNum) / targetNum) * 100) : 0;
-    const tone = behind ? "down" : "up";
+  withTone(tile) {
     return {
-      id: "pair-" + (actualCard.id || "amount"),
-      hasTarget: true,
-      title: this.reportLabel(actualCard),
-      titleClass: "title " + tone,
-      heroClass: "hero " + tone,
-      badgeClass: "badge " + tone,
-      barClass: "bar " + tone,
-      percentLabel: behind ? "~" + Math.abs(shortPct) + "%" : achieved + "%",
-      actualDisplay: actualCard.displayValue || "—",
-      targetDisplay: targetCard.displayValue || "—",
-      gapLabel: this.gapLabel(targetNum, actualNum, targetCard.displayValue, actualCard.displayValue),
-      barStyle: "width:" + Math.min(100, Math.max(4, achieved)) + "%",
-      viewReportId: actualCard.reportId,
-      warning: [targetCard.warning, actualCard.warning].filter(Boolean).join(" · ")
+      ...tile,
+      tone: (tile.value || 0) > 0 ? TONE_POSITIVE : TONE_NEGATIVE
     };
   }
 
-  buildKpiCard(card) {
-    const actualNum = this.parseAmount(card.displayValue);
-    const tone = actualNum === 0 ? "down" : "up";
+  orderFunnel(rows) {
+    return FUNNEL_ORDER.map((label) =>
+      rows.find((row) => row.label === label)
+    ).filter((row) => row !== undefined);
+  }
+
+  withBarWidths(rows) {
+    let maxVal = 1;
+    rows.forEach((row) => {
+      const value = Number(row.value) || 0;
+      if (value > maxVal) {
+        maxVal = value;
+      }
+    });
+    return rows.map((row) => {
+      const value = Number(row.value) || 0;
+      const pct = Math.max(8, Math.round((value / maxVal) * 100));
+      return { ...row, barStyle: `width:${pct}%` };
+    });
+  }
+
+  decorateTargetPair(pair) {
+    const { target, achieved } = pair;
+    const gap = achieved - target;
+    const hasTarget = target > 0;
     return {
-      id: card.id || this.reportLabel(card),
-      hasTarget: false,
-      title: this.reportLabel(card),
-      titleClass: "title " + tone,
-      heroClass: "hero " + tone,
-      actualDisplay: card.displayValue || "—",
-      gapLabel: "",
-      viewReportId: card.reportId,
-      warning: card.warning
+      ...pair,
+      achievedDisplay: this.formatValue({ ...pair, value: achieved }),
+      targetDisplay: this.formatValue({ ...pair, value: target }),
+      variancePct: hasTarget ? (gap / target) * 100 : null,
+      varianceDisplay: this.varianceLabel(pair, gap, hasTarget),
+      progressPct: hasTarget
+        ? Math.max(0, Math.min((achieved / target) * 100, 100))
+        : 0
     };
   }
 
-  gapLabel(targetNum, actualNum, targetDisplay, actualDisplay) {
-    const gap = targetNum - actualNum;
-    if (!targetNum) {
-      return "";
+  varianceLabel(pair, gap, hasTarget) {
+    if (!hasTarget) {
+      return "No target set";
     }
-    const money = String(targetDisplay).includes("₹") || String(actualDisplay).includes("₹");
-    const suffix = this.unitSuffix(targetDisplay) || this.unitSuffix(actualDisplay);
-    const abs = Math.abs(gap);
-    const n = Number.isInteger(abs) ? String(abs) : abs.toFixed(1);
-    const value = (money ? "₹" : "") + n + suffix;
-    if (gap > 0) {
-      return value + " short";
+    if (gap === 0) {
+      return "On target";
     }
-    if (gap < 0) {
-      return value + " ahead";
-    }
-    return "On target";
+    const magnitude = this.formatValue({ ...pair, value: Math.abs(gap) });
+    return gap > 0 ? `${magnitude} ahead` : `${magnitude} short`;
   }
 
-  unitSuffix(displayValue) {
-    const match = String(displayValue || "").match(/L|Cr/i);
-    return match ? match[0] : "";
+  decorateTile(tile) {
+    return {
+      ...tile,
+      displayValue: this.formatValue(tile)
+    };
   }
 
-  parseAmount(displayValue) {
-    if (!displayValue) {
-      return 0;
+  formatValue(tile) {
+    const { value, displayUnits, isCurrency } = tile;
+    const symbol = isCurrency ? "₹" : "";
+    const num = Number(value) || 0;
+
+    if (displayUnits === "Integer") {
+      return symbol + num.toLocaleString("en-IN");
     }
-    const cleaned = String(displayValue).replace(/[^0-9.-]/g, "");
-    const num = Number(cleaned);
-    return Number.isNaN(num) ? 0 : num;
+
+    const abs = Math.abs(num);
+    if (abs >= 10000000) {
+      return `${symbol}${this.trim(num / 10000000)}Cr`;
+    }
+    if (abs >= 100000) {
+      return `${symbol}${this.trim(num / 100000)}L`;
+    }
+    if (abs >= 1000) {
+      return `${symbol}${this.trim(num / 1000)}k`;
+    }
+    return symbol + num.toLocaleString("en-IN");
+  }
+
+  trim(num) {
+    return Number(num.toFixed(1)).toString();
+  }
+
+  formatAsOf(iso) {
+    const date = new Date(iso);
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
+  handleRangeChange(event) {
+    this.selectedRange = event.detail.value;
+    this.isLoading = true;
   }
 
   async handleRefresh() {
-    if (this.isRefreshing) {
-      return;
-    }
-    this.isRefreshing = true;
+    this.isLoading = true;
     try {
       if (this.wiredResult) {
         await refreshApex(this.wiredResult);
       }
-      const fresh = await getTeamReports();
-      this.teamReports = fresh || [];
+      const fresh = await getTeamReports({ dateRange: this.selectedRange });
+      this.applyPayload(fresh || []);
       this.error = undefined;
-    } catch (e) {
-      this.error = e;
+    } catch (err) {
+      this.error = err;
     } finally {
-      this.asOfMs = Date.now();
-      this.isRefreshing = false;
+      this.isLoading = false;
     }
   }
 
-  handleViewReport(event) {
-    const reportId = event.currentTarget.dataset.reportId;
-    if (!reportId) {
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Report not found",
-          message: "Check TeamReportsController for this report Id.",
-          variant: "warning"
-        })
-      );
+  handleTileTap(event) {
+    const { key } = event.detail;
+    const pair = TARGET_PAIRS.find((spec) => spec.key === key);
+    const lookupKey = pair ? pair.achievedKey : key;
+    const tile = this.reportIdsByKey[lookupKey];
+    if (!tile || !tile.reportId) {
+      this.showUnavailable();
       return;
     }
+    this.navigateToRecord(tile.reportId);
+  }
+
+  handleChartTap() {
+    if (!this.conversionReportId) {
+      this.showUnavailable();
+      return;
+    }
+    this.navigateToRecord(this.conversionReportId);
+  }
+
+  showUnavailable() {
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Report unavailable",
+        message: "You do not have access to the report behind this tile.",
+        variant: "warning"
+      })
+    );
+  }
+
+  navigateToRecord(recordId) {
     this[NavigationMixin.Navigate]({
       type: "standard__recordPage",
-      attributes: {
-        recordId: reportId,
-        objectApiName: "Report",
-        actionName: "view"
-      }
-    });
-  }
-
-  handleFunnelStage(event) {
-    const reportId = event.currentTarget.dataset.reportId;
-    const value = event.currentTarget.dataset.value;
-    if (!reportId) {
-      return;
-    }
-    if (!value) {
-      this.handleViewReport(event);
-      return;
-    }
-    this[NavigationMixin.Navigate]({
-      type: "standard__webPage",
-      attributes: {
-        url: `/lightning/r/Report/${reportId}/view?fv0=${encodeURIComponent(value)}`
-      }
+      attributes: { recordId, actionName: "view" }
     });
   }
 }

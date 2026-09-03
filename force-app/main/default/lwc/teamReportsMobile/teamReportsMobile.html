@@ -1,146 +1,87 @@
 <template>
-  <div class={dashClass}>
-    <template if:true={hasError}>
-      <p class="error-banner">{errorMessage}</p>
-    </template>
-
-    <div class="dash-head">
-      <div>
-        <h1 class="dash-title">My Dashboard</h1>
-        <p class="dash-asof">{asOfLabel}</p>
+  <div class="dash">
+    <div class="dash__header">
+      <div class="dash__heading">
+        <p class="dash__eyebrow">Dashboard</p>
+        <h1 class="dash__title">My Dashboard</h1>
+        <p class="dash__scope">{scopeLabel}</p>
+        <p if:true={asOf} class="dash__asof">As of {asOf}</p>
       </div>
-      <button
-        class={refreshClass}
+      <lightning-button-icon
+        class="dash__refresh"
+        icon-name="utility:refresh"
+        variant="border-filled"
+        alternative-text="Refresh dashboard"
         title="Refresh"
-        disabled={isRefreshing}
         onclick={handleRefresh}
-      >
-        ↻
-      </button>
+      ></lightning-button-icon>
     </div>
 
-    <template if:true={hasNoTeamReports}>
-      <p class="empty-state">No team reports to show.</p>
+    <div class="dash__filter">
+      <lightning-combobox
+        label="Edit / Conversion Date"
+        value={selectedRange}
+        options={dateRangeOptions}
+        onchange={handleRangeChange}
+      ></lightning-combobox>
+    </div>
+
+    <template if:true={isLoading}>
+      <div class="dash__spinner">
+        <lightning-spinner
+          alternative-text="Loading dashboard"
+          size="small"
+        ></lightning-spinner>
+      </div>
     </template>
 
-    <div class="scroll-cap reports">
-      <div class={teamReportsInnerClass}>
-        <template for:each={progressCards} for:item="card">
-          <article key={card.id} class="card">
-            <div class="card-top">
-              <p class={card.titleClass}>{card.title}</p>
-              <template if:true={card.hasTarget}>
-                <span class={card.badgeClass}>{card.percentLabel}</span>
-              </template>
-            </div>
-            <template if:true={card.warning}>
-              <p class="lead-remark">{card.warning}</p>
-            </template>
-            <p class="hero-line">
-              <span class={card.heroClass}>{card.actualDisplay}</span>
-              <template if:true={card.hasTarget}>
-                <span class="of-target"> of {card.targetDisplay} target</span>
-              </template>
-            </p>
-            <template if:true={card.hasTarget}>
-              <div class="track">
-                <span class={card.barClass} style={card.barStyle}></span>
-              </div>
-            </template>
-            <div class="card-foot">
-              <span class="gap">{card.gapLabel}</span>
-              <button
-                class="view-link"
-                data-report-id={card.viewReportId}
-                onclick={handleViewReport}
-              >
-                View Report ›
-              </button>
-            </div>
-          </article>
-        </template>
+    <template if:false={isLoading}>
+      <p if:true={hasError} class="dash__error">
+        Unable to load your dashboard. Please contact your administrator.
+      </p>
 
-        <template for:each={fullKpiCards} for:item="card">
-          <article key={card.id} class="card">
-            <p class={card.titleClass}>{card.title}</p>
-            <template if:true={card.warning}>
-              <p class="lead-remark">{card.warning}</p>
-            </template>
-            <p class="hero-line">
-              <span class={card.heroClass}>{card.actualDisplay}</span>
-            </p>
-            <div class="card-foot">
-              <span class="gap"></span>
-              <button
-                class="view-link"
-                data-report-id={card.viewReportId}
-                onclick={handleViewReport}
-              >
-                View Report ›
-              </button>
-            </div>
-          </article>
-        </template>
+      <template if:true={hasProblems}>
+        <div class="dash__notice">
+          <template for:each={problems} for:item="problem">
+            <p key={problem.id} class="dash__problem">{problem.text}</p>
+          </template>
+        </div>
+      </template>
 
-        <template if:true={hasSplitRow}>
-          <div class="split">
-            <template for:each={splitCards} for:item="card">
-              <article key={card.id} class="card split-card">
-                <p class={card.titleClass}>{card.title}</p>
-                <template if:true={card.warning}>
-                  <p class="lead-remark">{card.warning}</p>
-                </template>
-                <p class={card.heroClass}>{card.actualDisplay}</p>
-                <button
-                  class="view-link"
-                  data-report-id={card.viewReportId}
-                  onclick={handleViewReport}
-                >
-                  View Report ›
-                </button>
-              </article>
-            </template>
-          </div>
-        </template>
-
-        <template if:true={conversionCard}>
-          <article class="card">
-            <div class="card-top">
-              <p class="title">{conversionCard.title}</p>
-              <button
-                class="view-link"
-                data-report-id={conversionCard.reportId}
-                onclick={handleViewReport}
-              >
-                View Report ›
-              </button>
-            </div>
-            <template if:true={conversionCard.warning}>
-              <p class="lead-remark">{conversionCard.warning}</p>
-            </template>
-            <div class="funnel">
-              <template for:each={conversionCard.stages} for:item="stage">
-                <button
-                  key={stage.key}
-                  class="funnel-row"
-                  data-report-id={conversionCard.reportId}
-                  data-value={stage.label}
-                  onclick={handleFunnelStage}
-                >
-                  <span class="funnel-label">{stage.label}</span>
-                  <span class="funnel-track">
-                    <span class="funnel-fill" style={stage.barStyle}></span>
-                  </span>
-                  <span class="funnel-n">{stage.displayValue}</span>
-                </button>
-              </template>
-            </div>
-          </article>
+      <div class="dash__stack">
+        <template for:each={targetPairs} for:item="pair">
+          <c-mobile-target-card
+            key={pair.key}
+            label={pair.label}
+            achieved-display={pair.achievedDisplay}
+            target-display={pair.targetDisplay}
+            variance-pct={pair.variancePct}
+            variance-display={pair.varianceDisplay}
+            progress-pct={pair.progressPct}
+            tile-key={pair.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-target-card>
         </template>
       </div>
-    </div>
-    <template if:true={hasMoreTeamReports}>
-      <p class="more-hint">{moreTeamReportsLabel}</p>
+
+      <div class="dash__grid">
+        <template for:each={tiles} for:item="tile">
+          <c-mobile-kpi-tile
+            key={tile.key}
+            label={tile.label}
+            display-value={tile.displayValue}
+            tone={tile.tone}
+            tile-key={tile.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-kpi-tile>
+        </template>
+      </div>
+
+      <c-mobile-conversion-chart
+        title={conversionTitle}
+        rows={conversion}
+        oncharttap={handleChartTap}
+      ></c-mobile-conversion-chart>
     </template>
   </div>
 </template>

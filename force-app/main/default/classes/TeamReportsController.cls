@@ -43,6 +43,8 @@ public with sharing class TeamReportsController {
         @AuraEnabled public String kind;
         @AuraEnabled public Boolean isFunnel;
         @AuraEnabled public String displayValue;
+        @AuraEnabled public Decimal metricValue;
+        @AuraEnabled public Boolean isCurrency;
         @AuraEnabled public String colorClass;
         @AuraEnabled public String sparkPoints;
         @AuraEnabled public List<FunnelStage> stages;
@@ -100,9 +102,19 @@ public with sharing class TeamReportsController {
         };
     }
 
+    /**
+     * @param dateRange Edit/Conversion Date token from the LWC (THIS_MONTH, LAST_N_DAYS:7, …).
+     *   Reports still run as saved in the org. Applying this token to ReportMetadata is a
+     *   follow-up — the Salesforce mobile app also cannot pass the range through to the
+     *   opened report (blank screen with dynamic URL params).
+     */
     @AuraEnabled(cacheable=true)
-    public static List<TeamReportCard> getTeamReports() {
+    public static List<TeamReportCard> getTeamReports(String dateRange) {
         List<ReportSpec> specs = reportSpecs();
+        // dateRange is reserved for report-filter override; saved report filters still apply.
+        if (dateRange == null) {
+            dateRange = 'THIS_MONTH';
+        }
         List<TeamReportCard> cards = new List<TeamReportCard>();
         if (!Schema.sObjectType.Report.isAccessible()) {
             return cards;
@@ -137,6 +149,8 @@ public with sharing class TeamReportsController {
             card.stages = new List<FunnelStage>();
             card.sparkPoints = '0,20 20,16 40,18 60,14 80,12';
             card.displayValue = '—';
+            card.metricValue = 0;
+            card.isCurrency = spec.valueKind == 'AMOUNT';
             if (match == null) {
                 card.id = 'missing-' + spec.developerName;
                 card.warning = 'Report not found: ' + spec.name;
@@ -188,6 +202,9 @@ public with sharing class TeamReportsController {
             return;
         }
         Decimal total = grandTotal(results);
+        card.metricValue = total == null ? 0 : total;
+        card.isCurrency =
+            specIsCurrency(card.name) || (card.isCurrency == true);
         card.displayValue = formatNumber(total, card.name);
         List<FunnelStage> down = groupingStages(results);
         if (!down.isEmpty()) {
@@ -270,18 +287,21 @@ public with sharing class TeamReportsController {
         return String.join(pts, ' ');
     }
 
+    private static Boolean specIsCurrency(String name) {
+        String lower = name == null ? '' : name.toLowerCase();
+        return lower.contains('payment') ||
+            lower.contains('outstanding') ||
+            lower.contains('finalization') ||
+            lower.contains('collection') ||
+            lower.contains('target');
+    }
+
     private static String formatNumber(Decimal val, String name) {
         if (val == null) {
             return '0';
         }
-        String lower = name == null ? '' : name.toLowerCase();
-        Boolean money =
-            lower.contains('payment') ||
-            lower.contains('outstanding') ||
-            lower.contains('finalization') ||
-            lower.contains('collection');
         String core = formatPlain(val);
-        return money ? ('₹' + core) : core;
+        return specIsCurrency(name) ? ('₹' + core) : core;
     }
 
     private static String formatPlain(Decimal val) {
