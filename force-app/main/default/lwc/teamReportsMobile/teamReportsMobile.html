@@ -1,5 +1,5 @@
 <template>
-  <div class="dash">
+  <div class={dashClass}>
     <template if:true={hasError}>
       <p class="error-banner">{errorMessage}</p>
     </template>
@@ -7,10 +7,14 @@
     <div class="dash-head">
       <div>
         <h1 class="dash-title">My Dashboard</h1>
-        <p class="dash-sub">My Team</p>
         <p class="dash-asof">{asOfLabel}</p>
       </div>
-      <button class="dash-refresh" title="Refresh" onclick={handleRefresh}>
+      <button
+        class={refreshClass}
+        title="Refresh"
+        disabled={isRefreshing}
+        onclick={handleRefresh}
+      >
         ↻
       </button>
     </div>

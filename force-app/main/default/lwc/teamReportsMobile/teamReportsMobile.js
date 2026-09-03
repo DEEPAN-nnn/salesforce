@@ -11,6 +11,8 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
   teamReportsReady = false;
   error;
   wiredResult;
+  isRefreshing = false;
+  asOfMs = Date.now();
 
   @wire(getTeamReports)
   wiredTeamReports(result) {
@@ -20,6 +22,9 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     if (data) {
       this.teamReports = data;
       this.error = undefined;
+      if (!this.isRefreshing) {
+        this.asOfMs = Date.now();
+      }
     } else if (error) {
       this.teamReports = [];
       this.error = error;
@@ -35,7 +40,7 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
   }
 
   get asOfLabel() {
-    const stamp = new Date().toLocaleString("en-GB", {
+    const stamp = new Date(this.asOfMs).toLocaleString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -44,6 +49,14 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
       hour12: true
     });
     return "As of " + stamp;
+  }
+
+  get refreshClass() {
+    return this.isRefreshing ? "dash-refresh is-loading" : "dash-refresh";
+  }
+
+  get dashClass() {
+    return this.isRefreshing ? "dash is-loading" : "dash";
   }
 
   get metrics() {
@@ -227,9 +240,23 @@ export default class TeamReportsMobile extends NavigationMixin(LightningElement)
     return Number.isNaN(num) ? 0 : num;
   }
 
-  handleRefresh() {
-    if (this.wiredResult) {
-      refreshApex(this.wiredResult);
+  async handleRefresh() {
+    if (this.isRefreshing) {
+      return;
+    }
+    this.isRefreshing = true;
+    try {
+      if (this.wiredResult) {
+        await refreshApex(this.wiredResult);
+      }
+      const fresh = await getTeamReports();
+      this.teamReports = fresh || [];
+      this.error = undefined;
+    } catch (e) {
+      this.error = e;
+    } finally {
+      this.asOfMs = Date.now();
+      this.isRefreshing = false;
     }
   }
 
