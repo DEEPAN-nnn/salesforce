@@ -87,18 +87,6 @@
   margin: 0;
 }
 
-.dash__scope {
-  display: inline-block;
-  font-size: var(--fd-size-label);
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--fd-accent);
-  background: var(--fd-accent-ring);
-  border-radius: 999px;
-  padding: 0.12rem 0.55rem;
-  margin: 0.35rem 0 0;
-}
-
 .dash__asof {
   font-size: var(--fd-size-label);
   color: var(--fd-ink-3);

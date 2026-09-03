@@ -98,10 +98,6 @@ export default class TeamReportsMobile extends NavigationMixin(
     return DATE_RANGE_OPTIONS;
   }
 
-  get scopeLabel() {
-    return "My Team";
-  }
-
   get hasError() {
     return !!this.error;
   }
