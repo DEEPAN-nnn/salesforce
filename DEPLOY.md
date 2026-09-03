@@ -27,6 +27,19 @@ Looked up by **DeveloperName**, then **Id**, then **Name**.
 - **View Report** → that Salesforce report
 - **Funnel step or label** → same report with `fv0=<stage name>` (same idea as dashboard drill). If the report has no filter slot, add a filter on the grouping field in Report Builder so `fv0` maps.
 
+## Sample data to prove the reports
+
+The dashboard does **not** query `Enquiry__c` itself. It runs the five saved reports. To see which **object + fields + filters** each report uses, deploy `TeamReportSampleData` and run:
+
+```apex
+System.debug(TeamReportSampleData.inspect());
+System.debug(TeamReportSampleData.createSamples());
+// later
+System.debug(TeamReportSampleData.deleteSamples());
+```
+
+`inspect()` prints source object, groupings, columns, and saved filters. `createSamples()` inserts `SAMPLE_TEAM_REPORT_*` rows on that object (conversion = one row per stage: Shown Interest → Token).
+
 ## Section scroll
 
 Team Reports uses the same `scroll-cap roomy` height as Follow-ups. `VISIBLE_CAP_REPORTS = 3` — extra cards stay behind the fade and scroll inside the section.

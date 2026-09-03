@@ -5,6 +5,8 @@
         <members>FairdealHomeMobileControllerTest</members>
         <members>TeamReportsController</members>
         <members>TeamReportsControllerTest</members>
+        <members>TeamReportSampleData</members>
+        <members>TeamReportSampleDataTest</members>
         <name>ApexClass</name>
     </types>
     <types>
