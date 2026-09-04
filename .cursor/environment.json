@@ -1,0 +1,17 @@
+{
+  "name": "Fairdeal Salesforce",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "user": "ubuntu",
+  "install": "bash scripts/cloud-agent-install.sh",
+  "start": "bash scripts/cloud-agent-start.sh",
+  "terminals": [
+    {
+      "name": "preview",
+      "command": "python3 -m http.server 8080 --bind 0.0.0.0 --directory preview"
+    }
+  ],
+  "ports": [8080]
+}
