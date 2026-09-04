@@ -105,15 +105,14 @@ public with sharing class TeamReportsController {
 
     /**
      * @param dateRange Edit/Conversion Date token from the LWC (THIS_MONTH, LAST_N_DAYS:7, …).
-     *   Reports still run as saved in the org. Applying this token to ReportMetadata is a
-     *   follow-up — the Salesforce mobile app also cannot pass the range through to the
-     *   opened report (blank screen with dynamic URL params).
+     *   Applied as a StandardDateFilter override on each run. Saved report filters stay
+     *   otherwise unchanged. Opening the report from a tile still uses the org definition
+     *   (mobile cannot pass this range through the record-page URL).
      */
     @AuraEnabled(cacheable=true)
     public static List<TeamReportCard> getTeamReports(String dateRange) {
         List<ReportSpec> specs = reportSpecs();
-        // dateRange is reserved for report-filter override; saved report filters still apply.
-        if (dateRange == null) {
+        if (String.isBlank(dateRange)) {
             dateRange = 'THIS_MONTH';
         }
         List<TeamReportCard> cards = new List<TeamReportCard>();
@@ -166,7 +165,7 @@ public with sharing class TeamReportsController {
                 card.displayName = match.Name;
             }
             try {
-                fillFromReport(card, match.Id, spec.kind);
+                fillFromReport(card, match.Id, spec.kind, dateRange);
             } catch (Exception e) {
                 card.warning = e.getMessage();
             }
@@ -213,8 +212,85 @@ public with sharing class TeamReportsController {
         return null;
     }
 
-    private static void fillFromReport(TeamReportCard card, Id reportId, String kind) {
-        Reports.ReportResults results = Reports.ReportManager.runReport(reportId, false);
+    @TestVisible
+    class DateRangeOverride {
+        public String durationValue;
+        public Date startDate;
+        public Date endDate;
+        public Boolean isCustom;
+    }
+
+    /**
+     * Standard report date filters only accept LAST_N_DAYS for 7 / 30 / 60 / 90 / 120.
+     * Last 3 / 15 days from the combobox must be a CUSTOM start/end window.
+     */
+    @TestVisible
+    static DateRangeOverride parseDateRange(String dateRange) {
+        DateRangeOverride parsed = new DateRangeOverride();
+        parsed.isCustom = false;
+        if (String.isBlank(dateRange)) {
+            dateRange = 'THIS_MONTH';
+        }
+        Set<String> named = new Set<String>{
+            'TODAY',
+            'YESTERDAY',
+            'THIS_WEEK',
+            'LAST_WEEK',
+            'THIS_MONTH',
+            'LAST_MONTH'
+        };
+        Set<String> standardLastN = new Set<String>{
+            'LAST_N_DAYS:7',
+            'LAST_N_DAYS:30',
+            'LAST_N_DAYS:60',
+            'LAST_N_DAYS:90',
+            'LAST_N_DAYS:120'
+        };
+        if (named.contains(dateRange) || standardLastN.contains(dateRange)) {
+            parsed.durationValue = dateRange;
+            return parsed;
+        }
+        if (dateRange.startsWith('LAST_N_DAYS:')) {
+            Integer n = Integer.valueOf(dateRange.substringAfter('LAST_N_DAYS:'));
+            parsed.durationValue = 'CUSTOM';
+            parsed.isCustom = true;
+            parsed.endDate = Date.today();
+            parsed.startDate = Date.today().addDays(-(n - 1));
+            return parsed;
+        }
+        parsed.durationValue = 'THIS_MONTH';
+        return parsed;
+    }
+
+    private static Boolean applyDateRange(Reports.ReportMetadata metadata, String dateRange) {
+        if (metadata == null) {
+            return false;
+        }
+        Reports.StandardDateFilter sdf = metadata.getStandardDateFilter();
+        if (sdf == null || String.isBlank(sdf.getColumn())) {
+            return false;
+        }
+        DateRangeOverride parsed = parseDateRange(dateRange);
+        sdf.setDurationValue(parsed.durationValue);
+        if (parsed.isCustom == true) {
+            sdf.setStartDate(parsed.startDate);
+            sdf.setEndDate(parsed.endDate);
+        }
+        metadata.setStandardDateFilter(sdf);
+        return true;
+    }
+
+    private static Reports.ReportResults runWithDateRange(Id reportId, String dateRange) {
+        Reports.ReportDescribeResult describe = Reports.ReportManager.describeReport(reportId);
+        Reports.ReportMetadata metadata = describe.getReportMetadata();
+        if (applyDateRange(metadata, dateRange)) {
+            return Reports.ReportManager.runReport(reportId, metadata, false);
+        }
+        return Reports.ReportManager.runReport(reportId, false);
+    }
+
+    private static void fillFromReport(TeamReportCard card, Id reportId, String kind, String dateRange) {
+        Reports.ReportResults results = runWithDateRange(reportId, dateRange);
         if (kind == 'FUNNEL') {
             card.stages = groupingStages(results);
             if (!card.stages.isEmpty()) {
