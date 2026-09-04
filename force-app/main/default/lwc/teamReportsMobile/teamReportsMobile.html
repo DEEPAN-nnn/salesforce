@@ -1,0 +1,86 @@
+<template>
+  <div class="dash">
+    <div class="dash__header">
+      <div class="dash__heading">
+        <p class="dash__eyebrow">Dashboard</p>
+        <h1 class="dash__title">My Dashboard</h1>
+        <p if:true={asOf} class="dash__asof">As of {asOf}</p>
+      </div>
+      <lightning-button-icon
+        class="dash__refresh"
+        icon-name="utility:refresh"
+        variant="border-filled"
+        alternative-text="Refresh dashboard"
+        title="Refresh"
+        onclick={handleRefresh}
+      ></lightning-button-icon>
+    </div>
+
+    <div class="dash__filter">
+      <lightning-combobox
+        label="Edit / Conversion Date"
+        value={selectedRange}
+        options={dateRangeOptions}
+        onchange={handleRangeChange}
+      ></lightning-combobox>
+    </div>
+
+    <template if:true={isLoading}>
+      <div class="dash__spinner">
+        <lightning-spinner
+          alternative-text="Loading dashboard"
+          size="small"
+        ></lightning-spinner>
+      </div>
+    </template>
+
+    <template if:false={isLoading}>
+      <p if:true={hasError} class="dash__error">
+        Unable to load your dashboard. Please contact your administrator.
+      </p>
+
+      <template if:true={hasProblems}>
+        <div class="dash__notice">
+          <template for:each={problems} for:item="problem">
+            <p key={problem.id} class="dash__problem">{problem.text}</p>
+          </template>
+        </div>
+      </template>
+
+      <div class="dash__stack">
+        <template for:each={targetPairs} for:item="pair">
+          <c-mobile-target-card
+            key={pair.key}
+            label={pair.label}
+            achieved-display={pair.achievedDisplay}
+            target-display={pair.targetDisplay}
+            variance-pct={pair.variancePct}
+            variance-display={pair.varianceDisplay}
+            progress-pct={pair.progressPct}
+            tile-key={pair.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-target-card>
+        </template>
+      </div>
+
+      <div class="dash__grid">
+        <template for:each={tiles} for:item="tile">
+          <c-mobile-kpi-tile
+            key={tile.key}
+            label={tile.label}
+            display-value={tile.displayValue}
+            tone={tile.tone}
+            tile-key={tile.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-kpi-tile>
+        </template>
+      </div>
+
+      <c-mobile-conversion-chart
+        title={conversionTitle}
+        rows={conversion}
+        oncharttap={handleChartTap}
+      ></c-mobile-conversion-chart>
+    </template>
+  </div>
+</template>

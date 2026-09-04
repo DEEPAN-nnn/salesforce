@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>FairdealHomeMobileController</members>
+        <members>FairdealHomeMobileControllerTest</members>
+        <members>TeamReportsController</members>
+        <members>TeamReportsControllerTest</members>
+        <members>TeamReportSampleData</members>
+        <members>TeamReportSampleDataTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>fairdealHomeMobile</members>
+        <members>mobileHomeGreeting</members>
+        <members>mobileMyDayScreen</members>
+        <members>teamReportsMobile</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>Fairdeal_Mobile_Home</members>
+        <name>FlexiPage</name>
+    </types>
+    <version>62.0</version>
+</Package>

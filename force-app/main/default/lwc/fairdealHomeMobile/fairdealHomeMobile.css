@@ -1,0 +1,303 @@
+.home-root {
+    background: #f3f3f3;
+    min-height: 100%;
+    padding: 12px 12px 24px;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    color: #181818;
+}
+
+.loading {
+    min-height: 120px;
+    position: relative;
+}
+
+.banner {
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.banner.warn {
+    background: #fbf3e0;
+    color: #8c4b02;
+}
+
+.banner.error {
+    background: #fad4d4;
+    color: #8a0f0f;
+}
+
+.greeting {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #032d60;
+    line-height: 1.25;
+}
+
+.date-label {
+    margin: 2px 0 14px;
+    color: #706e6b;
+    font-size: 12px;
+}
+
+.section {
+    margin-bottom: 16px;
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.section-title {
+    margin: 0 0 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: #0b827c;
+}
+
+.count-pill,
+.side-count {
+    color: #706e6b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.muted,
+.remarks,
+.subtitle,
+.empty,
+.sort-hint {
+    margin: 0;
+    font-size: 12px;
+    color: #706e6b;
+}
+
+.remarks {
+    margin: 4px 0 10px;
+}
+
+.subtitle {
+    margin-top: 2px;
+}
+
+.empty {
+    padding: 8px 0 4px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.follow-card {
+    display: flex;
+}
+
+.card-accent {
+    width: 4px;
+    background: #c23934;
+    flex: 0 0 4px;
+}
+
+.card-body {
+    padding: 10px 10px 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.name-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #0b5cab;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    text-decoration: underline;
+}
+
+.overdue-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.overdue-badge {
+    background: #fce4e4;
+    color: #c23934;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.overdue-days {
+    font-size: 11px;
+    color: #706e6b;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: 0;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 14px;
+    min-height: 32px;
+}
+
+.btn-call {
+    background: #0176d3;
+}
+
+.btn-wa {
+    background: #2e844a;
+}
+
+.btn-update {
+    background: #0b827c;
+}
+
+.btn-timeline {
+    background: #5859b4;
+}
+
+.prospect-kicker {
+    margin: 0 0 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #dd7a01;
+}
+
+.prospect-card {
+    border: 1px solid #fe9339;
+}
+
+.stage-badge {
+    background: #eaf6ed;
+    color: #2e844a;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    border-radius: 4px;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.pipeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 4px;
+    margin: 8px 0 10px;
+}
+
+.pipe {
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 4px;
+    padding: 6px 2px;
+    line-height: 1.2;
+}
+
+.pipe-on {
+    background: #2e844a;
+    color: #fff;
+}
+
+.pipe-off {
+    background: #f3f3f3;
+    color: #706e6b;
+}
+
+.leads-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 0 0 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.tab {
+    flex: 1;
+    background: none;
+    border: 0;
+    padding: 12px 8px;
+    font-weight: 700;
+    color: #444;
+}
+
+.tab-active {
+    color: #0176d3;
+    box-shadow: inset 0 -3px 0 #0176d3;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 10px 0;
+}
+
+.chip {
+    border: 1px solid #dddbda;
+    background: #fff;
+    border-radius: 16px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #444;
+}
+
+.chip-on {
+    background: #0176d3;
+    border-color: #0176d3;
+    color: #fff;
+}
+
+.sort-hint {
+    padding: 8px 10px 4px;
+}
+
+.lead-card {
+    margin: 8px 10px 0;
+    padding: 10px;
+    box-shadow: none;
+    border: 1px solid #eeedeb;
+}
