@@ -11,8 +11,10 @@ import getTeamReports from "@salesforce/apex/TeamReportsController.getTeamReport
  * mobileMyDashboard pattern: header + date range + target cards + KPI grid +
  * conversion chart.
  *
- * Data still comes from TeamReportsController (the five org reports). There is
- * no Token Target report in this org, so Token is a standalone count tile.
+ * Data still comes from TeamReportsController (the five org reports).
+ * selectedRange is passed into Apex and applied as a StandardDateFilter
+ * override. There is no Token Target report in this org, so Token is a
+ * standalone count tile.
  * There is no team roster payload yet, so that block is omitted.
  *
  * Presentation children (c-mobile-target-card, c-mobile-kpi-tile,
