@@ -106,8 +106,9 @@ public with sharing class ActivityTrackingService {
     }
 
     private static String buildName(SObject activity) {
+        String objectLabel = activity.getSObjectType() == Event.SObjectType ? 'Event' : 'Task';
         String subject = (String) activity.get('Subject');
-        String name = String.isBlank(subject) ? ('Activity ' + activity.Id) : subject.trim();
+        String name = objectLabel + ' - ' + (String.isBlank(subject) ? String.valueOf(activity.Id) : subject.trim());
         if (name.length() > NAME_MAX_LENGTH) {
             name = name.substring(0, NAME_MAX_LENGTH);
         }

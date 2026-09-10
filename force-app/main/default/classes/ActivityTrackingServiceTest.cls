@@ -24,7 +24,7 @@ private class ActivityTrackingServiceTest {
         ];
         System.assertEquals(1, trackers.size(), 'One tracker should be created for the Task');
         System.assertEquals(enquiry.Id, trackers[0].Sales_Funnel__c);
-        System.assertEquals('Follow up call', trackers[0].Name);
+        System.assertEquals('Task - Follow up call', trackers[0].Name);
     }
 
     @IsTest
@@ -45,12 +45,13 @@ private class ActivityTrackingServiceTest {
         Test.stopTest();
 
         List<ActivityTracking__c> trackers = [
-            SELECT Activity_Event_Task__c, Sales_Funnel__c
+            SELECT Activity_Event_Task__c, Sales_Funnel__c, Name
             FROM ActivityTracking__c
             WHERE Activity_Event_Task__c = :String.valueOf(eventRecord.Id)
         ];
         System.assertEquals(1, trackers.size(), 'One tracker should be created for the Event');
         System.assertEquals(enquiry.Id, trackers[0].Sales_Funnel__c);
+        System.assertEquals('Event - Site visit', trackers[0].Name);
     }
 
     @IsTest
