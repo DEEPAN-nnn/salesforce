@@ -1,9 +1,8 @@
 /**
- * Creates one ActivityTracking__c row per Task or Event when WhatId points
- * at an Enquiry__c (Sales Funnel) whose Record Type name is Enquiry.
+ * Creates one ActivityTracking__c row per Task or Event when WhatId
+ * points at an Enquiry__c (Sales Funnel) record.
  */
 public with sharing class ActivityTrackingService {
-    private static final String ENQUIRY_RECORD_TYPE = 'Enquiry';
     private static final Integer NAME_MAX_LENGTH = 80;
 
     public static void createFromActivities(List<SObject> activities) {
@@ -11,32 +10,12 @@ public with sharing class ActivityTrackingService {
             return;
         }
 
-        List<SObject> enquiryActivities = new List<SObject>();
-        Set<Id> enquiryIds = new Set<Id>();
+        Set<String> activityIds = new Set<String>();
+        List<SObject> toTrack = new List<SObject>();
 
         for (SObject activity : activities) {
             Id whatId = (Id) activity.get('WhatId');
             if (whatId == null || whatId.getSObjectType() != Enquiry__c.SObjectType) {
-                continue;
-            }
-            enquiryActivities.add(activity);
-            enquiryIds.add(whatId);
-        }
-
-        if (enquiryActivities.isEmpty()) {
-            return;
-        }
-
-        Set<Id> validEnquiryIds = getEnquiryRecordTypeIds(enquiryIds);
-        if (validEnquiryIds.isEmpty()) {
-            return;
-        }
-
-        Set<String> activityIds = new Set<String>();
-        List<SObject> toTrack = new List<SObject>();
-        for (SObject activity : enquiryActivities) {
-            Id whatId = (Id) activity.get('WhatId');
-            if (!validEnquiryIds.contains(whatId)) {
                 continue;
             }
             toTrack.add(activity);
@@ -76,33 +55,6 @@ public with sharing class ActivityTrackingService {
         if (!trackers.isEmpty()) {
             insert trackers;
         }
-    }
-
-    private static Set<Id> getEnquiryRecordTypeIds(Set<Id> enquiryIds) {
-        Set<Id> validIds = new Set<Id>();
-        for (Enquiry__c enquiry : [
-            SELECT Id, RecordType.Name, RecordType.DeveloperName
-            FROM Enquiry__c
-            WHERE Id IN :enquiryIds
-        ]) {
-            if (isEnquiryRecordType(enquiry)) {
-                validIds.add(enquiry.Id);
-            }
-        }
-        return validIds;
-    }
-
-    @TestVisible
-    private static Boolean isEnquiryRecordType(Enquiry__c enquiry) {
-        if (enquiry == null || enquiry.RecordType == null) {
-            return false;
-        }
-        return matchesEnquiryName(enquiry.RecordType.Name) ||
-            matchesEnquiryName(enquiry.RecordType.DeveloperName);
-    }
-
-    private static Boolean matchesEnquiryName(String value) {
-        return String.isNotBlank(value) && value.equalsIgnoreCase(ENQUIRY_RECORD_TYPE);
     }
 
     private static String buildName(SObject activity) {

@@ -3,9 +3,6 @@ private class ActivityTrackingServiceTest {
     @IsTest
     static void createsTrackerForTaskOnEnquiry() {
         Enquiry__c enquiry = insertEnquiry();
-        if (enquiry == null) {
-            return;
-        }
 
         Test.startTest();
         Task taskRecord = new Task(
@@ -30,9 +27,6 @@ private class ActivityTrackingServiceTest {
     @IsTest
     static void createsTrackerForEventOnEnquiry() {
         Enquiry__c enquiry = insertEnquiry();
-        if (enquiry == null) {
-            return;
-        }
 
         Test.startTest();
         Event eventRecord = new Event(
@@ -80,9 +74,6 @@ private class ActivityTrackingServiceTest {
     @IsTest
     static void skipsExistingTrackerForSameActivity() {
         Enquiry__c enquiry = insertEnquiry();
-        if (enquiry == null) {
-            return;
-        }
 
         Task taskRecord = new Task(
             Subject = 'Existing tracker',
@@ -103,13 +94,12 @@ private class ActivityTrackingServiceTest {
     }
 
     private static Enquiry__c insertEnquiry() {
-        Id recordTypeId = getEnquiryRecordTypeId();
-        if (recordTypeId == null) {
-            System.assert(false, 'Enquiry record type named Enquiry is required on Enquiry__c');
-            return null;
+        Enquiry__c enquiry = new Enquiry__c();
+        Id recordTypeId = getAvailableRecordTypeId();
+        if (recordTypeId != null) {
+            enquiry.RecordTypeId = recordTypeId;
         }
 
-        Enquiry__c enquiry = new Enquiry__c(RecordTypeId = recordTypeId);
         Map<String, Schema.SObjectField> fields = Schema.SObjectType.Enquiry__c.fields.getMap();
         if (fields.containsKey('Name')) {
             Schema.DescribeFieldResult nameField = fields.get('Name').getDescribe();
@@ -121,17 +111,12 @@ private class ActivityTrackingServiceTest {
         return enquiry;
     }
 
-    private static Id getEnquiryRecordTypeId() {
-        Map<String, Schema.RecordTypeInfo> byName = Schema.SObjectType.Enquiry__c.getRecordTypeInfosByName();
-        Map<String, Schema.RecordTypeInfo> byDeveloperName = Schema.SObjectType.Enquiry__c.getRecordTypeInfosByDeveloperName();
-
-        Schema.RecordTypeInfo info = byName.get('Enquiry');
-        if (info == null) {
-            info = byDeveloperName.get('Enquiry');
+    private static Id getAvailableRecordTypeId() {
+        for (Schema.RecordTypeInfo info : Schema.SObjectType.Enquiry__c.getRecordTypeInfos()) {
+            if (info.isAvailable() && !info.isMaster()) {
+                return info.getRecordTypeId();
+            }
         }
-        if (info == null || !info.isAvailable()) {
-            return null;
-        }
-        return info.getRecordTypeId();
+        return null;
     }
 }
