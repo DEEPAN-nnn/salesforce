@@ -61,14 +61,14 @@ public with sharing class ActivityTrackingService {
 
     /**
      * Event after update. GetLocation already wrote check-in/out fields on Event.
-     * Check In: Start_Date_Time__c went from blank to a value.
-     * Check Out: End_Date_Time__c went from blank to a value.
+     * Attendance Log DML runs in a Queueable so Check In/Out is not delayed.
      */
     public static void syncVisitsFromEventUpdates(List<Event> newEvents, Map<Id, Event> oldMap) {
         if (newEvents == null || newEvents.isEmpty() || oldMap == null) {
             return;
         }
 
+        List<VisitAction> actions = new List<VisitAction>();
         for (Event eventRecord : newEvents) {
             Event oldEvent = oldMap.get(eventRecord.Id);
             if (oldEvent == null) {
@@ -76,27 +76,130 @@ public with sharing class ActivityTrackingService {
             }
 
             if (oldEvent.Start_Date_Time__c == null && eventRecord.Start_Date_Time__c != null) {
-                handleCheckIn(
-                    eventRecord.Id,
-                    toString(eventRecord.Start_Location__Latitude__s),
-                    toString(eventRecord.Start_Location__Longitude__s),
-                    eventRecord.Start_Date_Time__c,
-                    eventRecord.Start_Location_Address__c,
-                    eventRecord.Current_Coordinates__c
+                actions.add(
+                    VisitAction.forCheckIn(
+                        eventRecord.Id,
+                        toString(eventRecord.Start_Location__Latitude__s),
+                        toString(eventRecord.Start_Location__Longitude__s),
+                        eventRecord.Start_Date_Time__c,
+                        eventRecord.Start_Location_Address__c,
+                        eventRecord.Current_Coordinates__c
+                    )
                 );
             }
 
             if (oldEvent.End_Date_Time__c == null && eventRecord.End_Date_Time__c != null) {
-                handleCheckOut(
-                    eventRecord.Id,
-                    toString(eventRecord.End_Location__Latitude__s),
-                    toString(eventRecord.End_Location__Longitude__s),
-                    eventRecord.End_Date_Time__c,
-                    eventRecord.End_Location_Address__c,
-                    eventRecord.Current_Coordinates__c,
-                    eventRecord.Distance_Between_Check_In_and_Check_Out__c
+                actions.add(
+                    VisitAction.forCheckOut(
+                        eventRecord.Id,
+                        toString(eventRecord.End_Location__Latitude__s),
+                        toString(eventRecord.End_Location__Longitude__s),
+                        eventRecord.End_Date_Time__c,
+                        eventRecord.End_Location_Address__c,
+                        eventRecord.Current_Coordinates__c,
+                        eventRecord.Distance_Between_Check_In_and_Check_Out__c
+                    )
                 );
             }
+        }
+
+        if (actions.isEmpty()) {
+            return;
+        }
+        runVisitActions(actions);
+    }
+
+    private static void runVisitActions(List<VisitAction> actions) {
+        if (Test.isRunningTest() || System.isQueueable() || System.isFuture() || System.isBatch()) {
+            applyVisitActions(actions);
+            return;
+        }
+        try {
+            System.enqueueJob(new VisitSyncQueueable(actions));
+        } catch (Exception e) {
+            applyVisitActions(actions);
+        }
+    }
+
+    private static void applyVisitActions(List<VisitAction> actions) {
+        for (VisitAction action : actions) {
+            if (action.isCheckOut) {
+                handleCheckOut(
+                    action.eventId,
+                    action.latitude,
+                    action.longitude,
+                    action.actionTime,
+                    action.address,
+                    action.coordinatesJson,
+                    action.distance
+                );
+            } else {
+                handleCheckIn(
+                    action.eventId,
+                    action.latitude,
+                    action.longitude,
+                    action.actionTime,
+                    action.address,
+                    action.coordinatesJson
+                );
+            }
+        }
+    }
+
+    public class VisitAction {
+        public Id eventId;
+        public String latitude;
+        public String longitude;
+        public DateTime actionTime;
+        public String address;
+        public String coordinatesJson;
+        public Decimal distance;
+        public Boolean isCheckOut;
+
+        public static VisitAction forCheckIn(
+            Id eventId,
+            String latitude,
+            String longitude,
+            DateTime actionTime,
+            String address,
+            String coordinatesJson
+        ) {
+            VisitAction action = new VisitAction();
+            action.eventId = eventId;
+            action.latitude = latitude;
+            action.longitude = longitude;
+            action.actionTime = actionTime;
+            action.address = address;
+            action.coordinatesJson = coordinatesJson;
+            action.isCheckOut = false;
+            return action;
+        }
+
+        public static VisitAction forCheckOut(
+            Id eventId,
+            String latitude,
+            String longitude,
+            DateTime actionTime,
+            String address,
+            String coordinatesJson,
+            Decimal distance
+        ) {
+            VisitAction action = forCheckIn(eventId, latitude, longitude, actionTime, address, coordinatesJson);
+            action.distance = distance;
+            action.isCheckOut = true;
+            return action;
+        }
+    }
+
+    public class VisitSyncQueueable implements Queueable {
+        private List<VisitAction> actions;
+
+        public VisitSyncQueueable(List<VisitAction> actions) {
+            this.actions = actions;
+        }
+
+        public void execute(QueueableContext context) {
+            applyVisitActions(actions);
         }
     }
 
