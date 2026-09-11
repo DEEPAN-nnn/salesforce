@@ -123,10 +123,14 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
-        Decimal checkInLat = parseDecimal(latitude);
-        Decimal checkInLng = parseDecimal(longitude);
-        putIfValid(visit, 'Check_In_Latitude__c', checkInLat);
-        putIfValid(visit, 'Check_In_Longitude__c', checkInLng);
+        visit = applyCoordinates(
+            visit,
+            'Check_In_Latitude__c',
+            'Check_In_Longitude__c',
+            'Check_In_Geo__c',
+            parseDecimal(latitude),
+            parseDecimal(longitude)
+        );
         insert visit;
     }
 
@@ -164,10 +168,14 @@ public with sharing class ActivityTrackingService {
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
-        Decimal checkOutLat = parseDecimal(latitude);
-        Decimal checkOutLng = parseDecimal(longitude);
-        putIfValid(visit, 'Check_Out_Latitude__c', checkOutLat);
-        putIfValid(visit, 'Check_Out_Longitude__c', checkOutLng);
+        visit = applyCoordinates(
+            visit,
+            'Check_Out_Latitude__c',
+            'Check_Out_Longitude__c',
+            'Check_Out_Geo__c',
+            parseDecimal(latitude),
+            parseDecimal(longitude)
+        );
         update visit;
     }
 
@@ -200,6 +208,30 @@ public with sharing class ActivityTrackingService {
         String subject = (String) activity.get('Subject');
         String name = objectLabel + ' - ' + (String.isBlank(subject) ? String.valueOf(activity.Id) : subject.trim());
         return truncate(name, NAME_MAX_LENGTH);
+    }
+
+    private static Attendance_Log__c applyCoordinates(
+        Attendance_Log__c visit,
+        String numberLatField,
+        String numberLngField,
+        String geoFieldApiName,
+        Decimal lat,
+        Decimal lng
+    ) {
+        putIfValid(visit, numberLatField, lat);
+        putIfValid(visit, numberLngField, lng);
+        if (visit == null || lat == null || lng == null || String.isBlank(geoFieldApiName)) {
+            return visit;
+        }
+
+        String prefix = geoFieldApiName.removeEnd('__c');
+        putIfValid(visit, prefix + '__Latitude__s', lat);
+        putIfValid(visit, prefix + '__Longitude__s', lng);
+
+        Map<String, Object> raw = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(visit));
+        raw.put(prefix + '__Latitude__s', lat);
+        raw.put(prefix + '__Longitude__s', lng);
+        return (Attendance_Log__c) JSON.deserialize(JSON.serialize(raw), Attendance_Log__c.class);
     }
 
     private static void putIfValid(SObject record, String fieldName, Object value) {
