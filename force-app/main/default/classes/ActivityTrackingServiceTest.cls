@@ -108,8 +108,6 @@ private class ActivityTrackingServiceTest {
         Test.startTest();
         ActivityTrackingService.handleCheckIn(
             eventRecord.Id,
-            '11.0116',
-            '79.3691',
             checkInTime,
             'Kadichambadi, Tamil Nadu',
             '{"lat" :11.0116, "lng" :79.3691}'
@@ -143,8 +141,6 @@ private class ActivityTrackingServiceTest {
 
         ActivityTrackingService.handleCheckIn(
             eventRecord.Id,
-            '11.0116',
-            '79.3691',
             System.now(),
             'Address',
             '{"lat" :11.0116, "lng" :79.3691}'
@@ -153,8 +149,6 @@ private class ActivityTrackingServiceTest {
         Test.startTest();
         ActivityTrackingService.handleCheckIn(
             eventRecord.Id,
-            '11.02',
-            '79.40',
             System.now(),
             'Other address',
             '{"lat" :11.02, "lng" :79.40}'
@@ -182,8 +176,6 @@ private class ActivityTrackingServiceTest {
 
         ActivityTrackingService.handleCheckIn(
             eventRecord.Id,
-            '11.0116',
-            '79.3691',
             System.now(),
             'Kadichambadi, Tamil Nadu',
             '{"lat" :11.0116, "lng" :79.3691}'
@@ -193,8 +185,6 @@ private class ActivityTrackingServiceTest {
         Test.startTest();
         ActivityTrackingService.handleCheckOut(
             eventRecord.Id,
-            '9.47947',
-            '78.89265',
             checkOutTime,
             'Devipattinam, Tamil Nadu',
             '{"lat" :9.47947, "lng" :78.89265}',
