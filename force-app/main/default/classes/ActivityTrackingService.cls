@@ -131,11 +131,8 @@ public with sharing class ActivityTrackingService {
 
         Decimal lat = parseDecimal(latitude);
         Decimal lng = parseDecimal(longitude);
-        if (lat != null) {
-            visit.Check_In_Geo__Latitude__s = lat;
-        }
-        if (lng != null) {
-            visit.Check_In_Geo__Longitude__s = lng;
+        if (lat != null && lng != null) {
+            visit.Check_In_Geo__c = Location.newInstance(lat, lng);
         }
 
         insert visit;
@@ -178,11 +175,8 @@ public with sharing class ActivityTrackingService {
 
         Decimal lat = parseDecimal(latitude);
         Decimal lng = parseDecimal(longitude);
-        if (lat != null) {
-            visit.Check_Out_Geo__Latitude__s = lat;
-        }
-        if (lng != null) {
-            visit.Check_Out_Geo__Longitude__s = lng;
+        if (lat != null && lng != null) {
+            visit.Check_Out_Geo__c = Location.newInstance(lat, lng);
         }
 
         update visit;
