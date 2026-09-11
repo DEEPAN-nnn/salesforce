@@ -1,6 +1,7 @@
 /**
  * Creates Activity Tracking when a Task or Event is related to Enquiry__c.
  * Creates or updates Attendance Log when a user checks in or out of an Event.
+ * Visit DML runs in a Queueable so Check In/Out is not blocked.
  */
 public with sharing class ActivityTrackingService {
     private static final Integer NAME_MAX_LENGTH = 80;
@@ -59,10 +60,6 @@ public with sharing class ActivityTrackingService {
         }
     }
 
-    /**
-     * Event after update. GetLocation already wrote check-in/out fields on Event.
-     * Attendance Log DML runs in a Queueable so Check In/Out is not delayed.
-     */
     public static void syncVisitsFromEventUpdates(List<Event> newEvents, Map<Id, Event> oldMap) {
         if (newEvents == null || newEvents.isEmpty() || oldMap == null) {
             return;
@@ -76,30 +73,28 @@ public with sharing class ActivityTrackingService {
             }
 
             if (oldEvent.Start_Date_Time__c == null && eventRecord.Start_Date_Time__c != null) {
-                actions.add(
-                    VisitAction.forCheckIn(
-                        eventRecord.Id,
-                        toString(eventRecord.Start_Location__Latitude__s),
-                        toString(eventRecord.Start_Location__Longitude__s),
-                        eventRecord.Start_Date_Time__c,
-                        eventRecord.Start_Location_Address__c,
-                        eventRecord.Current_Coordinates__c
-                    )
-                );
+                VisitAction checkIn = new VisitAction();
+                checkIn.eventId = eventRecord.Id;
+                checkIn.latitude = toString(eventRecord.Start_Location__Latitude__s);
+                checkIn.longitude = toString(eventRecord.Start_Location__Longitude__s);
+                checkIn.actionTime = eventRecord.Start_Date_Time__c;
+                checkIn.address = eventRecord.Start_Location_Address__c;
+                checkIn.coordinatesJson = eventRecord.Current_Coordinates__c;
+                checkIn.isCheckOut = false;
+                actions.add(checkIn);
             }
 
             if (oldEvent.End_Date_Time__c == null && eventRecord.End_Date_Time__c != null) {
-                actions.add(
-                    VisitAction.forCheckOut(
-                        eventRecord.Id,
-                        toString(eventRecord.End_Location__Latitude__s),
-                        toString(eventRecord.End_Location__Longitude__s),
-                        eventRecord.End_Date_Time__c,
-                        eventRecord.End_Location_Address__c,
-                        eventRecord.Current_Coordinates__c,
-                        eventRecord.Distance_Between_Check_In_and_Check_Out__c
-                    )
-                );
+                VisitAction checkOut = new VisitAction();
+                checkOut.eventId = eventRecord.Id;
+                checkOut.latitude = toString(eventRecord.End_Location__Latitude__s);
+                checkOut.longitude = toString(eventRecord.End_Location__Longitude__s);
+                checkOut.actionTime = eventRecord.End_Date_Time__c;
+                checkOut.address = eventRecord.End_Location_Address__c;
+                checkOut.coordinatesJson = eventRecord.Current_Coordinates__c;
+                checkOut.distance = eventRecord.Distance_Between_Check_In_and_Check_Out__c;
+                checkOut.isCheckOut = true;
+                actions.add(checkOut);
             }
         }
 
@@ -121,9 +116,12 @@ public with sharing class ActivityTrackingService {
         }
     }
 
-    private static void applyVisitActions(List<VisitAction> actions) {
+    public static void applyVisitActions(List<VisitAction> actions) {
+        if (actions == null || actions.isEmpty()) {
+            return;
+        }
         for (VisitAction action : actions) {
-            if (action.isCheckOut) {
+            if (action.isCheckOut == true) {
                 handleCheckOut(
                     action.eventId,
                     action.latitude,
@@ -155,40 +153,6 @@ public with sharing class ActivityTrackingService {
         public String coordinatesJson;
         public Decimal distance;
         public Boolean isCheckOut;
-
-        public static VisitAction forCheckIn(
-            Id eventId,
-            String latitude,
-            String longitude,
-            DateTime actionTime,
-            String address,
-            String coordinatesJson
-        ) {
-            VisitAction action = new VisitAction();
-            action.eventId = eventId;
-            action.latitude = latitude;
-            action.longitude = longitude;
-            action.actionTime = actionTime;
-            action.address = address;
-            action.coordinatesJson = coordinatesJson;
-            action.isCheckOut = false;
-            return action;
-        }
-
-        public static VisitAction forCheckOut(
-            Id eventId,
-            String latitude,
-            String longitude,
-            DateTime actionTime,
-            String address,
-            String coordinatesJson,
-            Decimal distance
-        ) {
-            VisitAction action = forCheckIn(eventId, latitude, longitude, actionTime, address, coordinatesJson);
-            action.distance = distance;
-            action.isCheckOut = true;
-            return action;
-        }
     }
 
     public class VisitSyncQueueable implements Queueable {
@@ -199,7 +163,7 @@ public with sharing class ActivityTrackingService {
         }
 
         public void execute(QueueableContext context) {
-            applyVisitActions(actions);
+            ActivityTrackingService.applyVisitActions(actions);
         }
     }
 
