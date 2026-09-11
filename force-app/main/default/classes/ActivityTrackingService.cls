@@ -59,6 +59,47 @@ public with sharing class ActivityTrackingService {
         }
     }
 
+    /**
+     * Event after update. GetLocation already wrote check-in/out fields on Event.
+     * Check In: Start_Date_Time__c went from blank to a value.
+     * Check Out: End_Date_Time__c went from blank to a value.
+     */
+    public static void syncVisitsFromEventUpdates(List<Event> newEvents, Map<Id, Event> oldMap) {
+        if (newEvents == null || newEvents.isEmpty() || oldMap == null) {
+            return;
+        }
+
+        for (Event eventRecord : newEvents) {
+            Event oldEvent = oldMap.get(eventRecord.Id);
+            if (oldEvent == null) {
+                continue;
+            }
+
+            if (oldEvent.Start_Date_Time__c == null && eventRecord.Start_Date_Time__c != null) {
+                handleCheckIn(
+                    eventRecord.Id,
+                    toString(eventRecord.Start_Location__Latitude__s),
+                    toString(eventRecord.Start_Location__Longitude__s),
+                    eventRecord.Start_Date_Time__c,
+                    eventRecord.Start_Location_Address__c,
+                    eventRecord.Current_Coordinates__c
+                );
+            }
+
+            if (oldEvent.End_Date_Time__c == null && eventRecord.End_Date_Time__c != null) {
+                handleCheckOut(
+                    eventRecord.Id,
+                    toString(eventRecord.End_Location__Latitude__s),
+                    toString(eventRecord.End_Location__Longitude__s),
+                    eventRecord.End_Date_Time__c,
+                    eventRecord.End_Location_Address__c,
+                    eventRecord.Current_Coordinates__c,
+                    eventRecord.Distance_Between_Check_In_and_Check_Out__c
+                );
+            }
+        }
+    }
+
     public static void handleCheckIn(
         Id eventId,
         String latitude,
@@ -194,5 +235,9 @@ public with sharing class ActivityTrackingService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static String toString(Decimal value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

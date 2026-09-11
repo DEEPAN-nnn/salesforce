@@ -1,3 +1,8 @@
-trigger EventActivityTrackingTrigger on Event (after insert) {
-    ActivityTrackingService.createFromActivities(Trigger.new);
+trigger EventActivityTrackingTrigger on Event (after insert, after update) {
+    if (Trigger.isInsert) {
+        ActivityTrackingService.createFromActivities(Trigger.new);
+    }
+    if (Trigger.isUpdate) {
+        ActivityTrackingService.syncVisitsFromEventUpdates(Trigger.new, Trigger.oldMap);
+    }
 }

@@ -221,6 +221,53 @@ private class ActivityTrackingServiceTest {
         System.assertEquals(78.89265, logs[0].Check_Out_Geo__Longitude__s);
     }
 
+    @IsTest
+    static void eventUpdateTriggerCreatesAndUpdatesAttendanceLog() {
+        Enquiry__c enquiry = insertEnquiry();
+        Event eventRecord = new Event(
+            Subject = 'Site visit',
+            StartDateTime = System.now(),
+            EndDateTime = System.now().addHours(1),
+            WhatId = enquiry.Id
+        );
+        insert eventRecord;
+
+        eventRecord.Start_Location__Latitude__s = 11.0116;
+        eventRecord.Start_Location__Longitude__s = 79.3691;
+        eventRecord.Start_Date_Time__c = System.now();
+        eventRecord.Start_Location_Address__c = 'Kadichambadi, Tamil Nadu';
+        eventRecord.Current_Coordinates__c = '{"lat" :11.0116, "lng" :79.3691}';
+
+        Test.startTest();
+        update eventRecord;
+        Test.stopTest();
+
+        List<Attendance_Log__c> afterCheckIn = [
+            SELECT Status__c
+            FROM Attendance_Log__c
+            WHERE Event_Id__c = :String.valueOf(eventRecord.Id)
+        ];
+        System.assertEquals(1, afterCheckIn.size());
+        System.assertEquals('Checked In', afterCheckIn[0].Status__c);
+
+        eventRecord.End_Location__Latitude__s = 9.47947;
+        eventRecord.End_Location__Longitude__s = 78.89265;
+        eventRecord.End_Date_Time__c = System.now().addHours(1);
+        eventRecord.End_Location_Address__c = 'Devipattinam, Tamil Nadu';
+        eventRecord.Current_Coordinates__c = '{"lat" :9.47947, "lng" :78.89265}';
+        eventRecord.Distance_Between_Check_In_and_Check_Out__c = 221.55;
+        update eventRecord;
+
+        List<Attendance_Log__c> afterCheckOut = [
+            SELECT Status__c, Distance_Between_Check_In_and_Check_Out__c
+            FROM Attendance_Log__c
+            WHERE Event_Id__c = :String.valueOf(eventRecord.Id)
+        ];
+        System.assertEquals(1, afterCheckOut.size());
+        System.assertEquals('Checked Out', afterCheckOut[0].Status__c);
+        System.assertEquals(221.55, afterCheckOut[0].Distance_Between_Check_In_and_Check_Out__c);
+    }
+
     private static Enquiry__c insertEnquiry() {
         Enquiry__c enquiry = new Enquiry__c();
         Id recordTypeId = getAvailableRecordTypeId();
