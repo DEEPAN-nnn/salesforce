@@ -127,7 +127,6 @@ public with sharing class ActivityTrackingService {
         Decimal checkInLng = parseDecimal(longitude);
         putIfValid(visit, 'Check_In_Latitude__c', checkInLat);
         putIfValid(visit, 'Check_In_Longitude__c', checkInLng);
-        setGeo(visit, 'Check_In_Geo__c', checkInLat, checkInLng);
         insert visit;
     }
 
@@ -169,7 +168,6 @@ public with sharing class ActivityTrackingService {
         Decimal checkOutLng = parseDecimal(longitude);
         putIfValid(visit, 'Check_Out_Latitude__c', checkOutLat);
         putIfValid(visit, 'Check_Out_Longitude__c', checkOutLng);
-        setGeo(visit, 'Check_Out_Geo__c', checkOutLat, checkOutLng);
         update visit;
     }
 
@@ -213,23 +211,6 @@ public with sharing class ActivityTrackingService {
         } catch (Exception e) {
             return;
         }
-    }
-
-    private static void setGeo(SObject record, String geoFieldApiName, Decimal lat, Decimal lng) {
-        if (record == null || String.isBlank(geoFieldApiName) || lat == null || lng == null) {
-            return;
-        }
-        String baseName = geoFieldApiName.endsWith('__c')
-            ? geoFieldApiName.substring(0, geoFieldApiName.length() - 3)
-            : geoFieldApiName;
-        Map<String, Schema.SObjectField> fields = record.getSObjectType().getDescribe().fields.getMap();
-        Schema.SObjectField latField = fields.get((baseName + '__Latitude__s').toLowerCase());
-        Schema.SObjectField lngField = fields.get((baseName + '__Longitude__s').toLowerCase());
-        if (latField == null || lngField == null) {
-            return;
-        }
-        record.put(latField, lat);
-        record.put(lngField, lng);
     }
 
     private static Decimal parseDecimal(String value) {

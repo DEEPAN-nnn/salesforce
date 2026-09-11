@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Check_Out_Longitude__c</fullName>
+    <description>Numeric check-out longitude copied from Event End Location. Used by the map formula and to populate Check Out Geo.</description>
+    <inlineHelpText>Set by Check Out. Do not edit unless correcting a location.</inlineHelpText>
     <label>Check Out Longitude</label>
     <precision>18</precision>
     <required>false</required>
