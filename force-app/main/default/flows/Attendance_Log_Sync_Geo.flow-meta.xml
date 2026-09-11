@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Assign_Check_In_Geo</name>
+        <label>Assign Check In Geo</label>
+        <locationX>314</locationX>
+        <locationY>350</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Check_In_Geo__Latitude__s</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Record.Check_In_Latitude__c</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.Check_In_Geo__Longitude__s</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Record.Check_In_Longitude__c</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Has_Check_Out_Coordinates</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <name>Assign_Check_Out_Geo</name>
+        <label>Assign Check Out Geo</label>
+        <locationX>314</locationX>
+        <locationY>650</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.Check_Out_Geo__Latitude__s</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Record.Check_Out_Latitude__c</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.Check_Out_Geo__Longitude__s</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Record.Check_Out_Longitude__c</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+    <decisions>
+        <name>Has_Check_In_Coordinates</name>
+        <label>Has Check In Coordinates</label>
+        <locationX>176</locationX>
+        <locationY>200</locationY>
+        <defaultConnector>
+            <targetReference>Has_Check_Out_Coordinates</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No Check In Coordinates</defaultConnectorLabel>
+        <rules>
+            <name>Copy_Check_In_Geo</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Check_In_Latitude__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Check_In_Longitude__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Check_In_Geo</targetReference>
+            </connector>
+            <label>Copy Check In Geo</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Has_Check_Out_Coordinates</name>
+        <label>Has Check Out Coordinates</label>
+        <locationX>176</locationX>
+        <locationY>500</locationY>
+        <defaultConnectorLabel>No Check Out Coordinates</defaultConnectorLabel>
+        <rules>
+            <name>Copy_Check_Out_Geo</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Check_Out_Latitude__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Check_Out_Longitude__c</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Assign_Check_Out_Geo</targetReference>
+            </connector>
+            <label>Copy Check Out Geo</label>
+        </rules>
+    </decisions>
+    <description>Copies Attendance Log number latitude/longitude into Check In Geo and Check Out Geo. Apex cannot reliably write Geolocation compound fields, so this before-save flow sets them in system context.</description>
+    <environments>Default</environments>
+    <interviewLabel>Attendance Log Sync Geo {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Attendance Log Sync Geo</label>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Has_Check_In_Coordinates</targetReference>
+        </connector>
+        <object>Attendance_Log__c</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
