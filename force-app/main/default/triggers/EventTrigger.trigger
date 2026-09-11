@@ -1,4 +1,4 @@
-trigger EventActivityTrackingTrigger on Event (after insert, after update) {
+trigger EventTrigger on Event (after insert, after update) {
     if (Trigger.isInsert) {
         ActivityTrackingService.createFromActivities(Trigger.new);
     }
