@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Check_In_Map_Url__c</fullName>
-    <label>Check In Map URL</label>
+    <fullName>Check_In_Latitude__c</fullName>
+    <label>Check In Latitude</label>
+    <precision>18</precision>
     <required>false</required>
+    <scale>8</scale>
     <trackTrending>false</trackTrending>
-    <type>Url</type>
+    <type>Number</type>
+    <unique>false</unique>
 </CustomField>

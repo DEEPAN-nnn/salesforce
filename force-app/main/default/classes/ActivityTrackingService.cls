@@ -123,7 +123,8 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
-        visit.Check_In_Map_Url__c = buildMapUrl(latitude, longitude);
+        visit.Check_In_Latitude__c = parseDecimal(latitude);
+        visit.Check_In_Longitude__c = parseDecimal(longitude);
         visit.Source__c = resolveSource();
         insert visit;
     }
@@ -162,7 +163,8 @@ public with sharing class ActivityTrackingService {
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
-        visit.Check_Out_Map_Url__c = buildMapUrl(latitude, longitude);
+        visit.Check_Out_Latitude__c = parseDecimal(latitude);
+        visit.Check_Out_Longitude__c = parseDecimal(longitude);
         update visit;
     }
 
@@ -197,11 +199,15 @@ public with sharing class ActivityTrackingService {
         return truncate(name, NAME_MAX_LENGTH);
     }
 
-    private static String buildMapUrl(String latitude, String longitude) {
-        if (String.isBlank(latitude) || String.isBlank(longitude)) {
+    private static Decimal parseDecimal(String value) {
+        if (String.isBlank(value)) {
             return null;
         }
-        return 'https://www.google.com/maps?q=' + latitude.trim() + ',' + longitude.trim();
+        try {
+            return Decimal.valueOf(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static String resolveSource() {
@@ -209,13 +215,13 @@ public with sharing class ActivityTrackingService {
             if (!entry.isActive()) {
                 continue;
             }
-            String value = entry.getValue();
+            String pickValue = entry.getValue();
             String label = entry.getLabel();
-            String combined = (value + ' ' + label).toLowerCase();
+            String combined = (pickValue + ' ' + label).toLowerCase();
             if (combined.contains('mobile') || combined.contains('button') ||
                 combined.contains('check in') || combined.contains('check-in') ||
                 combined.contains('app')) {
-                return value;
+                return pickValue;
             }
         }
         return null;
