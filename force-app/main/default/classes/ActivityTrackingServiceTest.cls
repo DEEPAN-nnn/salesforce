@@ -110,7 +110,9 @@ private class ActivityTrackingServiceTest {
             eventRecord.Id,
             checkInTime,
             'Kadichambadi, Tamil Nadu',
-            '{"lat" :11.0116, "lng" :79.3691}'
+            '{"lat" :11.0116, "lng" :79.3691}',
+            '11.0116',
+            '79.3691'
         );
         Test.stopTest();
 
@@ -143,7 +145,9 @@ private class ActivityTrackingServiceTest {
             eventRecord.Id,
             System.now(),
             'Address',
-            '{"lat" :11.0116, "lng" :79.3691}'
+            '{"lat" :11.0116, "lng" :79.3691}',
+            '11.0116',
+            '79.3691'
         );
 
         Test.startTest();
@@ -151,7 +155,9 @@ private class ActivityTrackingServiceTest {
             eventRecord.Id,
             System.now(),
             'Other address',
-            '{"lat" :11.02, "lng" :79.40}'
+            '{"lat" :11.02, "lng" :79.40}',
+            '11.02',
+            '79.40'
         );
         Test.stopTest();
 
@@ -178,7 +184,9 @@ private class ActivityTrackingServiceTest {
             eventRecord.Id,
             System.now(),
             'Kadichambadi, Tamil Nadu',
-            '{"lat" :11.0116, "lng" :79.3691}'
+            '{"lat" :11.0116, "lng" :79.3691}',
+            '11.0116',
+            '79.3691'
         );
 
         DateTime checkOutTime = System.now().addHours(1);
@@ -188,7 +196,9 @@ private class ActivityTrackingServiceTest {
             checkOutTime,
             'Devipattinam, Tamil Nadu',
             '{"lat" :9.47947, "lng" :78.89265}',
-            221.55
+            221.55,
+            '9.47947',
+            '78.89265'
         );
         Test.stopTest();
 

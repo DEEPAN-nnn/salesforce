@@ -75,7 +75,9 @@ public with sharing class ActivityTrackingService {
                     eventRecord.Id,
                     eventRecord.Start_Date_Time__c,
                     eventRecord.Start_Location_Address__c,
-                    eventRecord.Current_Coordinates__c
+                    eventRecord.Current_Coordinates__c,
+                    toString(eventRecord.Start_Location__Latitude__s),
+                    toString(eventRecord.Start_Location__Longitude__s)
                 );
             }
 
@@ -85,7 +87,9 @@ public with sharing class ActivityTrackingService {
                     eventRecord.End_Date_Time__c,
                     eventRecord.End_Location_Address__c,
                     eventRecord.Current_Coordinates__c,
-                    eventRecord.Distance_Between_Check_In_and_Check_Out__c
+                    eventRecord.Distance_Between_Check_In_and_Check_Out__c,
+                    toString(eventRecord.End_Location__Latitude__s),
+                    toString(eventRecord.End_Location__Longitude__s)
                 );
             }
         }
@@ -95,7 +99,9 @@ public with sharing class ActivityTrackingService {
         Id eventId,
         DateTime checkInTime,
         String address,
-        String coordinatesJson
+        String coordinatesJson,
+        String latitude,
+        String longitude
     ) {
         if (eventId == null || eventId.getSObjectType() != Event.SObjectType) {
             return;
@@ -117,6 +123,8 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
+        visit.Check_In_Map_Url__c = buildMapUrl(latitude, longitude);
+        visit.Source__c = resolveSource();
         insert visit;
     }
 
@@ -125,7 +133,9 @@ public with sharing class ActivityTrackingService {
         DateTime checkOutTime,
         String address,
         String coordinatesJson,
-        Decimal distance
+        Decimal distance,
+        String latitude,
+        String longitude
     ) {
         if (eventId == null || eventId.getSObjectType() != Event.SObjectType) {
             return;
@@ -152,6 +162,7 @@ public with sharing class ActivityTrackingService {
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
+        visit.Check_Out_Map_Url__c = buildMapUrl(latitude, longitude);
         update visit;
     }
 
@@ -184,6 +195,34 @@ public with sharing class ActivityTrackingService {
         String subject = (String) activity.get('Subject');
         String name = objectLabel + ' - ' + (String.isBlank(subject) ? String.valueOf(activity.Id) : subject.trim());
         return truncate(name, NAME_MAX_LENGTH);
+    }
+
+    private static String buildMapUrl(String latitude, String longitude) {
+        if (String.isBlank(latitude) || String.isBlank(longitude)) {
+            return null;
+        }
+        return 'https://www.google.com/maps?q=' + latitude.trim() + ',' + longitude.trim();
+    }
+
+    private static String resolveSource() {
+        for (Schema.PicklistEntry entry : Attendance_Log__c.Source__c.getDescribe().getPicklistValues()) {
+            if (!entry.isActive()) {
+                continue;
+            }
+            String value = entry.getValue();
+            String label = entry.getLabel();
+            String combined = (value + ' ' + label).toLowerCase();
+            if (combined.contains('mobile') || combined.contains('button') ||
+                combined.contains('check in') || combined.contains('check-in') ||
+                combined.contains('app')) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private static String toString(Decimal value) {
+        return value == null ? null : String.valueOf(value);
     }
 
     private static String truncate(String value, Integer maxLength) {
