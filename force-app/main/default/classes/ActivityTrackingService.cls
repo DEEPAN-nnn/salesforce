@@ -128,12 +128,7 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
-
-        Decimal lat = parseDecimal(latitude);
-        Decimal lng = parseDecimal(longitude);
-        if (lat != null && lng != null) {
-            visit.Check_In_Geo__c = Location.newInstance(lat, lng);
-        }
+        setGeo(visit, 'Check_In_Geo__c', parseDecimal(latitude), parseDecimal(longitude));
 
         insert visit;
     }
@@ -172,12 +167,7 @@ public with sharing class ActivityTrackingService {
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
-
-        Decimal lat = parseDecimal(latitude);
-        Decimal lng = parseDecimal(longitude);
-        if (lat != null && lng != null) {
-            visit.Check_Out_Geo__c = Location.newInstance(lat, lng);
-        }
+        setGeo(visit, 'Check_Out_Geo__c', parseDecimal(latitude), parseDecimal(longitude));
 
         update visit;
     }
@@ -211,6 +201,17 @@ public with sharing class ActivityTrackingService {
         String subject = (String) activity.get('Subject');
         String name = objectLabel + ' - ' + (String.isBlank(subject) ? String.valueOf(activity.Id) : subject.trim());
         return truncate(name, NAME_MAX_LENGTH);
+    }
+
+    private static void setGeo(SObject record, String geoFieldApiName, Decimal lat, Decimal lng) {
+        if (record == null || String.isBlank(geoFieldApiName) || lat == null || lng == null) {
+            return;
+        }
+        String baseName = geoFieldApiName.endsWith('__c')
+            ? geoFieldApiName.substring(0, geoFieldApiName.length() - 3)
+            : geoFieldApiName;
+        record.put(baseName + '__Latitude__s', lat);
+        record.put(baseName + '__Longitude__s', lng);
     }
 
     private static String truncate(String value, Integer maxLength) {
