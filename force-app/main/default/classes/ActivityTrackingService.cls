@@ -223,12 +223,14 @@ public with sharing class ActivityTrackingService {
         String baseName = geoFieldApiName.endsWith('__c')
             ? geoFieldApiName.substring(0, geoFieldApiName.length() - 3)
             : geoFieldApiName;
-        try {
-            record.put(baseName + '__Latitude__s', lat);
-            record.put(baseName + '__Longitude__s', lng);
-        } catch (Exception e) {
+        Map<String, Schema.SObjectField> fields = record.getSObjectType().getDescribe().fields.getMap();
+        Schema.SObjectField latField = fields.get((baseName + '__Latitude__s').toLowerCase());
+        Schema.SObjectField lngField = fields.get((baseName + '__Longitude__s').toLowerCase());
+        if (latField == null || lngField == null) {
             return;
         }
+        record.put(latField, lat);
+        record.put(lngField, lng);
     }
 
     private static Decimal parseDecimal(String value) {
