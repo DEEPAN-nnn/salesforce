@@ -128,7 +128,6 @@ public with sharing class ActivityTrackingService {
         putIfValid(visit, 'Check_In_Latitude__c', checkInLat);
         putIfValid(visit, 'Check_In_Longitude__c', checkInLng);
         setGeo(visit, 'Check_In_Geo__c', checkInLat, checkInLng);
-        putIfValid(visit, 'Source__c', resolveSource());
         insert visit;
     }
 
@@ -242,23 +241,6 @@ public with sharing class ActivityTrackingService {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private static String resolveSource() {
-        for (Schema.PicklistEntry entry : Attendance_Log__c.Source__c.getDescribe().getPicklistValues()) {
-            if (!entry.isActive()) {
-                continue;
-            }
-            String pickValue = entry.getValue();
-            String label = entry.getLabel();
-            String combined = (pickValue + ' ' + label).toLowerCase();
-            if (combined.contains('mobile') || combined.contains('button') ||
-                combined.contains('check in') || combined.contains('check-in') ||
-                combined.contains('app')) {
-                return pickValue;
-            }
-        }
-        return null;
     }
 
     private static String toString(Decimal value) {
