@@ -114,6 +114,9 @@ public with sharing class ActivityTrackingService {
             return;
         }
 
+        Decimal checkInLat = parseDecimal(latitude);
+        Decimal checkInLng = parseDecimal(longitude);
+
         Attendance_Log__c visit = new Attendance_Log__c();
         visit.Name = buildVisitName();
         visit.ActivityTrackingRelation__c = getTrackerId(eventIdValue);
@@ -123,15 +126,13 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
-        Decimal checkInLat = parseDecimal(latitude);
-        Decimal checkInLng = parseDecimal(longitude);
         visit.Check_In_Latitude__c = checkInLat;
         visit.Check_In_Longitude__c = checkInLng;
-        if (checkInLat != null && checkInLng != null) {
-            visit.Check_In_Geo_c__Latitude__s = checkInLat;
-            visit.Check_In_Geo_c__Longitude__s = checkInLng;
-        }
+        visit.Check_In_Geo_c__Latitude__s = checkInLat;
+        visit.Check_In_Geo_c__Longitude__s = checkInLng;
         insert visit;
+
+        stampCheckInGeo(visit.Id, checkInLat, checkInLng);
     }
 
     public static void handleCheckOut(
@@ -162,21 +163,46 @@ public with sharing class ActivityTrackingService {
             return;
         }
 
+        Decimal checkOutLat = parseDecimal(latitude);
+        Decimal checkOutLng = parseDecimal(longitude);
+
         Attendance_Log__c visit = openVisits[0];
         visit.Status__c = STATUS_CHECKED_OUT;
         visit.Check_Out_Time__c = checkOutTime;
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
-        Decimal checkOutLat = parseDecimal(latitude);
-        Decimal checkOutLng = parseDecimal(longitude);
         visit.Check_Out_Latitude__c = checkOutLat;
         visit.Check_Out_Longitude__c = checkOutLng;
-        if (checkOutLat != null && checkOutLng != null) {
-            visit.Check_Out_Geo__Latitude__s = checkOutLat;
-            visit.Check_Out_Geo__Longitude__s = checkOutLng;
-        }
+        visit.Check_Out_Geo__Latitude__s = checkOutLat;
+        visit.Check_Out_Geo__Longitude__s = checkOutLng;
         update visit;
+
+        stampCheckOutGeo(visit.Id, checkOutLat, checkOutLng);
+    }
+
+    private static void stampCheckInGeo(Id visitId, Decimal latitude, Decimal longitude) {
+        if (visitId == null || latitude == null || longitude == null) {
+            return;
+        }
+        Attendance_Log__c geoUpdate = new Attendance_Log__c(Id = visitId);
+        geoUpdate.Check_In_Geo_c__Latitude__s = latitude;
+        geoUpdate.Check_In_Geo_c__Longitude__s = longitude;
+        geoUpdate.Check_In_Latitude__c = latitude;
+        geoUpdate.Check_In_Longitude__c = longitude;
+        update geoUpdate;
+    }
+
+    private static void stampCheckOutGeo(Id visitId, Decimal latitude, Decimal longitude) {
+        if (visitId == null || latitude == null || longitude == null) {
+            return;
+        }
+        Attendance_Log__c geoUpdate = new Attendance_Log__c(Id = visitId);
+        geoUpdate.Check_Out_Geo__Latitude__s = latitude;
+        geoUpdate.Check_Out_Geo__Longitude__s = longitude;
+        geoUpdate.Check_Out_Latitude__c = latitude;
+        geoUpdate.Check_Out_Longitude__c = longitude;
+        update geoUpdate;
     }
 
     private static Boolean hasOpenVisit(String eventIdValue, Id userId) {
