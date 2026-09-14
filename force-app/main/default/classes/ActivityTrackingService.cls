@@ -123,8 +123,14 @@ public with sharing class ActivityTrackingService {
         visit.Check_In_Time__c = checkInTime;
         visit.Start_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
-        visit.Check_In_Latitude__c = parseDecimal(latitude);
-        visit.Check_In_Longitude__c = parseDecimal(longitude);
+        Decimal checkInLat = parseDecimal(latitude);
+        Decimal checkInLng = parseDecimal(longitude);
+        visit.Check_In_Latitude__c = checkInLat;
+        visit.Check_In_Longitude__c = checkInLng;
+        if (checkInLat != null && checkInLng != null) {
+            visit.Check_In_Geo_c__Latitude__s = checkInLat;
+            visit.Check_In_Geo_c__Longitude__s = checkInLng;
+        }
         insert visit;
     }
 
@@ -162,8 +168,14 @@ public with sharing class ActivityTrackingService {
         visit.End_Location_Address__c = address;
         visit.Current_Coordinates__c = truncate(coordinatesJson, 255);
         visit.Distance_Between_Check_In_and_Check_Out__c = distance;
-        visit.Check_Out_Latitude__c = parseDecimal(latitude);
-        visit.Check_Out_Longitude__c = parseDecimal(longitude);
+        Decimal checkOutLat = parseDecimal(latitude);
+        Decimal checkOutLng = parseDecimal(longitude);
+        visit.Check_Out_Latitude__c = checkOutLat;
+        visit.Check_Out_Longitude__c = checkOutLng;
+        if (checkOutLat != null && checkOutLng != null) {
+            visit.Check_Out_Geo__Latitude__s = checkOutLat;
+            visit.Check_Out_Geo__Longitude__s = checkOutLng;
+        }
         update visit;
     }
 
