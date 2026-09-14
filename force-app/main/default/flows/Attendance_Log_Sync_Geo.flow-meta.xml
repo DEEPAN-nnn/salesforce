@@ -7,14 +7,14 @@
         <locationX>314</locationX>
         <locationY>350</locationY>
         <assignmentItems>
-            <assignToReference>$Record.Check_In_Geo__Latitude__s</assignToReference>
+            <assignToReference>$Record.Check_In_Geo_c__Latitude__s</assignToReference>
             <operator>Assign</operator>
             <value>
                 <elementReference>$Record.Check_In_Latitude__c</elementReference>
             </value>
         </assignmentItems>
         <assignmentItems>
-            <assignToReference>$Record.Check_In_Geo__Longitude__s</assignToReference>
+            <assignToReference>$Record.Check_In_Geo_c__Longitude__s</assignToReference>
             <operator>Assign</operator>
             <value>
                 <elementReference>$Record.Check_In_Longitude__c</elementReference>
@@ -105,7 +105,7 @@
             <label>Copy Check Out Geo</label>
         </rules>
     </decisions>
-    <description>Copies Attendance Log number latitude/longitude into Check In Geo and Check Out Geo. Apex cannot reliably write Geolocation compound fields, so this before-save flow sets them in system context.</description>
+    <description>Copies number lat/long into Location fields Check_In_Geo_c__c and Check_Out_Geo__c.</description>
     <environments>Default</environments>
     <interviewLabel>Attendance Log Sync Geo {!$Flow.CurrentDateTime}</interviewLabel>
     <label>Attendance Log Sync Geo</label>

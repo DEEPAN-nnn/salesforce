@@ -127,7 +127,7 @@ public with sharing class ActivityTrackingService {
             visit,
             'Check_In_Latitude__c',
             'Check_In_Longitude__c',
-            'Check_In_Geo__c',
+            new List<String>{ 'Check_In_Geo_c__c', 'Check_In_Geo__c' },
             parseDecimal(latitude),
             parseDecimal(longitude)
         );
@@ -172,7 +172,7 @@ public with sharing class ActivityTrackingService {
             visit,
             'Check_Out_Latitude__c',
             'Check_Out_Longitude__c',
-            'Check_Out_Geo__c',
+            new List<String>{ 'Check_Out_Geo__c', 'Check_Out_Geo_c__c' },
             parseDecimal(latitude),
             parseDecimal(longitude)
         );
@@ -214,23 +214,27 @@ public with sharing class ActivityTrackingService {
         Attendance_Log__c visit,
         String numberLatField,
         String numberLngField,
-        String geoFieldApiName,
+        List<String> geoFieldApiNames,
         Decimal lat,
         Decimal lng
     ) {
         putIfValid(visit, numberLatField, lat);
         putIfValid(visit, numberLngField, lng);
-        if (visit == null || lat == null || lng == null || String.isBlank(geoFieldApiName)) {
+        if (visit == null || lat == null || lng == null || geoFieldApiNames == null || geoFieldApiNames.isEmpty()) {
             return visit;
         }
 
-        String prefix = geoFieldApiName.removeEnd('__c');
-        putIfValid(visit, prefix + '__Latitude__s', lat);
-        putIfValid(visit, prefix + '__Longitude__s', lng);
-
         Map<String, Object> raw = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(visit));
-        raw.put(prefix + '__Latitude__s', lat);
-        raw.put(prefix + '__Longitude__s', lng);
+        for (String geoFieldApiName : geoFieldApiNames) {
+            if (String.isBlank(geoFieldApiName)) {
+                continue;
+            }
+            String prefix = geoFieldApiName.removeEnd('__c');
+            putIfValid(visit, prefix + '__Latitude__s', lat);
+            putIfValid(visit, prefix + '__Longitude__s', lng);
+            raw.put(prefix + '__Latitude__s', lat);
+            raw.put(prefix + '__Longitude__s', lng);
+        }
         return (Attendance_Log__c) JSON.deserialize(JSON.serialize(raw), Attendance_Log__c.class);
     }
 
