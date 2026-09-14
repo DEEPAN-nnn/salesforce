@@ -1,0 +1,5 @@
+**/*.local
+**/jsconfig.json
+**/.eslintrc.json
+**/.sfdx
+**/.sf
