@@ -119,7 +119,6 @@ private class ActivityTrackingServiceTest {
         List<Attendance_Log__c> logs = [
             SELECT Event_Id__c, Status__c, OwnerId, Check_In_Time__c, Start_Location_Address__c,
                 Current_Coordinates__c, ActivityTrackingRelation__c,
-                Check_In_Latitude__c, Check_In_Longitude__c,
                 Check_In_Geo_c__Latitude__s, Check_In_Geo_c__Longitude__s
             FROM Attendance_Log__c
             WHERE Event_Id__c = :String.valueOf(eventRecord.Id)
@@ -129,8 +128,6 @@ private class ActivityTrackingServiceTest {
         System.assertEquals(UserInfo.getUserId(), logs[0].OwnerId);
         System.assertEquals(checkInTime, logs[0].Check_In_Time__c);
         System.assertEquals('Kadichambadi, Tamil Nadu', logs[0].Start_Location_Address__c);
-        System.assertEquals(11.0116, logs[0].Check_In_Latitude__c);
-        System.assertEquals(79.3691, logs[0].Check_In_Longitude__c);
         System.assertEquals(11.0116, logs[0].Check_In_Geo_c__Latitude__s);
         System.assertEquals(79.3691, logs[0].Check_In_Geo_c__Longitude__s);
         System.assertNotEquals(null, logs[0].ActivityTrackingRelation__c);
@@ -211,7 +208,6 @@ private class ActivityTrackingServiceTest {
         List<Attendance_Log__c> logs = [
             SELECT Status__c, Check_Out_Time__c, End_Location_Address__c,
                 Distance_Between_Check_In_and_Check_Out__c,
-                Check_Out_Latitude__c, Check_Out_Longitude__c,
                 Check_Out_Geo__Latitude__s, Check_Out_Geo__Longitude__s
             FROM Attendance_Log__c
             WHERE Event_Id__c = :String.valueOf(eventRecord.Id)
@@ -221,8 +217,6 @@ private class ActivityTrackingServiceTest {
         System.assertEquals(checkOutTime, logs[0].Check_Out_Time__c);
         System.assertEquals('Devipattinam, Tamil Nadu', logs[0].End_Location_Address__c);
         System.assertEquals(221.55, logs[0].Distance_Between_Check_In_and_Check_Out__c);
-        System.assertEquals(9.47947, logs[0].Check_Out_Latitude__c);
-        System.assertEquals(78.89265, logs[0].Check_Out_Longitude__c);
         System.assertEquals(9.47947, logs[0].Check_Out_Geo__Latitude__s);
         System.assertEquals(78.89265, logs[0].Check_Out_Geo__Longitude__s);
     }
