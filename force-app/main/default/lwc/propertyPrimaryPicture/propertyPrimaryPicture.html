@@ -31,16 +31,18 @@
                 <template if:false={isEditing}>
                     <div class="slds-form-element">
                         <div class="slds-form-element__control">
-                            <div class="url-box">
-                                <template if:true={pictureUrl}>
-                                    <a href={pictureUrl} target="_blank" title={pictureUrl}>
-                                        {pictureUrl}
-                                    </a>
-                                </template>
-                                <template if:false={pictureUrl}>
-                                    <span class="placeholder">No primary picture</span>
-                                </template>
-                            </div>
+                            <template if:true={pictureUrl}>
+                                <a
+                                    href={pictureUrl}
+                                    target="_blank"
+                                    title={pictureUrl}
+                                    class="slds-input slds-truncate">
+                                    {pictureUrl}
+                                </a>
+                            </template>
+                            <template if:false={pictureUrl}>
+                                <span class="slds-input slds-text-color_weak">No primary picture</span>
+                            </template>
                         </div>
                     </div>
 
