@@ -29,15 +29,20 @@
                 </template>
 
                 <template if:false={isEditing}>
-                    <template if:true={pictureUrl}>
-                        <lightning-formatted-url
-                            value={pictureUrl}
-                            target="_blank">
-                        </lightning-formatted-url>
-                    </template>
-                    <template if:false={pictureUrl}>
-                        <p class="slds-text-color_weak">No primary picture</p>
-                    </template>
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <div class="url-box">
+                                <template if:true={pictureUrl}>
+                                    <a href={pictureUrl} target="_blank" title={pictureUrl}>
+                                        {pictureUrl}
+                                    </a>
+                                </template>
+                                <template if:false={pictureUrl}>
+                                    <span class="placeholder">No primary picture</span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
 
                     <template if:true={canEdit}>
                         <div class="slds-p-top_small slds-align_absolute-center">
