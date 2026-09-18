@@ -1,0 +1,72 @@
+<template>
+    <lightning-card title="Primary Picture">
+        <div class="slds-p-horizontal_small slds-p-bottom_small slds-is-relative">
+            <template if:true={isLoading}>
+                <lightning-spinner
+                    alternative-text="Loading"
+                    size="small">
+                </lightning-spinner>
+            </template>
+
+            <template if:true={isEditing}>
+                <lightning-record-edit-form
+                    object-api-name="Project__c"
+                    record-id={recordId}
+                    onsubmit={handleSubmit}
+                    onsuccess={handleSuccess}
+                    onerror={handleError}>
+
+                    <lightning-input-field
+                        field-name="Primary_Picture__c"
+                        variant="label-hidden">
+                    </lightning-input-field>
+
+                    <div class="slds-p-top_small slds-align_absolute-center">
+                        <lightning-button
+                            class="slds-m-right_small"
+                            label="Cancel"
+                            onclick={handleCancel}
+                            disabled={isLoading}>
+                        </lightning-button>
+                        <lightning-button
+                            type="submit"
+                            label="Save"
+                            variant="brand"
+                            disabled={isLoading}>
+                        </lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </template>
+
+            <template if:false={isEditing}>
+                <div class="slds-form-element">
+                    <div class="slds-form-element__control">
+                        <template if:true={pictureUrl}>
+                            <a
+                                href={pictureUrl}
+                                target="_blank"
+                                title={pictureUrl}
+                                class="slds-input slds-truncate">
+                                {pictureUrl}
+                            </a>
+                        </template>
+                        <template if:false={pictureUrl}>
+                            <span class="slds-input slds-text-color_weak">No primary picture</span>
+                        </template>
+                    </div>
+                </div>
+
+                <template if:true={canEdit}>
+                    <div class="slds-p-top_small slds-align_absolute-center">
+                        <lightning-button
+                            label="Edit"
+                            variant="brand"
+                            onclick={handleEdit}
+                            disabled={isLoading}>
+                        </lightning-button>
+                    </div>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+</template>
