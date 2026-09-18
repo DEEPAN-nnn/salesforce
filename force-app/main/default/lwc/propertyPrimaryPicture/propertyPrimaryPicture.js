@@ -16,7 +16,7 @@ export default class PropertyPrimaryPicture extends LightningElement {
     @api recordId;
 
     isEditing = false;
-    isReady = true;
+    isLoading = false;
 
     projectWire;
     userWire;
@@ -41,10 +41,18 @@ export default class PropertyPrimaryPicture extends LightningElement {
     }
 
     handleEdit() {
-        if (!this.canEdit) {
+        if (!this.canEdit || this.isLoading) {
             return;
         }
         this.isEditing = true;
+    }
+
+    handleSubmit() {
+        this.isLoading = true;
+    }
+
+    handleError() {
+        this.isLoading = false;
     }
 
     handleCancel() {
@@ -59,8 +67,8 @@ export default class PropertyPrimaryPicture extends LightningElement {
     }
 
     async refreshComponent() {
+        this.isLoading = true;
         this.isEditing = false;
-        this.isReady = false;
 
         const refreshes = [];
         if (this.projectWire) {
@@ -71,10 +79,6 @@ export default class PropertyPrimaryPicture extends LightningElement {
         }
         await Promise.all(refreshes);
 
-        // Remount this component's body only (not the whole page)
-        // eslint-disable-next-line @lwc/lwc/no-async-operation
-        window.setTimeout(() => {
-            this.isReady = true;
-        }, 0);
+        this.isLoading = false;
     }
 }
