@@ -1,0 +1,239 @@
+<template>
+  <div class="funnel">
+    <header class="listhead">
+      <div class="head">
+        <div>
+          <h1 class="title">Sales Funnel</h1>
+          <p class="count">{countLabel}</p>
+        </div>
+        <div class="head__acts">
+          <!-- Standard New, not a custom form: the platform applies the
+               user's record types, page layout and field-level access. -->
+          <template if:true={canCreate}>
+            <button class="newbtn" type="button" onclick={handleNew}>
+              New
+            </button>
+          </template>
+          <button
+            class="iconbtn"
+            type="button"
+            title="Refresh"
+            onclick={handleRefresh}
+          >
+            &#8635;
+          </button>
+        </div>
+      </div>
+
+      <div class="search">
+        <span class="search__icon" aria-hidden="true">&#9906;</span>
+        <input
+          class="search__input"
+          type="search"
+          placeholder="Search name, city, phone"
+          value={searchTerm}
+          oninput={handleSearchInput}
+        />
+        <template if:true={hasSearch}>
+          <button
+            class="search__clear"
+            type="button"
+            title="Clear search"
+            onclick={handleClearSearch}
+          >
+            &times;
+          </button>
+        </template>
+      </div>
+
+      <div class="scope">
+        <button
+          class={mineClass}
+          type="button"
+          data-scope="mine"
+          onclick={handleScope}
+        >
+          My Enquiries
+        </button>
+        <button
+          class={teamClass}
+          type="button"
+          data-scope="team"
+          onclick={handleScope}
+        >
+          My team
+        </button>
+      </div>
+
+      <div class="chips">
+        <template for:each={triageChips} for:item="chip">
+          <button
+            key={chip.key}
+            class={chip.cssClass}
+            type="button"
+            data-key={chip.key}
+            onclick={handleTriage}
+          >
+            {chip.label}
+          </button>
+        </template>
+      </div>
+
+      <div class="chiprule"></div>
+
+      <div class="chips">
+        <template for:each={stageChips} for:item="chip">
+          <button
+            key={chip.key}
+            class={chip.cssClass}
+            type="button"
+            data-key={chip.key}
+            onclick={handleStage}
+          >
+            {chip.label}
+          </button>
+        </template>
+      </div>
+
+      <!-- Team member filter is a dropdown, not chips: a hierarchy can run to
+           thirty people, and chips would add a fifth header row that grows
+           with the team. Only shown once the list holds more than one owner. -->
+      <template if:true={showOwnerPicker}>
+        <lightning-combobox
+          class="ownerpick"
+          label="Team member"
+          value={ownerPickerValue}
+          options={ownerOptions}
+          onchange={handleOwnerChange}
+        ></lightning-combobox>
+      </template>
+    </header>
+
+    <template if:true={hasProblems}>
+      <template for:each={problems} for:item="problem">
+        <p key={problem} class="problem">{problem}</p>
+      </template>
+    </template>
+
+    <div class="sortbar">
+      <p class="sortbar__label">{sortLabel}</p>
+      <div class="sortbar__acts">
+        <button
+          class="sortbar__btn"
+          type="button"
+          onclick={handleToggleFilters}
+        >
+          {filterToggleLabel}
+        </button>
+        <button class="sortbar__btn" type="button" onclick={handleToggleSort}>
+          {sortToggleLabel}
+        </button>
+      </div>
+    </div>
+
+    <!-- Behind a toggle, not in the header: four more always-visible rows
+         would bury the first record. -->
+    <template if:true={showFilters}>
+      <div class="filterpanel">
+        <lightning-combobox
+          label="Channel"
+          data-filter="channel"
+          value={channelValue}
+          options={channelOptions}
+          onchange={handleFilterChange}
+        ></lightning-combobox>
+        <lightning-combobox
+          label="Want to"
+          data-filter="wantTo"
+          value={wantToValue}
+          options={wantToOptions}
+          onchange={handleFilterChange}
+        ></lightning-combobox>
+        <lightning-combobox
+          label="Looking for"
+          data-filter="lookingFor"
+          value={lookingForValue}
+          options={lookingForOptions}
+          onchange={handleFilterChange}
+        ></lightning-combobox>
+        <lightning-combobox
+          label="Property assistance"
+          data-filter="assistance"
+          value={assistanceValue}
+          options={assistanceOptions}
+          onchange={handleFilterChange}
+        ></lightning-combobox>
+        <button
+          class="filterpanel__clear"
+          type="button"
+          onclick={handleClearFilters}
+        >
+          Clear filters
+        </button>
+      </div>
+    </template>
+
+    <template if:true={showSortOptions}>
+      <div class="sortopts">
+        <template for:each={sortOptions} for:item="opt">
+          <button
+            key={opt.key}
+            class={opt.cssClass}
+            type="button"
+            data-key={opt.key}
+            onclick={handleSort}
+          >
+            {opt.label}
+          </button>
+        </template>
+      </div>
+    </template>
+
+    <template if:true={isLoading}>
+      <div class="loading">
+        <lightning-spinner
+          alternative-text="Loading records"
+          size="small"
+        ></lightning-spinner>
+      </div>
+    </template>
+
+    <template if:false={isLoading}>
+      <template if:true={isEmpty}>
+        <div class="empty">
+          <strong>{emptyTitle}</strong>
+          <span>{emptyHint}</span>
+        </div>
+      </template>
+
+      <div class="body">
+        <template for:each={rows} for:item="row">
+          <c-mobile-lead-card
+            key={row.recordId}
+            record-id={row.recordId}
+            name={row.name}
+            action={row.action}
+            stage={row.stage}
+            requirement={row.requirement}
+            note={row.note}
+            phone={row.phone}
+            badge={row.badge}
+            owner-name={row.ownerNameForScope}
+            band={row.band}
+            onopencard={handleOpenRecord}
+            onwhatsapp={handleWhatsApp}
+            onlogcall={handleLogCall}
+            onnewevent={handleNewEvent}
+            onnophone={handleNoPhone}
+          ></c-mobile-lead-card>
+        </template>
+      </div>
+
+      <template if:true={hasMore}>
+        <button class="more" type="button" onclick={handleLoadMore}>
+          {loadMoreLabel}
+        </button>
+      </template>
+    </template>
+  </div>
+</template>

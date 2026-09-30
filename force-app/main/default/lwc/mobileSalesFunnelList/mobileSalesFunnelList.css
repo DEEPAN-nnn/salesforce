@@ -1,0 +1,381 @@
+/* Token block - the styling contract for this screen and every child in it.
+   Shared token set for the mobile screens. */
+:host {
+  /* type */
+  --fd-font:
+    "Salesforce Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+    sans-serif;
+  --fd-size-label: 0.875rem;
+  --fd-size-link: 0.875rem;
+  --fd-size-heading: 1rem;
+  --fd-size-title: 1.375rem;
+  --fd-size-metric: 2rem;
+  --fd-size-metric-sm: 1.65rem;
+
+  /* colour */
+  --fd-ground: #f4f6f9;
+  --fd-surface: #ffffff;
+  --fd-border: #e4e7ec;
+  --fd-ink: #181818;
+  --fd-ink-2: #514f4d;
+  --fd-ink-3: #706e6b;
+  --fd-navy: #16325c;
+  --fd-accent: #0176d3;
+  --fd-accent-ring: rgba(1, 118, 211, 0.12);
+  --fd-track: #eef1f5;
+
+  /* shape */
+  --fd-radius-card: 0.75rem;
+  --fd-radius-control: 0.625rem;
+  --fd-radius-bar: 0.375rem;
+  --fd-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+
+  display: block;
+  background: var(--fd-ground);
+  font-family: var(--fd-font);
+  color: var(--fd-ink);
+}
+
+.funnel {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 1.25rem;
+}
+
+/* Deliberately NOT sticky. It was pinned at first, which meant only the record
+   list moved and the header held half the screen permanently. The team asked
+   for one continuous scroll, so the header scrolls away with the content. */
+.listhead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  background: var(--fd-surface);
+  border-bottom: 1px solid var(--fd-border);
+  padding: 0.75rem 0.8rem 0.625rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.625rem;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fd-size-title);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--fd-navy);
+}
+
+.count {
+  margin: 0.2rem 0 0;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.head__acts {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+}
+
+.newbtn {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: var(--fd-radius-control);
+  background: var(--fd-accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: var(--fd-size-link);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.newbtn:active {
+  opacity: 0.75;
+}
+
+.newbtn:focus-visible {
+  outline: 2px solid var(--fd-accent);
+  outline-offset: 2px;
+}
+
+.iconbtn {
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-control);
+  background: var(--fd-surface);
+  color: var(--fd-accent);
+  font-size: 1rem;
+  box-shadow: var(--fd-shadow);
+  cursor: pointer;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-control);
+  background: var(--fd-surface);
+  box-shadow: var(--fd-shadow);
+}
+
+.search__icon {
+  color: var(--fd-ink-3);
+  font-size: 0.95rem;
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink);
+}
+
+.search__clear {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: var(--fd-track);
+  color: var(--fd-ink-3);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.scope {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.scope__btn {
+  flex: 1;
+  min-height: 2.25rem;
+  border: 1px solid var(--fd-border);
+  border-radius: 0.5rem;
+  background: var(--fd-surface);
+  font-family: inherit;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink-2);
+  cursor: pointer;
+}
+
+.scope__btn--on {
+  background: var(--fd-accent-ring);
+  border-color: transparent;
+  color: var(--fd-accent);
+  font-weight: 600;
+}
+
+/* Wrapping grid, never a swipe carousel - an accessibility requirement. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.chip {
+  min-height: 2.25rem;
+  padding: 0 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--fd-border);
+  border-radius: 999px;
+  background: var(--fd-surface);
+  font-family: inherit;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink-2);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.chip--on {
+  background: var(--fd-navy);
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.chip:focus-visible,
+.scope__btn:focus-visible,
+.iconbtn:focus-visible {
+  outline: 2px solid var(--fd-accent);
+  outline-offset: 2px;
+}
+
+.chip:active,
+.scope__btn:active,
+.iconbtn:active {
+  opacity: 0.75;
+}
+
+.chiprule {
+  height: 1px;
+  background: var(--fd-track);
+}
+
+.problem {
+  margin: 0.625rem 0.8rem 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--fd-radius-control);
+  background: #fdf3dc;
+  color: #8a5a00;
+  font-size: var(--fd-size-label);
+  line-height: 1.4;
+}
+
+.sortbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem 0;
+}
+
+.sortbar__label {
+  margin: 0;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink-3);
+}
+
+.sortbar__btn {
+  min-height: 2.25rem;
+  padding: 0 0.4rem;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fd-size-link);
+  font-weight: 500;
+  color: var(--fd-accent);
+  cursor: pointer;
+}
+
+.sortbar__acts {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filterpanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0.8rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-card);
+  background: var(--fd-surface);
+  box-shadow: var(--fd-shadow);
+}
+
+.filterpanel__clear {
+  align-self: flex-start;
+  min-height: 2.75rem;
+  padding: 0 0.4rem;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fd-size-link);
+  font-weight: 500;
+  color: var(--fd-accent);
+  cursor: pointer;
+}
+
+.sortopts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.5rem 0.8rem 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.625rem 0.8rem 0;
+}
+
+.loading {
+  position: relative;
+  min-height: 6rem;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1.6rem 0.8rem;
+  text-align: center;
+  font-size: var(--fd-size-label);
+  color: var(--fd-ink-3);
+}
+
+.empty strong {
+  font-size: var(--fd-size-heading);
+  font-weight: 600;
+  color: var(--fd-ink);
+}
+
+.more {
+  width: calc(100% - 1.6rem);
+  min-height: 2.75rem;
+  margin: 0.75rem 0.8rem 0;
+  border: 1px solid var(--fd-border);
+  border-radius: var(--fd-radius-control);
+  background: var(--fd-surface);
+  font-family: inherit;
+  font-size: var(--fd-size-link);
+  font-weight: 500;
+  color: var(--fd-accent);
+  cursor: pointer;
+}
+
+@media (min-width: 48rem) {
+  .funnel {
+    max-width: 60rem;
+    margin: 0 auto;
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 80rem) {
+  .funnel {
+    max-width: 68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .scope__btn,
+  .iconbtn,
+  .more {
+    transition: none;
+  }
+}
+
+/* Team member picker - one 44px row that does not grow with the team. */
+.ownerpick {
+  display: block;
+}
