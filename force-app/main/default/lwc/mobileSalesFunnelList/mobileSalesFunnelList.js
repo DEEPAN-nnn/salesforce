@@ -466,18 +466,24 @@ export default class MobileSalesFunnelList extends NavigationMixin(
   }
 
   /**
-   * Opens the org's existing global actions so the user gets the same Log a
-   * Call and New Event screens already in the publisher, with this enquiry
-   * as the related record.
+   * Same navigation as customHighlightsPanelMobile.invokeQuickAction:
+   * Global.LogACall and Global.NewEvent, with this enquiry as recordId.
    */
   openGlobalAction(apiName, recordId) {
+    if (!recordId) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Error",
+          message: "Record Id is missing.",
+          variant: "error"
+        })
+      );
+      return;
+    }
     this[NavigationMixin.Navigate]({
       type: "standard__quickAction",
       attributes: { apiName },
-      state: {
-        recordId,
-        objectApiName: "Enquiry__c"
-      }
+      state: { recordId }
     });
   }
 

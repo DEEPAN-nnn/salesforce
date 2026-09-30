@@ -182,40 +182,33 @@
   color: #ffffff;
 }
 
-.btn {
-  flex: 1;
-  min-width: 0;
-  min-height: 2.75rem;
-  padding: 0 0.35rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--fd-border, #e4e7ec);
-  border-radius: var(--fd-radius-control, 0.625rem);
-  background: var(--fd-surface, #ffffff);
-  color: var(--fd-accent, #0176d3);
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.15;
-  text-align: center;
-  cursor: pointer;
+/* Same circles as the mobile Highlights Panel actions. */
+.iconact--log {
+  background: #0b827c;
+  border-color: transparent;
+  border-radius: 50%;
+  color: #ffffff;
 }
 
-.iconact:active,
-.btn:active {
+.iconact--event {
+  background: #ca4b8a;
+  border-color: transparent;
+  border-radius: 50%;
+  color: #ffffff;
+}
+
+.iconact:active {
   opacity: 0.75;
 }
 
-.iconact:focus-visible,
-.btn:focus-visible {
+.iconact:focus-visible {
   outline: 2px solid var(--fd-accent, #0176d3);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card__open,
-  .iconact,
-  .btn {
+  .iconact {
     transition: none;
   }
 }
