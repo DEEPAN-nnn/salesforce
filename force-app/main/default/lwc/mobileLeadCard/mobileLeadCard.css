@@ -152,8 +152,9 @@
 .card__acts {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.25rem;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+  padding: 0 0.35rem;
 }
 
 .iconact {
@@ -162,12 +163,16 @@
   height: 2.75rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--fd-border, #e4e7ec);
-  border-radius: var(--fd-radius-control, 0.625rem);
-  background: var(--fd-surface, #ffffff);
-  color: var(--fd-accent, #0176d3);
+  border: none;
+  border-radius: 50%;
+  background: var(--fd-accent, #0176d3);
+  color: #ffffff;
   text-decoration: none;
   cursor: pointer;
+}
+
+.iconact--call {
+  background: var(--fd-accent, #0176d3);
 }
 
 .iconact svg {
@@ -185,16 +190,10 @@
 /* Same circles as the mobile Highlights Panel actions. */
 .iconact--log {
   background: #0b827c;
-  border-color: transparent;
-  border-radius: 50%;
-  color: #ffffff;
 }
 
 .iconact--event {
   background: #ca4b8a;
-  border-color: transparent;
-  border-radius: 50%;
-  color: #ffffff;
 }
 
 .iconact:active {
