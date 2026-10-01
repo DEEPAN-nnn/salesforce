@@ -1,0 +1,241 @@
+<template>
+  <div class="dash">
+    <div class="dash__header">
+      <div class="dash__heading">
+        <h1 class="dash__title">Sales Performance</h1>
+        <p if:true={asOf} class="dash__asof">As of {asOf}</p>
+      </div>
+      <lightning-button-icon
+        class="dash__refresh"
+        icon-name="utility:refresh"
+        variant="border-filled"
+        alternative-text="Refresh dashboard"
+        title="Refresh"
+        onclick={handleRefresh}
+      ></lightning-button-icon>
+    </div>
+
+    <div if:true={showTabs} class="dash__tabs" role="tablist">
+      <button
+        class={myTabClass}
+        data-tab="INDIVIDUAL"
+        role="tab"
+        onclick={handleTabSelect}
+      >
+        My Performance
+      </button>
+      <button
+        class={teamTabClass}
+        data-tab="TEAM"
+        role="tab"
+        onclick={handleTabSelect}
+      >
+        Team Performance
+      </button>
+    </div>
+
+    <div if:true={showTeamPicker} class="team-picker">
+      <span class="team-picker__label">Teams &amp; Members</span>
+      <button
+        type="button"
+        class="team-picker__field"
+        onclick={handleFieldClick}
+        aria-expanded={pickerExpanded}
+      >
+        <span class="team-picker__value">{pickerSummary}</span>
+        <lightning-icon icon-name={fieldChevron} size="xx-small"></lightning-icon>
+      </button>
+
+      <template if:true={pickerOpen}>
+        <div class="team-picker__backdrop" onclick={cancelPicker}></div>
+        <div class="team-picker__panel" role="dialog" aria-label="Teams and members">
+          <div class="team-picker__searchbox">
+            <lightning-icon
+              icon-name="utility:search"
+              size="xx-small"
+              class="team-picker__searchicon"
+            ></lightning-icon>
+            <input
+              class="team-picker__search"
+              type="search"
+              placeholder="Search teams or members"
+              value={searchText}
+              oninput={handleSearch}
+              autocomplete="off"
+            />
+          </div>
+          <div class="team-picker__list">
+            <template for:each={visibleRows} for:item="row">
+              <div key={row.id} class="team-picker__row" style={row.rowStyle}>
+                <template if:true={row.isNote}>
+                  <span class="team-picker__note">{row.name}</span>
+                </template>
+                <template if:false={row.isNote}>
+                  <button
+                    type="button"
+                    class={row.boxClass}
+                    data-id={row.id}
+                    data-team={row.teamKey}
+                    data-kind={row.kind}
+                    onclick={handleCheck}
+                    role="checkbox"
+                    aria-checked={row.ariaChecked}
+                    aria-label={row.name}
+                  >
+                    <template if:true={row.showCheck}>✓</template>
+                    <template if:true={row.showMinus}>–</template>
+                  </button>
+                  <button
+                    type="button"
+                    class="team-picker__name"
+                    data-id={row.id}
+                    data-team={row.teamKey}
+                    data-kind={row.kind}
+                    onclick={handleCheck}
+                  >
+                    {row.name}
+                  </button>
+                  <template if:true={row.hasChildren}>
+                    <button
+                      type="button"
+                      class="team-picker__chevron"
+                      data-id={row.id}
+                      data-team={row.teamKey}
+                      onclick={toggleExpand}
+                      aria-label={row.expandLabel}
+                    >
+                      <lightning-icon
+                        icon-name={row.chevronIcon}
+                        size="xx-small"
+                      ></lightning-icon>
+                    </button>
+                  </template>
+                </template>
+              </div>
+            </template>
+            <p if:true={noSearchResults} class="team-picker__empty">
+              No matching teams or members
+            </p>
+          </div>
+          <div class="team-picker__actions">
+            <button type="button" class="team-picker__clear" onclick={clearDraft}>
+              Clear
+            </button>
+            <button type="button" class="team-picker__apply" onclick={applyPicker}>
+              Apply
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <div if:true={showPicker} class="dash__filter">
+      <lightning-combobox
+        label="Viewing"
+        value={selectedPersonValue}
+        options={personOptions}
+        onchange={handlePersonChange}
+      ></lightning-combobox>
+    </div>
+
+    <div class="dash__filter">
+      <lightning-combobox
+        label="Edit / Conversion Date"
+        value={selectedRange}
+        options={dateRangeOptions}
+        onchange={handleRangeChange}
+      ></lightning-combobox>
+    </div>
+
+    <template if:true={isLoading}>
+      <div class="dash__spinner">
+        <lightning-spinner
+          alternative-text="Loading dashboard"
+          size="small"
+        ></lightning-spinner>
+      </div>
+    </template>
+
+    <template if:false={isLoading}>
+      <p if:true={error} class="dash__error">
+        Unable to load your dashboard. Please contact your administrator.
+      </p>
+
+      <template if:true={hasProblems}>
+        <div class="dash__notice">
+          <template for:each={problems} for:item="problem">
+            <p key={problem} class="dash__problem">{problem}</p>
+          </template>
+        </div>
+      </template>
+
+      <div class="dash__stack">
+        <template for:each={targetPairs} for:item="pair">
+          <c-mobile-target-card
+            key={pair.key}
+            label={pair.label}
+            target-display={pair.targetDisplay}
+            achieved-display={pair.achievedDisplay}
+            variance-display={pair.varianceDisplay}
+            attainment-pct={pair.attainmentPct}
+            tile-key={pair.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-target-card>
+        </template>
+      </div>
+
+      <template if:true={showRoster}>
+        <div class="dash__roster">
+          <div if:true={showRosterFilter} class="dash__rostersearch">
+            <lightning-input
+              type="search"
+              label="Search team"
+              variant="label-hidden"
+              placeholder="Search team"
+              value={rosterFilter}
+              onchange={handleRosterFilter}
+            ></lightning-input>
+          </div>
+
+          <c-mobile-team-roster
+            title={rosterTitle}
+            members={visibleRoster}
+            onmembertap={handleMemberTap}
+          ></c-mobile-team-roster>
+
+          <button
+            if:true={hasHiddenReportees}
+            class="dash__showall"
+            onclick={handleShowAll}
+          >
+            {showAllLabel}
+          </button>
+        </div>
+      </template>
+
+      <div class="dash__sechead">
+        <span class="dash__sechead-text">Sales Funnel Health</span>
+        <span class="dash__sechead-rule"></span>
+      </div>
+
+      <div class="dash__grid">
+        <template for:each={tiles} for:item="tile">
+          <c-mobile-kpi-tile
+            key={tile.key}
+            label={tile.label}
+            display-value={tile.displayValue}
+            band={tile.band}
+            tile-key={tile.key}
+            ontiletap={handleTileTap}
+          ></c-mobile-kpi-tile>
+        </template>
+      </div>
+
+      <c-mobile-conversion-chart
+        title={conversionTitle}
+        rows={conversion}
+        oncharttap={handleChartTap}
+      ></c-mobile-conversion-chart>
+    </template>
+  </div>
+</template>
