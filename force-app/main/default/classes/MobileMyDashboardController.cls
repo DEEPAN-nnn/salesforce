@@ -502,22 +502,22 @@ public with sharing class MobileMyDashboardController {
     if (!matched.isEmpty()) {
       return matched;
     }
-    String hint = leadHint(selected);
-    if (String.isBlank(hint)) {
+    String leadName = leadHint(selected);
+    if (String.isBlank(leadName)) {
       return matched;
     }
-    String hintLower = hint.toLowerCase();
+    String leadNameLower = leadName.toLowerCase();
     List<User> starts = new List<User>();
     for (User u : activeUsers()) {
       if (String.isBlank(u.Name) || seen.contains(u.Id)) {
         continue;
       }
       String name = u.Name.toLowerCase();
-      if (name == hintLower) {
+      if (name == leadNameLower) {
         matched.add(u);
         return matched;
       }
-      if (hintLower.length() >= 3 && name.startsWith(hintLower)) {
+      if (leadNameLower.length() >= 3 && name.startsWith(leadNameLower)) {
         starts.add(u);
       }
     }
