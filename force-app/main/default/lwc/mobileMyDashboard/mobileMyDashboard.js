@@ -581,6 +581,7 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
       return [
         {
           id: "loading-tree",
+          rowKey: "loading-tree",
           isNote: true,
           name: "Loading your team…",
           rowStyle: "padding-left: 0.35rem"
