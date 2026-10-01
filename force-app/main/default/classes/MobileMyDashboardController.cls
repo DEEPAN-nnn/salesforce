@@ -197,6 +197,8 @@ public with sharing class MobileMyDashboardController {
     @AuraEnabled
     public String name;
     @AuraEnabled
+    public Boolean expandable;
+    @AuraEnabled
     public List<TeamMemberOption> children;
   }
 
@@ -470,19 +472,67 @@ public with sharing class MobileMyDashboardController {
     for (User u : matched) {
       directIds.add(u.Id);
     }
-    Map<Id, List<User>> byManager = usersByManager();
+    Set<Id> managers = managerIdsAmong(directIds);
     for (User u : matched) {
       TeamMemberOption option = new TeamMemberOption();
       option.id = u.Id;
       option.name = u.Name;
-      option.children = omitDirectMembers(
-        buildReportOptions(u.Id, byManager, new Set<Id>()),
-        directIds
-      );
+      option.expandable = managers.contains(u.Id);
+      option.children = new List<TeamMemberOption>();
       options.add(option);
     }
     options.sort(new MemberOptionComparator());
     return options;
+  }
+
+  @AuraEnabled(cacheable=true)
+  public static List<TeamMemberOption> getDirectReports(String managerId) {
+    List<TeamMemberOption> options = new List<TeamMemberOption>();
+    if (String.isBlank(managerId)) {
+      return options;
+    }
+    Id manager;
+    try {
+      manager = (Id) managerId;
+    } catch (Exception e) {
+      return options;
+    }
+    List<User> people = [
+      SELECT Id, Name
+      FROM User
+      WHERE IsActive = TRUE AND ManagerId = :manager
+      ORDER BY Name
+    ];
+    Set<Id> ids = new Set<Id>();
+    for (User person : people) {
+      ids.add(person.Id);
+    }
+    Set<Id> managers = managerIdsAmong(ids);
+    for (User person : people) {
+      TeamMemberOption option = new TeamMemberOption();
+      option.id = person.Id;
+      option.name = person.Name;
+      option.expandable = managers.contains(person.Id);
+      option.children = new List<TeamMemberOption>();
+      options.add(option);
+    }
+    return options;
+  }
+
+  private static Set<Id> managerIdsAmong(Set<Id> userIds) {
+    Set<Id> managers = new Set<Id>();
+    if (userIds == null || userIds.isEmpty()) {
+      return managers;
+    }
+    for (AggregateResult row : [
+      SELECT ManagerId mid
+      FROM User
+      WHERE IsActive = TRUE AND ManagerId IN :userIds
+      GROUP BY ManagerId
+    ]) {
+      managers.add((Id) row.get('mid'));
+    }
+    return managers;
   }
 
   private static Boolean isSystemAdmin() {

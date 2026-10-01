@@ -4,6 +4,7 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import getDashboard from "@salesforce/apex/MobileMyDashboardController.getDashboard";
 import getMyReportTree from "@salesforce/apex/MobileMyDashboardController.getMyReportTree";
 import listTeamMembers from "@salesforce/apex/MobileMyDashboardController.listTeamMembers";
+import getDirectReports from "@salesforce/apex/MobileMyDashboardController.getDirectReports";
 
 const LEVEL_INDIVIDUAL = "INDIVIDUAL";
 const LEVEL_TEAM = "TEAM";
@@ -621,7 +622,10 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
       }
       const children = node.children;
       const pendingTeam = node.kind === "team" && children == null;
-      const hasChildren = pendingTeam || (children || []).length > 0;
+      const hasChildren =
+        pendingTeam ||
+        node.expandable === true ||
+        (children || []).length > 0;
       const expanded =
         !pendingTeam && (query ? selfMatch || childMatch : !!this.expanded[node.id]);
       rows.push(this.toPersonRow(node, depth, hasChildren, expanded));
@@ -727,13 +731,24 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
     }
     const node = this.findNode(id, this.reportTree);
     const opening = !this.expanded[id];
-    if (opening && node && node.kind === "team" && node.children == null) {
+    const needsLoad =
+      opening &&
+      node &&
+      (node.children == null || node.expandable === true) &&
+      (node.kind === "team" || node.expandable === true);
+    if (needsLoad) {
       try {
-        const members = (await listTeamMembers({ teamKey: node.sourceKey })) || [];
+        const members =
+          node.kind === "team"
+            ? (await listTeamMembers({
+                teamKey: node.sourceKey || String(node.id).replace(/^team:/, "")
+              })) || []
+            : (await getDirectReports({ managerId: node.id })) || [];
         this.tagSource(members, node.sourceKey);
         node.children = members;
+        node.expandable = false;
       } catch (err) {
-        node.children = [];
+        return;
       }
       this.reportTree = this.reportTree.slice();
     }
