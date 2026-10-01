@@ -321,12 +321,16 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
   }
 
   renderPerson(data) {
-    const row = (data.roster || []).find((member) => member.name === this.selectedPerson);
-    if (!row) {
-      this.selectedPerson = null;
-      this.renderScope(data);
-      return;
-    }
+    const row = (data.roster || []).find((member) => member.name === this.selectedPerson) || {
+      name: this.selectedPerson,
+      collectionTarget: 0,
+      collectionValue: 0,
+      tokenTarget: 0,
+      tokenAchieved: 0,
+      outstanding: 0,
+      underFinalization: 0,
+      conversion: []
+    };
 
     this.targetPairs = [
       this.decorateTargetPair({
