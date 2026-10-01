@@ -5,6 +5,7 @@ import getDashboard from "@salesforce/apex/MobileMyDashboardController.getDashbo
 import getMyReportTree from "@salesforce/apex/MobileMyDashboardController.getMyReportTree";
 import listTeamMembers from "@salesforce/apex/MobileMyDashboardController.listTeamMembers";
 import getDirectReports from "@salesforce/apex/MobileMyDashboardController.getDirectReports";
+import getTeamPickerTree from "@salesforce/apex/MobileMyDashboardController.getTeamPickerTree";
 
 const LEVEL_INDIVIDUAL = "INDIVIDUAL";
 const LEVEL_TEAM = "TEAM";
@@ -590,6 +591,7 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
       return [
         {
           id: "empty-tree",
+          rowKey: "empty-tree",
           isNote: true,
           name: this.isSystemAdmin ? "No teams are available" : "No one reports to you",
           rowStyle: "padding-left: 0.35rem"
@@ -628,7 +630,9 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
         (children || []).length > 0;
       const expanded =
         !pendingTeam && (query ? selfMatch || childMatch : !!this.expanded[node.id]);
-      rows.push(this.toPersonRow(node, depth, hasChildren, expanded));
+      const row = this.toPersonRow(node, depth, hasChildren, expanded);
+      row.rowKey = `${rows.length}-${node.id}`;
+      rows.push(row);
       if (hasChildren && expanded) {
         this.walkTree(children, depth + 1, rows, selfMatch ? "" : query);
       }
@@ -654,16 +658,21 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
     this.pickerOpen = true;
     if (!this.reportTree) {
       if (this.isSystemAdmin && this.teams.length) {
-        this.reportTree = this.teams.map((team) => ({
-          id: `team:${team.key}`,
-          name: team.name,
-          kind: "team",
-          sourceKey: team.key,
-          children: null
-        }));
+        try {
+          this.reportTree = this.cloneTree((await getTeamPickerTree()) || []);
+        } catch (err) {
+          this.reportTree = this.teams.map((team) => ({
+            id: `team:${team.key}`,
+            name: team.name,
+            kind: "team",
+            sourceKey: team.key,
+            expandable: false,
+            children: null
+          }));
+        }
       } else {
         try {
-          this.reportTree = (await getMyReportTree()) || [];
+          this.reportTree = this.cloneTree((await getMyReportTree()) || []);
         } catch (err) {
           this.reportTree = [];
         }
@@ -725,34 +734,67 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
 
   async toggleExpand(event) {
     event.stopPropagation();
-    const id = event.currentTarget.dataset.id || event.currentTarget.dataset.team;
+    const el = event.currentTarget;
+    const id =
+      (el.dataset && (el.dataset.nodeId || el.dataset.id || el.dataset.team)) ||
+      el.getAttribute("data-node-id") ||
+      el.getAttribute("data-id") ||
+      el.getAttribute("data-team");
     if (!id) {
       return;
     }
     const node = this.findNode(id, this.reportTree);
     const opening = !this.expanded[id];
+    const childCount = node && node.children ? node.children.length : 0;
     const needsLoad =
       opening &&
       node &&
-      (node.children == null || node.expandable === true) &&
-      (node.kind === "team" || node.expandable === true);
+      childCount === 0 &&
+      (node.children == null || node.expandable === true || node.kind === "team");
     if (needsLoad) {
       try {
-        const members =
+        const loaded =
           node.kind === "team"
-            ? (await listTeamMembers({
+            ? await listTeamMembers({
                 teamKey: node.sourceKey || String(node.id).replace(/^team:/, "")
-              })) || []
-            : (await getDirectReports({ managerId: node.id })) || [];
+              })
+            : await getDirectReports({ managerId: node.id });
+        const members = this.cloneTree(loaded || []);
         this.tagSource(members, node.sourceKey);
-        node.children = members;
-        node.expandable = false;
+        this.reportTree = this.replaceChildren(this.reportTree, id, members);
       } catch (err) {
         return;
       }
-      this.reportTree = this.reportTree.slice();
     }
     this.expanded = { ...this.expanded, [id]: opening };
+  }
+
+  cloneTree(nodes) {
+    return (nodes || []).map((node) => ({
+      id: node.id,
+      name: node.name,
+      kind:
+        node.kind ||
+        (String(node.id || "").startsWith("team:") ? "team" : "person"),
+      sourceKey: node.sourceKey || null,
+      expandable: node.expandable === true,
+      children: node.children == null ? null : this.cloneTree(node.children)
+    }));
+  }
+
+  replaceChildren(nodes, id, children) {
+    return (nodes || []).map((node) => {
+      if (node.id === id) {
+        return { ...node, children, expandable: false };
+      }
+      if (node.children && node.children.length) {
+        return {
+          ...node,
+          children: this.replaceChildren(node.children, id, children)
+        };
+      }
+      return node;
+    });
   }
 
   tagSource(nodes, sourceKey) {
@@ -1015,6 +1057,7 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
       isNote: false,
       hasChildren,
       rowStyle: `padding-left: ${Math.min(depth, 4) * 0.7}rem`,
+      chevronMark: expanded ? "▾" : "▸",
       chevronIcon: expanded ? "utility:chevrondown" : "utility:chevronright",
       expandLabel: `${expanded ? "Collapse" : "Expand"} ${node.name}`,
       showCheck: state === "all",

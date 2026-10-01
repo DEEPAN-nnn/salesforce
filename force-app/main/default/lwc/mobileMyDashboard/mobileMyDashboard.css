@@ -430,8 +430,9 @@
   flex: none;
 }
 
-.team-picker__chevron lightning-icon {
-  pointer-events: none;
+.team-picker__chevron-mark {
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .team-picker__note,

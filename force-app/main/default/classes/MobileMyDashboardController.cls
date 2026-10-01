@@ -199,6 +199,10 @@ public with sharing class MobileMyDashboardController {
     @AuraEnabled
     public Boolean expandable;
     @AuraEnabled
+    public String kind;
+    @AuraEnabled
+    public String sourceKey;
+    @AuraEnabled
     public List<TeamMemberOption> children;
   }
 
@@ -436,53 +440,142 @@ public with sharing class MobileMyDashboardController {
   }
 
   @AuraEnabled(cacheable=true)
+  public static List<TeamMemberOption> getTeamPickerTree() {
+    List<TeamMemberOption> teams = new List<TeamMemberOption>();
+    for (TeamDef def : visibleTeams()) {
+      TeamMemberOption team = new TeamMemberOption();
+      team.id = 'team:' + def.key;
+      team.name = def.name;
+      team.kind = 'team';
+      team.sourceKey = def.key;
+      team.expandable = false;
+      team.children = memberOptions(def);
+      teams.add(team);
+    }
+    return teams;
+  }
+
+  @AuraEnabled(cacheable=true)
   public static List<TeamMemberOption> listTeamMembers(String teamKey) {
-    List<TeamMemberOption> options = new List<TeamMemberOption>();
-    TeamDef selected;
     for (TeamDef def : visibleTeams()) {
       if (def.key == teamKey) {
-        selected = def;
-        break;
+        return memberOptions(def);
       }
     }
+    return new List<TeamMemberOption>();
+  }
+
+  private static List<TeamMemberOption> memberOptions(TeamDef selected) {
+    List<TeamMemberOption> options = new List<TeamMemberOption>();
     if (selected == null) {
       return options;
     }
+    Map<Id, List<User>> byManager = reportsByManager();
+    Set<Id> stack = new Set<Id>();
+    for (User member : usersForTeam(selected)) {
+      options.add(personNode(member, selected.key, byManager, stack, 0));
+    }
+    options.sort(new MemberOptionComparator());
+    return options;
+  }
 
+  private static List<User> usersForTeam(TeamDef selected) {
     List<User> matched = new List<User>();
+    Set<Id> seen = new Set<Id>();
     Boolean sandbox = isSandbox();
     if (selected.mode == 'Team_Field') {
       for (User u : activeUsers()) {
-        if (u.Team__c == selected.fieldValue) {
+        if (u.Team__c == selected.fieldValue && seen.add(u.Id)) {
           matched.add(u);
         }
       }
     } else {
       for (String stored : selected.usernames) {
         for (User u : activeUsers()) {
-          if (usernameMatches(stored, u.Username, sandbox)) {
+          if (usernameMatches(stored, u.Username, sandbox) && seen.add(u.Id)) {
             matched.add(u);
             break;
           }
         }
       }
     }
+    if (!matched.isEmpty()) {
+      return matched;
+    }
+    String hint = leadHint(selected);
+    if (String.isBlank(hint)) {
+      return matched;
+    }
+    String hintLower = hint.toLowerCase();
+    List<User> starts = new List<User>();
+    for (User u : activeUsers()) {
+      if (String.isBlank(u.Name) || seen.contains(u.Id)) {
+        continue;
+      }
+      String name = u.Name.toLowerCase();
+      if (name == hintLower) {
+        matched.add(u);
+        return matched;
+      }
+      if (hintLower.length() >= 3 && name.startsWith(hintLower)) {
+        starts.add(u);
+      }
+    }
+    return starts;
+  }
 
-    Set<Id> directIds = new Set<Id>();
-    for (User u : matched) {
-      directIds.add(u.Id);
+  private static String leadHint(TeamDef selected) {
+    String label = selected.name == null ? '' : selected.name.trim();
+    if (label.toLowerCase().endsWith(' team')) {
+      label = label.substring(0, label.length() - 5).trim();
     }
-    Set<Id> managers = managerIdsAmong(directIds);
-    for (User u : matched) {
-      TeamMemberOption option = new TeamMemberOption();
-      option.id = u.Id;
-      option.name = u.Name;
-      option.expandable = managers.contains(u.Id);
-      option.children = new List<TeamMemberOption>();
-      options.add(option);
+    if (label.endsWith('\'s')) {
+      label = label.substring(0, label.length() - 2).trim();
     }
-    options.sort(new MemberOptionComparator());
-    return options;
+    return label;
+  }
+
+  private static TeamMemberOption personNode(
+    User member,
+    String sourceKey,
+    Map<Id, List<User>> byManager,
+    Set<Id> stack,
+    Integer depth
+  ) {
+    TeamMemberOption option = new TeamMemberOption();
+    option.id = member.Id;
+    option.name = member.Name;
+    option.kind = 'person';
+    option.sourceKey = sourceKey;
+    option.expandable = false;
+    option.children = new List<TeamMemberOption>();
+    if (member.Id == null || depth >= 15 || stack.contains(member.Id)) {
+      return option;
+    }
+    stack.add(member.Id);
+    List<User> reports = byManager.get(member.Id);
+    if (reports != null) {
+      for (User report : reports) {
+        option.children.add(personNode(report, sourceKey, byManager, stack, depth + 1));
+      }
+      option.children.sort(new MemberOptionComparator());
+    }
+    stack.remove(member.Id);
+    return option;
+  }
+
+  private static Map<Id, List<User>> reportsByManager() {
+    Map<Id, List<User>> byManager = new Map<Id, List<User>>();
+    for (User member : activeUsers()) {
+      if (member.ManagerId == null) {
+        continue;
+      }
+      if (!byManager.containsKey(member.ManagerId)) {
+        byManager.put(member.ManagerId, new List<User>());
+      }
+      byManager.get(member.ManagerId).add(member);
+    }
+    return byManager;
   }
 
   @AuraEnabled(cacheable=true)
@@ -503,19 +596,12 @@ public with sharing class MobileMyDashboardController {
       WHERE IsActive = TRUE AND ManagerId = :manager
       ORDER BY Name
     ];
-    Set<Id> ids = new Set<Id>();
+    Map<Id, List<User>> byManager = reportsByManager();
+    Set<Id> stack = new Set<Id>{ manager };
     for (User person : people) {
-      ids.add(person.Id);
+      options.add(personNode(person, null, byManager, stack, 0));
     }
-    Set<Id> managers = managerIdsAmong(ids);
-    for (User person : people) {
-      TeamMemberOption option = new TeamMemberOption();
-      option.id = person.Id;
-      option.name = person.Name;
-      option.expandable = managers.contains(person.Id);
-      option.children = new List<TeamMemberOption>();
-      options.add(option);
-    }
+    options.sort(new MemberOptionComparator());
     return options;
   }
 

@@ -66,7 +66,7 @@
           </div>
           <div class="team-picker__list">
             <template for:each={visibleRows} for:item="row">
-              <div key={row.id} class="team-picker__row" style={row.rowStyle}>
+              <div key={row.rowKey} class="team-picker__row" style={row.rowStyle}>
                 <template if:true={row.isNote}>
                   <span class="team-picker__note">{row.name}</span>
                 </template>
@@ -99,15 +99,13 @@
                     <button
                       type="button"
                       class="team-picker__chevron"
+                      data-node-id={row.id}
                       data-id={row.id}
                       data-team={row.teamKey}
                       onclick={toggleExpand}
                       aria-label={row.expandLabel}
                     >
-                      <lightning-icon
-                        icon-name={row.chevronIcon}
-                        size="xx-small"
-                      ></lightning-icon>
+                      <span class="team-picker__chevron-mark">{row.chevronMark}</span>
                     </button>
                   </template>
                 </template>
