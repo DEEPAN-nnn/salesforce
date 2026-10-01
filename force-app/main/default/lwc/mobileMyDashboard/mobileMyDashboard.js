@@ -770,8 +770,64 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
     this.draftIds = ids;
   }
 
+  handleNameClick(event) {
+    event.stopPropagation();
+    const node = this.findNode(event.currentTarget.dataset.id, this.reportTree);
+    if (!node) {
+      return;
+    }
+    this.showNode(node);
+  }
+
+  showNode(node) {
+    const ids = {};
+    this.subtreeIds(node).forEach((id) => {
+      ids[id] = true;
+    });
+    this.draftIds = ids;
+    this.rosterFilter = "";
+    this.rosterExpanded = false;
+    this.pickerOpen = false;
+    this.searchText = "";
+
+    if (node.kind === "team") {
+      this.selectedTeamKey = node.sourceKey;
+      this.selectedPerson = null;
+      this.selectedMemberNames = null;
+      this.pickerLabel = node.name;
+      this.loadData();
+      return;
+    }
+
+    const names = this.flatten([node])
+      .filter((item) => item.kind !== "team")
+      .map((item) => item.name);
+
+    if (this.isSystemAdmin && node.sourceKey && node.sourceKey !== this.selectedTeamKey) {
+      this.selectedTeamKey = node.sourceKey;
+    }
+
+    this.pickerLabel = node.name;
+    if (names.length <= 1) {
+      this.selectedMemberNames = null;
+      this.selectedPerson = names[0] || node.name;
+      this.loadData();
+      return;
+    }
+    this.selectedPerson = null;
+    this.selectedMemberNames = names;
+    this.loadData().then(() => this.renderSelectedMembers(names));
+  }
+
   clearDraft() {
     this.draftIds = {};
+    this.selectedPerson = null;
+    this.selectedMemberNames = null;
+    this.pickerLabel = null;
+    const data = this.payloadByTab[this.payloadKey()];
+    if (data) {
+      this.renderScope(data);
+    }
   }
 
   applyPicker() {
