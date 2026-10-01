@@ -485,43 +485,52 @@ public with sharing class MobileMyDashboardController {
     Boolean sandbox = isSandbox();
     if (selected.mode == 'Team_Field') {
       for (User u : activeUsers()) {
-        if (u.Team__c == selected.fieldValue && seen.add(u.Id)) {
+        if (u.IsActive == true && u.Team__c == selected.fieldValue && seen.add(u.Id)) {
           matched.add(u);
         }
       }
     } else {
       for (String stored : selected.usernames) {
         for (User u : activeUsers()) {
-          if (usernameMatches(stored, u.Username, sandbox) && seen.add(u.Id)) {
+          if (u.IsActive == true && usernameMatches(stored, u.Username, sandbox) && seen.add(u.Id)) {
             matched.add(u);
             break;
           }
         }
       }
     }
-    if (!matched.isEmpty()) {
-      return matched;
+    User lead = findLeadUser(selected);
+    if (lead != null) {
+      List<User> reports = new List<User>();
+      Set<Id> reportIds = new Set<Id>();
+      for (User u : activeUsers()) {
+        if (u.IsActive == true && u.ManagerId == lead.Id && reportIds.add(u.Id)) {
+          reports.add(u);
+        }
+      }
+      if (!reports.isEmpty()) {
+        return reports;
+      }
     }
+    return matched;
+  }
+
+  private static User findLeadUser(TeamDef selected) {
     String leadName = leadHint(selected);
     if (String.isBlank(leadName)) {
-      return matched;
+      return null;
     }
-    String leadNameLower = leadName.toLowerCase();
-    List<User> starts = new List<User>();
+    String wanted = leadName.toLowerCase();
+    User found;
     for (User u : activeUsers()) {
-      if (String.isBlank(u.Name) || seen.contains(u.Id)) {
-        continue;
-      }
-      String name = u.Name.toLowerCase();
-      if (name == leadNameLower) {
-        matched.add(u);
-        return matched;
-      }
-      if (leadNameLower.length() >= 3 && name.startsWith(leadNameLower)) {
-        starts.add(u);
+      if (u.IsActive == true && u.Name != null && u.Name.toLowerCase() == wanted) {
+        if (found != null) {
+          return null;
+        }
+        found = u;
       }
     }
-    return starts;
+    return found;
   }
 
   private static String leadHint(TeamDef selected) {
@@ -567,7 +576,7 @@ public with sharing class MobileMyDashboardController {
   private static Map<Id, List<User>> reportsByManager() {
     Map<Id, List<User>> byManager = new Map<Id, List<User>>();
     for (User member : activeUsers()) {
-      if (member.ManagerId == null) {
+      if (member.IsActive != true || member.ManagerId == null) {
         continue;
       }
       if (!byManager.containsKey(member.ManagerId)) {
@@ -631,7 +640,7 @@ public with sharing class MobileMyDashboardController {
   private static Map<Id, List<User>> usersByManager() {
     Map<Id, List<User>> byManager = new Map<Id, List<User>>();
     for (User member : activeUsers()) {
-      if (member.ManagerId == null) {
+      if (member.IsActive != true || member.ManagerId == null) {
         continue;
       }
       if (!byManager.containsKey(member.ManagerId)) {
@@ -813,7 +822,7 @@ public with sharing class MobileMyDashboardController {
     }
     if (cachedUsers == null) {
       cachedUsers = [
-        SELECT Id, Name, Username, Team__c, ManagerId, Profile.Name
+        SELECT Id, Name, Username, Team__c, ManagerId, IsActive, Profile.Name
         FROM User
         WHERE IsActive = TRUE
       ];

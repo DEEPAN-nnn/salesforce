@@ -422,17 +422,20 @@
 }
 
 .team-picker__chevron {
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: 0;
   background: transparent;
   color: var(--fd-ink-2);
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-.team-picker__chevron-mark {
-  font-size: 0.85rem;
-  line-height: 1;
+.team-picker__chevron lightning-icon {
+  pointer-events: none;
 }
 
 .team-picker__note,
