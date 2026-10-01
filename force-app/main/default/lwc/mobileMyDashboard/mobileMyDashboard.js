@@ -939,7 +939,7 @@ export default class MobileMyDashboard extends NavigationMixin(LightningElement)
       name: node.name,
       isNote: false,
       hasChildren,
-      rowStyle: `padding-left: ${0.35 + depth * 1.15}rem`,
+      rowStyle: `padding-left: ${Math.min(depth, 4) * 0.7}rem`,
       chevronIcon: expanded ? "utility:chevrondown" : "utility:chevronright",
       expandLabel: `${expanded ? "Collapse" : "Expand"} ${node.name}`,
       showCheck: state === "all",

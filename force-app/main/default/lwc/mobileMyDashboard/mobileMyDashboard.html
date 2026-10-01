@@ -82,8 +82,8 @@
                     aria-checked={row.ariaChecked}
                     aria-label={row.name}
                   >
-                    <template if:true={row.showCheck}>✓</template>
-                    <template if:true={row.showMinus}>–</template>
+                    <template if:true={row.showCheck}><span class="team-picker__mark">✓</span></template>
+                    <template if:true={row.showMinus}><span class="team-picker__mark">–</span></template>
                   </button>
                   <button
                     type="button"
