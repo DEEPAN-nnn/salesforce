@@ -1171,24 +1171,24 @@ private class MobileMyDashboardControllerTest {
     ]) {
       byName.put(found.DeveloperName, found);
     }
-    List<Report> reports = new List<Report>();
+    List<Report> visibleReports = new List<Report>();
     for (String name : preferred) {
       if (byName.containsKey(name)) {
-        reports.add(byName.get(name));
+        visibleReports.add(byName.get(name));
       }
     }
-    if (reports.isEmpty()) {
-      reports = [SELECT Id FROM Report LIMIT 1];
+    if (visibleReports.isEmpty()) {
+      visibleReports = [SELECT Id FROM Report LIMIT 1];
     }
-    if (reports.isEmpty()) {
+    if (visibleReports.isEmpty()) {
       return;
     }
 
     Test.startTest();
-    for (Report report : reports) {
+    for (Report reportRow : visibleReports) {
       try {
         Reports.ReportResults results = Reports.ReportManager.runReport(
-          report.Id,
+          reportRow.Id,
           false
         );
         MobileMyDashboardController.grandTotal(results, 'not-a-real-aggregate');
