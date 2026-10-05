@@ -614,6 +614,7 @@ public with sharing class MobileMyDashboardController {
     return options;
   }
 
+  @TestVisible
   private static Set<Id> managerIdsAmong(Set<Id> userIds) {
     Set<Id> managers = new Set<Id>();
     if (userIds == null || userIds.isEmpty()) {
@@ -637,6 +638,7 @@ public with sharing class MobileMyDashboardController {
       viewer.Profile.Name == 'System Administrator';
   }
 
+  @TestVisible
   private static Map<Id, List<User>> usersByManager() {
     Map<Id, List<User>> byManager = new Map<Id, List<User>>();
     for (User member : activeUsers()) {
@@ -651,6 +653,7 @@ public with sharing class MobileMyDashboardController {
     return byManager;
   }
 
+  @TestVisible
   private static List<TeamMemberOption> buildReportOptions(
     Id managerId,
     Map<Id, List<User>> byManager,
@@ -676,6 +679,7 @@ public with sharing class MobileMyDashboardController {
     return nodes;
   }
 
+  @TestVisible
   private static List<TeamMemberOption> omitDirectMembers(
     List<TeamMemberOption> nodes,
     Set<Id> directIds
@@ -993,6 +997,7 @@ public with sharing class MobileMyDashboardController {
     return defs;
   }
 
+  @TestVisible
   private class TeamComparator implements Comparator<TeamDef> {
     public Integer compare(TeamDef a, TeamDef b) {
       if (a.sortOrder != b.sortOrder) {
@@ -1401,6 +1406,7 @@ public with sharing class MobileMyDashboardController {
     }
   }
 
+  @TestVisible
   private class RosterComparator implements Comparator<RosterRowDTO> {
     public Integer compare(RosterRowDTO a, RosterRowDTO b) {
       Decimal left = a.tokenAchieved == null ? 0 : a.tokenAchieved;
