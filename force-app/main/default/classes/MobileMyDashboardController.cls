@@ -1136,16 +1136,18 @@ public with sharing class MobileMyDashboardController {
     Reports.ReportResults results,
     String aggregateName
   ) {
-    if (results == null || results.getReportMetadata() == null) {
-      return null;
-    }
     List<String> aggregates = results.getReportMetadata().getAggregates();
     Integer index = aggregates == null ? -1 : aggregates.indexOf(aggregateName);
     if (index < 0) {
       return null;
     }
 
-    Object raw = readAggregate(factAt(results, 'T!T'), index);
+    Reports.ReportFact fact = results.getFactMap().get('T!T');
+    if (fact == null || fact.getAggregates().size() <= index) {
+      return null;
+    }
+
+    Object raw = fact.getAggregates()[index].getValue();
     if (raw == null) {
       return null;
     }
@@ -1156,9 +1158,6 @@ public with sharing class MobileMyDashboardController {
   private static List<FunnelRowDTO> buildFunnel(Reports.ReportResults results) {
     Map<String, Decimal> byLabel = new Map<String, Decimal>();
 
-    if (results == null || results.getReportMetadata() == null) {
-      return new List<FunnelRowDTO>();
-    }
     List<String> aggregates = results.getReportMetadata().getAggregates();
     Integer index = aggregates == null
       ? -1
@@ -1170,7 +1169,11 @@ public with sharing class MobileMyDashboardController {
     Reports.Dimension down = results.getGroupingsDown();
     if (down != null && down.getGroupings() != null) {
       for (Reports.GroupingValue gv : down.getGroupings()) {
-        Object raw = readAggregate(factAt(results, gv.getKey() + '!T'), index);
+        Reports.ReportFact fact = results.getFactMap().get(gv.getKey() + '!T');
+        if (fact == null || fact.getAggregates().size() <= index) {
+          continue;
+        }
+        Object raw = fact.getAggregates()[index].getValue();
         if (raw == null) {
           continue;
         }
@@ -1210,7 +1213,7 @@ public with sharing class MobileMyDashboardController {
     String aggregateName
   ) {
     Map<String, Decimal> byPerson = new Map<String, Decimal>();
-    if (results == null || results.getReportMetadata() == null) {
+    if (results == null) {
       return byPerson;
     }
 
@@ -1226,7 +1229,12 @@ public with sharing class MobileMyDashboardController {
     }
 
     for (Reports.GroupingValue person : down.getGroupings()) {
-      Object raw = readAggregate(factAt(results, person.getKey() + '!T'), index);
+      Reports.ReportFact fact = results.getFactMap()
+        .get(person.getKey() + '!T');
+      if (fact == null || fact.getAggregates().size() <= index) {
+        continue;
+      }
+      Object raw = fact.getAggregates()[index].getValue();
       if (raw != null) {
         byPerson.put(person.getLabel(), Decimal.valueOf(String.valueOf(raw)));
       }
@@ -1259,9 +1267,6 @@ public with sharing class MobileMyDashboardController {
     Set<String> onlyNames
   ) {
     Map<String, List<FunnelRowDTO>> byPerson = new Map<String, List<FunnelRowDTO>>();
-    if (results == null || results.getReportMetadata() == null) {
-      return byPerson;
-    }
 
     List<String> aggregates = results.getReportMetadata().getAggregates();
     Integer index = aggregates == null
@@ -1297,7 +1302,11 @@ public with sharing class MobileMyDashboardController {
   ) {
     List<Reports.GroupingValue> children = node.getGroupings();
     if (children == null || children.isEmpty()) {
-      Object raw = readAggregate(factAt(results, node.getKey() + '!T'), index);
+      Reports.ReportFact fact = results.getFactMap().get(node.getKey() + '!T');
+      if (fact == null || fact.getAggregates().size() <= index) {
+        return;
+      }
+      Object raw = fact.getAggregates()[index].getValue();
       if (raw == null) {
         return;
       }
@@ -1332,9 +1341,6 @@ public with sharing class MobileMyDashboardController {
     Set<Id> memberIds
   ) {
     List<RosterRowDTO> rows = new List<RosterRowDTO>();
-    if (results == null || results.getReportMetadata() == null) {
-      return rows;
-    }
 
     List<String> aggregates = results.getReportMetadata().getAggregates();
     if (aggregates == null) {
@@ -1350,7 +1356,7 @@ public with sharing class MobileMyDashboardController {
     }
 
     for (Reports.GroupingValue gv : down.getGroupings()) {
-      Reports.ReportFact fact = factAt(results, gv.getKey() + '!T');
+      Reports.ReportFact fact = results.getFactMap().get(gv.getKey() + '!T');
       if (fact == null) {
         continue;
       }
@@ -1381,29 +1387,11 @@ public with sharing class MobileMyDashboardController {
   }
 
   private static Decimal aggregateAt(Reports.ReportFact fact, Integer index) {
-    Object raw = readAggregate(fact, index);
+    if (index == null || index < 0 || fact.getAggregates().size() <= index) {
+      return null;
+    }
+    Object raw = fact.getAggregates()[index].getValue();
     return raw == null ? null : Decimal.valueOf(String.valueOf(raw));
-  }
-
-  private static Reports.ReportFact factAt(
-    Reports.ReportResults results,
-    String key
-  ) {
-    if (results == null || results.getFactMap() == null || key == null) {
-      return null;
-    }
-    return results.getFactMap().get(key);
-  }
-
-  private static Object readAggregate(Reports.ReportFact fact, Integer index) {
-    if (fact == null || index == null || index < 0) {
-      return null;
-    }
-    List<Reports.SummaryValue> values = fact.getAggregates();
-    if (values == null || values.size() <= index || values[index] == null) {
-      return null;
-    }
-    return values[index].getValue();
   }
 
   @TestVisible

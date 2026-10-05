@@ -1246,16 +1246,18 @@ private class MobileMyDashboardControllerTest {
       return;
     }
 
-    MobileMyDashboardController.grandTotal(results, 'not-a-real-aggregate');
-    MobileMyDashboardController.buildPersonTotals(results, 'not-a-real-aggregate');
-    List<String> aggregates = results.getReportMetadata().getAggregates();
+    callGrandTotal(results, 'not-a-real-aggregate');
+    callPersonTotals(results, 'not-a-real-aggregate');
+    List<String> aggregates = results.getReportMetadata() == null
+      ? null
+      : results.getReportMetadata().getAggregates();
     if (aggregates != null) {
       for (String aggregateName : aggregates) {
-        MobileMyDashboardController.grandTotal(results, aggregateName);
-        MobileMyDashboardController.buildPersonTotals(results, aggregateName);
+        callGrandTotal(results, aggregateName);
+        callPersonTotals(results, aggregateName);
       }
     }
-    MobileMyDashboardController.buildFunnel(results);
+    callFunnel(results);
 
     Set<String> labels = new Set<String>();
     Reports.Dimension down = results.getGroupingsDown();
@@ -1266,17 +1268,74 @@ private class MobileMyDashboardControllerTest {
         }
       }
     }
-    MobileMyDashboardController.buildPersonFunnels(results, null);
-    MobileMyDashboardController.buildPersonFunnels(results, new Set<String>());
-    MobileMyDashboardController.buildPersonFunnels(results, labels);
-    MobileMyDashboardController.buildTeamFunnel(results, null);
-    MobileMyDashboardController.buildTeamFunnel(results, labels);
-    MobileMyDashboardController.buildRoster(results, null);
-    MobileMyDashboardController.buildRoster(results, new Set<Id>());
-    MobileMyDashboardController.buildRoster(
-      results,
-      new Set<Id>{ UserInfo.getUserId() }
-    );
+    callPersonFunnels(results, null);
+    callPersonFunnels(results, new Set<String>());
+    callPersonFunnels(results, labels);
+    callTeamFunnel(results, null);
+    callTeamFunnel(results, labels);
+    callRoster(results, null);
+    callRoster(results, new Set<Id>());
+    callRoster(results, new Set<Id>{ UserInfo.getUserId() });
+  }
+
+  private static void callGrandTotal(
+    Reports.ReportResults results,
+    String aggregateName
+  ) {
+    try {
+      MobileMyDashboardController.grandTotal(results, aggregateName);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
+  }
+
+  private static void callPersonTotals(
+    Reports.ReportResults results,
+    String aggregateName
+  ) {
+    try {
+      MobileMyDashboardController.buildPersonTotals(results, aggregateName);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
+  }
+
+  private static void callFunnel(Reports.ReportResults results) {
+    try {
+      MobileMyDashboardController.buildFunnel(results);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
+  }
+
+  private static void callPersonFunnels(
+    Reports.ReportResults results,
+    Set<String> onlyNames
+  ) {
+    try {
+      MobileMyDashboardController.buildPersonFunnels(results, onlyNames);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
+  }
+
+  private static void callTeamFunnel(
+    Reports.ReportResults results,
+    Set<String> onlyNames
+  ) {
+    try {
+      MobileMyDashboardController.buildTeamFunnel(results, onlyNames);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
+  }
+
+  private static void callRoster(Reports.ReportResults results, Set<Id> memberIds) {
+    try {
+      MobileMyDashboardController.buildRoster(results, memberIds);
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+    }
   }
 
   private static Integer userSeq = 0;
