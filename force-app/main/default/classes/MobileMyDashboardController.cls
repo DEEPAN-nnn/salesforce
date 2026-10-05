@@ -1100,6 +1100,7 @@ public with sharing class MobileMyDashboardController {
     return runReport(reportId, dateRange, false);
   }
 
+  @TestVisible
   private static Reports.ReportResults runReport(
     Id reportId,
     String dateRange,
@@ -1319,6 +1320,7 @@ public with sharing class MobileMyDashboardController {
     }
   }
 
+  @TestVisible
   private static List<FunnelRowDTO> orderedFunnel(Map<String, Decimal> totals) {
     List<FunnelRowDTO> rows = new List<FunnelRowDTO>();
     for (String stage : FUNNEL_ORDER) {
@@ -1392,10 +1394,12 @@ public with sharing class MobileMyDashboardController {
     return raw == null ? null : Decimal.valueOf(String.valueOf(raw));
   }
 
+  @TestVisible
   private static Decimal zeroIfNull(Decimal value) {
     return value == null ? 0 : value;
   }
 
+  @TestVisible
   private static Id asId(Object groupingValue) {
     try {
       return groupingValue == null

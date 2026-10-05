@@ -1,4 +1,4 @@
-@isTest
+@isTest(SeeAllData=true)
 private class MobileMyDashboardControllerTest {
   @isTest
   static void getDashboardReturnsShapedPayload() {
@@ -1152,16 +1152,45 @@ private class MobileMyDashboardControllerTest {
 
   @isTest
   static void reportParsersTolerateMissingShapes() {
+    Assert.areEqual(0, MobileMyDashboardController.zeroIfNull(null));
+    Assert.areEqual(4, MobileMyDashboardController.zeroIfNull(4));
+    Assert.isNull(MobileMyDashboardController.asId(null));
+    Assert.isNull(MobileMyDashboardController.asId('not-an-id'));
+    Assert.areEqual(
+      UserInfo.getUserId(),
+      MobileMyDashboardController.asId(String.valueOf(UserInfo.getUserId()))
+    );
     Assert.areEqual(
       0,
       MobileMyDashboardController.buildPersonTotals(null, 'missing').size()
     );
 
+    Map<String, Decimal> stages = new Map<String, Decimal>{
+      'Token' => 2,
+      'Shown Interest' => 9,
+      'Not A Stage' => 100
+    };
+    List<MobileMyDashboardController.FunnelRowDTO> ordered = MobileMyDashboardController.orderedFunnel(
+      stages
+    );
+    Assert.areEqual(2, ordered.size());
+    Assert.areEqual('Shown Interest', ordered[0].label);
+    Assert.areEqual(9, ordered[0].value);
+    Assert.areEqual('Token', ordered[1].label);
+    Assert.areEqual(2, ordered[1].value);
+
     List<String> preferred = new List<String>{
-      'Monthwise_Action_Conversion_Employee_Zh8',
       'My_Action_Wise_Conversion_Report_ZTM',
+      'Monthwise_Action_Conversion_Employee_Zh8',
       'My_Teams_Target_Report_ZVQ',
-      'Outstanding_Tqu'
+      'Outstanding_Tqu',
+      'Under_Fin_o2N',
+      'My_Target_Report_UXk',
+      'My_Collection_Report_fq0',
+      'My_Target_Report_gRz',
+      'My_Token_Achieved_AAl',
+      'Copy_of_Indiviual_Outstanding_Payment_eFe',
+      'My_Under_Finalization_Prospect_uGG'
     };
     Map<String, Report> byName = new Map<String, Report>();
     for (Report found : [
@@ -1180,45 +1209,74 @@ private class MobileMyDashboardControllerTest {
     if (visibleReports.isEmpty()) {
       visibleReports = [SELECT Id FROM Report LIMIT 1];
     }
-    if (visibleReports.isEmpty()) {
-      return;
-    }
 
     Test.startTest();
+    Integer ran = 0;
     for (Report reportRow : visibleReports) {
-      try {
-        Reports.ReportResults results = Reports.ReportManager.runReport(
-          reportRow.Id,
-          false
-        );
-        MobileMyDashboardController.grandTotal(results, 'not-a-real-aggregate');
-        List<String> aggregates = results.getReportMetadata().getAggregates();
-        if (aggregates != null && !aggregates.isEmpty()) {
-          MobileMyDashboardController.grandTotal(results, aggregates[0]);
-          MobileMyDashboardController.buildPersonTotals(results, aggregates[0]);
-        }
-        MobileMyDashboardController.buildPersonTotals(
-          results,
-          'not-a-real-aggregate'
-        );
-        MobileMyDashboardController.buildFunnel(results);
-        MobileMyDashboardController.buildPersonFunnels(
-          results,
-          new Set<String>()
-        );
-        MobileMyDashboardController.buildPersonFunnels(results, null);
-        MobileMyDashboardController.buildTeamFunnel(results, null);
-        MobileMyDashboardController.buildTeamFunnel(
-          results,
-          new Set<String>{ 'Nobody' }
-        );
-        MobileMyDashboardController.buildRoster(results, null);
-        MobileMyDashboardController.buildRoster(results, new Set<Id>());
-      } catch (Exception e) {
-        Assert.isNotNull(e.getMessage());
+      if (ran == 0) {
+        exerciseReport(reportRow.Id, null, false);
+        exerciseReport(reportRow.Id, null, true);
+      }
+      exerciseReport(reportRow.Id, 'THIS_MONTH', true);
+      ran++;
+      if (ran == 4) {
+        break;
       }
     }
     Test.stopTest();
+  }
+
+  private static void exerciseReport(
+    Id reportId,
+    String dateRange,
+    Boolean widenScope
+  ) {
+    Reports.ReportResults results;
+    try {
+      results = MobileMyDashboardController.runReport(
+        reportId,
+        dateRange,
+        widenScope
+      );
+    } catch (Exception e) {
+      Assert.isNotNull(e.getMessage());
+      return;
+    }
+    if (results == null) {
+      return;
+    }
+
+    MobileMyDashboardController.grandTotal(results, 'not-a-real-aggregate');
+    MobileMyDashboardController.buildPersonTotals(results, 'not-a-real-aggregate');
+    List<String> aggregates = results.getReportMetadata().getAggregates();
+    if (aggregates != null) {
+      for (String aggregateName : aggregates) {
+        MobileMyDashboardController.grandTotal(results, aggregateName);
+        MobileMyDashboardController.buildPersonTotals(results, aggregateName);
+      }
+    }
+    MobileMyDashboardController.buildFunnel(results);
+
+    Set<String> labels = new Set<String>();
+    Reports.Dimension down = results.getGroupingsDown();
+    if (down != null && down.getGroupings() != null) {
+      for (Reports.GroupingValue grouping : down.getGroupings()) {
+        if (grouping.getLabel() != null) {
+          labels.add(grouping.getLabel());
+        }
+      }
+    }
+    MobileMyDashboardController.buildPersonFunnels(results, null);
+    MobileMyDashboardController.buildPersonFunnels(results, new Set<String>());
+    MobileMyDashboardController.buildPersonFunnels(results, labels);
+    MobileMyDashboardController.buildTeamFunnel(results, null);
+    MobileMyDashboardController.buildTeamFunnel(results, labels);
+    MobileMyDashboardController.buildRoster(results, null);
+    MobileMyDashboardController.buildRoster(results, new Set<Id>());
+    MobileMyDashboardController.buildRoster(
+      results,
+      new Set<Id>{ UserInfo.getUserId() }
+    );
   }
 
   private static Integer userSeq = 0;
